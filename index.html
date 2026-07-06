@@ -37,7 +37,7 @@ const ARCHETYPES = [
     { key: "rebel", name: "Rebel", clock: 8, longing: "justice", statement: "When a system feels unfair or oppressive, I feel compelled to question it and push for change.", descriptors: ["defiant", "nonconformist", "outspoken"], stages: ["Nihilist", "Contrarian", "Questioner", "Challenger", "Liberator"], opposite: "Everyman" },
     { key: "trickster", name: "Trickster", clock: 9, longing: "to break false patterns", statement: "I love poking holes in rigid rules and using humor or mischief to expose what's fake or stuck.", descriptors: ["playful", "mischievous", "irreverent"], stages: ["Saboteur", "Deceiver", "Jokester", "Innovator", "Truth-Teller"], opposite: "Ruler" },
     { key: "innocent", name: "Innocent", clock: 10, longing: "to trust", statement: "I believe things will work out if I stay true to what feels honest, kind, and good.", descriptors: ["hopeful", "trusting", "optimistic"], stages: ["Bitter Exile", "Avoider", "Believer", "Realist", "Wounded Healer"], opposite: "Warrior" },
-    { key: "mystic", name: "Mystic", clock: 11, longing: "awe at something greater than yourself", statement: "I sense deeper layers beneath ordinary life and am drawn to silence, symbolism, and inner experience.", descriptors: ["intuitive", "otherworldly", "contemplative"], stages: ["Untethered", "Drifter", "Dreamer", "Seer", "Conduit"], opposite: "Creator" },
+    { key: "mystic", name: "Mystic", clock: 11, longing: "awe at something greater than yourself", statement: "I sense deeper layers beneath ordinary life and am drawn to silence, symbolism, and inner experience.", descriptors: ["intuitive", "otherworldly", "contemplative"], stages: ["Adrift", "Drifter", "Dreamer", "Seer", "Conduit"], opposite: "Creator" },
 ];
 const STAGE_NAMES = ["Devolved", "Descended", "Base", "Ascended", "Transcendent"];
 const ALTITUDE_LABEL = "Altitude"; // the name for the five-stage dimension itself — how selfish/selfless an archetype's current expression is
@@ -303,7 +303,7 @@ function TwelveWithin() {
                     ARCHETYPES.map((_, i) => { const [x, y] = nodeXY(i, 46, 60); return React.createElement("circle", { key: i, cx: x, cy: y, r: "4", fill: `hsl(${HUE(i)},62%,56%)` }); }),
                     React.createElement("circle", { cx: "60", cy: "60", r: "4", fill: "rgb(255,252,240)" })),
                 React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-3", style: sans }, "WORKING TITLE"),
-                React.createElement("h1", { className: "text-5xl leading-none mb-4", style: serif }, "The Twelve Within"),
+                React.createElement("h1", { className: "text-5xl leading-none mb-4", style: serif }, "The Art of Soulcraft"),
                 React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-2", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
                 React.createElement("p", { className: "text-violet-300/70 text-sm leading-relaxed mb-8 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("div", { className: "grid gap-3" },
@@ -373,7 +373,7 @@ function TwelveWithin() {
             })(),
             screen === "results" && (React.createElement("div", null,
                 React.createElement("div", { className: "text-center mb-2" },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR MIRROR"),
+                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR RESULTS"),
                     React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" \u00B7 ")),
                     TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-violet-300/75 text-sm mt-2", style: sans },
                         "Your time signature: ",
@@ -382,8 +382,8 @@ function TwelveWithin() {
                         React.createElement("span", { className: "text-violet-300/50" }, "\u00B7 hour is your loudest voice, minutes your second"))),
                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount }),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
-                React.createElement("div", { id: "print-mandala", className: "hidden print:block bg-white text-[#241d42] p-10" },
-                    React.createElement("p", { className: "text-xs tracking-[0.3em] text-center mb-1", style: sans }, "YOUR MIRROR"),
+                React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42] p-10", style: { display: "none" } },
+                    React.createElement("p", { className: "text-xs tracking-[0.3em] text-center mb-1", style: sans }, isSample ? "SAMPLE REPORT" : "YOUR RESULTS"),
                     React.createElement("h1", { className: "text-4xl text-center mb-4", style: serif },
                         ranked[0].name,
                         " \u00B7 ",
