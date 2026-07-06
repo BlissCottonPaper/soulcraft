@@ -40,6 +40,7 @@ const ARCHETYPES = [
     { key: "mystic", name: "Mystic", clock: 11, longing: "awe at something greater than yourself", statement: "I sense deeper layers beneath ordinary life and am drawn to silence, symbolism, and inner experience.", descriptors: ["intuitive", "otherworldly", "contemplative"], stages: ["Untethered", "Drifter", "Dreamer", "Seer", "Conduit"], opposite: "Creator" },
 ];
 const STAGE_NAMES = ["Devolved", "Descended", "Base", "Ascended", "Transcendent"];
+const ALTITUDE_LABEL = "Altitude"; // the name for the five-stage dimension itself — how selfish/selfless an archetype's current expression is
 const STAGE_LIGHT = [30, 42, 55, 67, 79]; // lightness per stage — the light axis, literally
 const HUE = (i) => i * 30; // wheel position = hue; opposites are complementary colors
 const BLEND_NAMES = {
@@ -137,40 +138,39 @@ const nodeXY = (i, R, c) => {
     const rad = ((i * 30 - 90) * Math.PI) / 180;
     return [c + R * Math.cos(rad), c + R * Math.sin(rad)];
 };
-const midXY = (i, j, R, c, awayFrom) => {
+const midXY = (i, j, R, c) => {
+    // Blend dots sit at exactly the midpoint between center and the outer ring
+    // (R/2), in the angular direction halfway between the two parent
+    // archetypes. This is simple and uniform: it naturally keeps every blend
+    // dot inside the wheel and away from the rim, whether its two parents are
+    // neighbors or sit on opposite sides of an axis.
     const a = ((i * 30 - 90) * Math.PI) / 180, b = ((j * 30 - 90) * Math.PI) / 180;
     const vx = Math.cos(a) + Math.cos(b), vy = Math.sin(a) + Math.sin(b);
     const m = Math.hypot(vx, vy);
-    let ux, uy, radius = R;
+    let ux, uy;
     if (m < 0.01) {
-        // Exactly opposite pair (e.g. an axis pair like Creator↔Mystic) — their
-        // midpoint vector cancels to zero. Pick the perpendicular direction that
-        // points AWAY from the triangle's third vertex, so the blend point never
-        // crowds into that neighboring archetype's territory, and push it out
-        // past the primary ring so it's unmistakably its own point.
-        let px = Math.cos(a + Math.PI / 2), py = Math.sin(a + Math.PI / 2);
-        if (typeof awayFrom === "number") {
-            const t = ((awayFrom * 30 - 90) * Math.PI) / 180;
-            const tx = Math.cos(t), ty = Math.sin(t);
-            if (px * tx + py * ty > 0) { px = -px; py = -py; } // flip if pointing toward the third vertex
-        }
-        ux = px; uy = py;
-        radius = R + 46;
+        // Exactly opposite pair (an axis pair, e.g. Creator↔Mystic) — direction
+        // vectors cancel, so use the perpendicular direction instead. Still
+        // placed at the same fixed R/2 radius as every other blend dot.
+        ux = Math.cos(a + Math.PI / 2);
+        uy = Math.sin(a + Math.PI / 2);
     } else {
         ux = vx / m;
         uy = vy / m;
     }
+    const radius = R / 2;
     return [c + ux * radius, c + uy * radius];
 };
 const SAMPLE_WINS = { sage: 21, creator: 19, mystic: 16, trickster: 14, ruler: 12, explorer: 10, lover: 9, warrior: 8, everyman: 7, rebel: 6, caregiver: 5, innocent: 3 };
 /* ---------- components ---------- */
-function Mandala({ ranked }) {
+function Mandala({ ranked, topCount = 3 }) {
     const c = 170, R = 128;
     const idx = (key) => ARCHETYPES.findIndex((a) => a.key === key);
-    const top3 = ranked.slice(0, 3).map((r) => idx(r.key));
-    const triPts = top3.map((i) => nodeXY(i, R, c));
-    const pairs = [[top3[0], top3[1]], [top3[0], top3[2]], [top3[1], top3[2]]];
-    const secPts = pairs.map(([i, j], k) => ({ xy: midXY(i, j, 86, c, top3[2 - k]), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") }));
+    const showBlends = topCount >= 3;
+    const top3 = ranked.slice(0, Math.min(3, topCount)).map((r) => idx(r.key));
+    const triPts = showBlends ? top3.map((i) => nodeXY(i, R, c)) : [];
+    const pairs = showBlends ? [[top3[0], top3[1]], [top3[0], top3[2]], [top3[1], top3[2]]] : [];
+    const secPts = showBlends ? pairs.map(([i, j]) => ({ xy: midXY(i, j, R, c), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") })) : [];
     return (React.createElement("svg", { viewBox: "0 0 340 340", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
         React.createElement("defs", null,
             React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
@@ -182,9 +182,9 @@ function Mandala({ ranked }) {
             const [x, y] = nodeXY(i, R, c);
             return React.createElement("line", { key: "sp" + i, x1: c, y1: c, x2: x, y2: y, stroke: "rgba(210,200,240,0.07)", strokeWidth: "1" });
         }),
-        React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: "rgba(255,250,235,0.06)", stroke: "rgba(233,196,124,0.9)", strokeWidth: "1.5", strokeLinejoin: "round" }),
-        React.createElement("polygon", { points: secPts.map((p) => p.xy.join(",")).join(" "), fill: "none", stroke: "rgba(220,214,244,0.4)", strokeWidth: "1", strokeLinejoin: "round" }),
-        secPts.map((p, k) => (React.createElement("g", { key: "s" + k },
+        showBlends && React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: "rgba(255,250,235,0.06)", stroke: "rgba(233,196,124,0.9)", strokeWidth: "1.5", strokeLinejoin: "round" }),
+        showBlends && React.createElement("polygon", { points: secPts.map((p) => p.xy.join(",")).join(" "), fill: "none", stroke: "rgba(220,214,244,0.4)", strokeWidth: "1", strokeLinejoin: "round" }),
+        showBlends && secPts.map((p, k) => (React.createElement("g", { key: "s" + k },
             React.createElement("circle", { cx: p.xy[0], cy: p.xy[1], r: "5.5", fill: p.fill, stroke: "rgba(255,255,255,0.5)", strokeWidth: "0.8" }),
             React.createElement("text", { x: p.xy[0], y: p.xy[1] + 15, textAnchor: "middle", fontSize: "7.5", fill: "rgba(224,218,246,0.82)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.03em" } }, p.label)))),
         ARCHETYPES.map((a, i) => {
@@ -192,7 +192,7 @@ function Mandala({ ranked }) {
             const [lx, ly] = nodeXY(i, R + 24, c);
             const isTop = top3.includes(i);
             return (React.createElement("g", { key: a.key },
-                React.createElement("circle", { cx: x, cy: y, r: isTop ? 9.5 : 6, fill: `hsl(${HUE(i)},62%,56%)`, stroke: isTop ? "rgba(255,252,240,0.95)" : "rgba(255,255,255,0.25)", strokeWidth: isTop ? 1.8 : 0.8 }),
+                React.createElement("circle", { cx: x, cy: y, r: isTop ? 11 : 6, fill: `hsl(${HUE(i)},62%,56%)`, stroke: isTop ? "rgba(255,252,240,0.95)" : "rgba(255,255,255,0.25)", strokeWidth: isTop ? 2.2 : 0.8 }),
                 React.createElement("text", { x: lx, y: ly + 3, textAnchor: "middle", fontSize: "9.5", fill: isTop ? "rgba(244,240,255,0.95)" : "rgba(196,190,222,0.62)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.04em" } }, a.name)));
         }),
         React.createElement("circle", { cx: c, cy: c, r: "30", fill: "url(#ctrGlow)" }),
@@ -202,13 +202,15 @@ function Mandala({ ranked }) {
 function Ladder({ arche }) {
     const i = ARCHETYPES.findIndex((a) => a.key === arche.key);
     const rows = [4, 3, 2, 1, 0]; // Transcendent → Devolved
-    return (React.createElement("div", { className: "mt-3 space-y-1" }, rows.map((s) => (React.createElement("div", { key: s, className: "flex items-center gap-2.5" },
+    return (React.createElement("div", { className: "mt-3" },
+        React.createElement("p", { className: "text-[10px] tracking-[0.2em] text-violet-300/40 mb-1.5", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, ALTITUDE_LABEL.toUpperCase()),
+        React.createElement("div", { className: "space-y-1" }, rows.map((s) => (React.createElement("div", { key: s, className: "flex items-center gap-2.5" },
         React.createElement("span", { className: "w-2 h-2 rounded-full shrink-0", style: { background: `hsl(${HUE(i)},58%,${STAGE_LIGHT[s]}%)` } }),
         React.createElement("span", { className: "text-sm " + (s === 2 ? "text-amber-200" : s > 2 ? "text-violet-100" : "text-violet-300/70"), style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
             arche.stages[s],
             React.createElement("span", { className: "text-violet-300/45 text-xs ml-2" },
                 STAGE_NAMES[s].toLowerCase(),
-                s === 2 ? " · where the day begins" : "")))))));
+                s === 2 ? " · where the day begins" : "")))))))); 
 }
 // TIER CONFIG — single source of truth for what each paid tier unlocks.
 // No Stripe wired yet: `tier` is just app state, chosen at the intro screen.
@@ -235,8 +237,8 @@ function TwelveWithin() {
     const chips = useMemo(() => shuffle(ARCHETYPES.flatMap((a) => a.descriptors.map((d) => ({ word: d, key: a.key })))), [session]);
     const pairs = useMemo(() => buildPairs(TIERS[tier].pairMode), [tier, session]);
     const start = (t) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChCounts({}); setIsSample(false); setScreen("descriptors"); };
-    const restart = () => { setScreen("intro"); setIsSample(false); };
-    const showSample = () => { setWins(SAMPLE_WINS); setPicks([]); setChCounts({ mind: 3, soul: 1 }); setIsSample(true); setScreen("results"); };
+    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChCounts({}); setPairIdx(0); };
+    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChCounts({ mind: 3, soul: 1 }); setPairIdx(0); setTier("full"); setIsSample(true); setScreen("results"); };
     const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
     const choosePairGraded = (leftIdx, rightIdx, position) => {
         // position 1..5: 1=strongly left, 3=truly between, 5=strongly right
@@ -289,10 +291,10 @@ function TwelveWithin() {
             margin: 0.5in;
           }
           @media print {
-            html, body { height: auto !important; margin: 0 !important; padding: 0 !important; }
-            body * { visibility: hidden; height: 0 !important; overflow: hidden !important; }
-            #print-mandala, #print-mandala * { visibility: visible; height: auto !important; overflow: visible !important; }
-            #print-mandala { position: static !important; width: 100%; max-width: 7.5in; font-size: 13px; margin: 0 auto; }
+            html, body { height: auto !important; margin: 0 !important; padding: 0 !important; background: white !important; }
+            body > div { display: contents !important; }
+            body *:not(#print-mandala):not(#print-mandala *) { display: none !important; }
+            #print-mandala { display: block !important; position: static !important; width: 100%; max-width: 7.5in; font-size: 13px; margin: 0 auto; }
             #print-mandala svg { max-width: 280px; margin: 0 auto; }
           }
         `),
@@ -372,17 +374,14 @@ function TwelveWithin() {
             screen === "results" && (React.createElement("div", null,
                 React.createElement("div", { className: "text-center mb-2" },
                     React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR MIRROR"),
-                    React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, TIERS[tier].topCount).map((r) => r.name).join(" \u00B7 ")),
-                    React.createElement("p", { className: "text-violet-300/75 text-sm mt-2", style: sans },
+                    React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" \u00B7 ")),
+                    TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-violet-300/75 text-sm mt-2", style: sans },
                         "Your time signature: ",
                         React.createElement("span", { className: "text-amber-200" }, timeSig),
                         " ",
                         React.createElement("span", { className: "text-violet-300/50" }, "\u00B7 hour is your loudest voice, minutes your second"))),
-                TIERS[tier].topCount >= 3
-                    ? React.createElement(Mandala, { ranked: ranked })
-                    : React.createElement("div", { className: "flex justify-center py-6" },
-                        React.createElement("div", { className: "w-24 h-24 rounded-full", style: { background: `hsl(${HUE(ranked[0].i)},62%,56%)`, boxShadow: "0 0 40px rgba(255,255,255,0.15)" } })),
-                React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
+                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount }),
+                TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("div", { id: "print-mandala", className: "hidden print:block bg-white text-[#241d42] p-10" },
                     React.createElement("p", { className: "text-xs tracking-[0.3em] text-center mb-1", style: sans }, "YOUR MIRROR"),
                     React.createElement("h1", { className: "text-4xl text-center mb-4", style: serif },
@@ -392,7 +391,7 @@ function TwelveWithin() {
                         " \u00B7 ",
                         ranked[2].name),
                     React.createElement("div", { className: "flex justify-center mb-4" },
-                        React.createElement(Mandala, { ranked: ranked })),
+                        React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount })),
                     React.createElement("p", { className: "text-center text-sm italic mb-6", style: serif },
                         "Time signature: ",
                         timeSig,
