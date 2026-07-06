@@ -137,13 +137,22 @@ const nodeXY = (i, R, c) => {
 };
 const midXY = (i, j, R, c) => {
     const a = ((i * 30 - 90) * Math.PI) / 180, b = ((j * 30 - 90) * Math.PI) / 180;
-    let vx = Math.cos(a) + Math.cos(b), vy = Math.sin(a) + Math.sin(b);
-    const m = Math.hypot(vx, vy) || 1;
+    const vx = Math.cos(a) + Math.cos(b), vy = Math.sin(a) + Math.sin(b);
+    const m = Math.hypot(vx, vy);
+    let ux, uy, radius = R;
     if (m < 0.01) {
-        vx = Math.cos(a + Math.PI / 2);
-        vy = Math.sin(a + Math.PI / 2);
+        // Exactly opposite pair (e.g. an axis pair like Creator↔Mystic) — their
+        // midpoint vector cancels to zero. Use a clean perpendicular direction
+        // instead, and push further out so the point clears the center glow
+        // and is never mistaken for sitting "on" the YOU marker.
+        ux = Math.cos(a + Math.PI / 2);
+        uy = Math.sin(a + Math.PI / 2);
+        radius = R + 32;
+    } else {
+        ux = vx / m;
+        uy = vy / m;
     }
-    return [c + (vx / m) * R, c + (vy / m) * R];
+    return [c + ux * radius, c + uy * radius];
 };
 const SAMPLE_WINS = { sage: 21, creator: 19, mystic: 16, trickster: 14, ruler: 12, explorer: 10, lover: 9, warrior: 8, everyman: 7, rebel: 6, caregiver: 5, innocent: 3 };
 /* ---------- components ---------- */
@@ -261,9 +270,10 @@ function TwelveWithin() {
             margin: 0.5in;
           }
           @media print {
-            body * { visibility: hidden; }
-            #print-mandala, #print-mandala * { visibility: visible; }
-            #print-mandala { position: absolute; top: 0; left: 0; width: 100%; max-width: 7.5in; font-size: 13px; }
+            html, body { height: auto !important; margin: 0 !important; padding: 0 !important; }
+            body * { visibility: hidden; height: 0 !important; overflow: hidden !important; }
+            #print-mandala, #print-mandala * { visibility: visible; height: auto !important; overflow: visible !important; }
+            #print-mandala { position: static !important; width: 100%; max-width: 7.5in; font-size: 13px; margin: 0 auto; }
             #print-mandala svg { max-width: 280px; margin: 0 auto; }
           }
         `),
