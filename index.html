@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>The Art of Soulcraft — Mirror Prototype</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" defer></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" defer></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
 <div id="root"></div>
 <script>
 "use strict";
-const { useState, useMemo } = React;
+var useState, useMemo;
 /* ============================================================
    THE TWELVE WITHIN — assessment prototype (working title)
    A hall of mirrors: forced-choice ranking of the twelve
@@ -455,12 +455,11 @@ function TwelveWithin() {
 
 function mountApp() {
   if (typeof React === "undefined" || typeof ReactDOM === "undefined") {
-    // React/ReactDOM CDN scripts haven't finished loading yet — wait and retry
-    // rather than crashing. This makes the file robust to any preview
-    // environment or network condition that delays script execution order.
     setTimeout(mountApp, 50);
     return;
   }
+  useState = React.useState;
+  useMemo = React.useMemo;
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(React.createElement(TwelveWithin, null));
 }
