@@ -27,16 +27,16 @@ var useState, useMemo;
    ============================================================ */
 const ARCHETYPES = [
     { key: "lover", name: "Lover", clock: 12, longing: "union", statement: "I'm drawn to deep connection and beauty, and I pour my heart into the people and passions I cherish.", descriptors: ["passionate", "devoted", "sensual"], stages: ["Possessor", "Craver", "Romantic", "Devoted", "Beloved"], opposite: "Sage" },
-    { key: "caregiver", name: "Caregiver", clock: 1, longing: "to nurture", statement: "I naturally take responsibility for others' needs and feel fulfilled when I'm supporting people.", descriptors: ["nurturing", "supportive", "selfless"], stages: ["Enabler", "Martyr", "Helper", "Nurturer", "Restorer"], opposite: "Explorer" },
-    { key: "everyman", name: "Everyman", clock: 2, longing: "to belong", statement: "I feel most myself when I'm part of a down-to-earth group where everyone is equal and included.", descriptors: ["approachable", "down-to-earth", "inclusive"], stages: ["Self-Eraser", "People-Pleaser", "Neighbor", "Relater", "Bridge-Builder"], opposite: "Rebel" },
+    { key: "caregiver", name: "Caregiver", clock: 1, longing: "nurture", longingVerb: true, statement: "I naturally take responsibility for others' needs and feel fulfilled when I'm supporting people.", descriptors: ["nurturing", "supportive", "selfless"], stages: ["Enabler", "Martyr", "Helper", "Nurturer", "Restorer"], opposite: "Explorer" },
+    { key: "everyman", name: "Everyman", clock: 2, longing: "belong", longingVerb: true, statement: "I feel most myself when I'm part of a down-to-earth group where everyone is equal and included.", descriptors: ["approachable", "down-to-earth", "inclusive"], stages: ["Self-Eraser", "People-Pleaser", "Neighbor", "Relater", "Bridge-Builder"], opposite: "Rebel" },
     { key: "ruler", name: "Ruler", clock: 3, longing: "order", statement: "I instinctively step in to organize, decide, and take charge so things feel stable and secure.", descriptors: ["authoritative", "decisive", "responsible"], stages: ["Tyrant", "Micromanager", "Organizer", "Steward", "Sovereign"], opposite: "Trickster" },
-    { key: "warrior", name: "Warrior", clock: 4, longing: "to protect", statement: "I'm driven to face challenges head-on and protect what matters, even when it costs me.", descriptors: ["determined", "courageous", "protective"], stages: ["Oppressor", "Mercenary", "Fighter", "Champion", "Guardian"], opposite: "Innocent" },
+    { key: "warrior", name: "Warrior", clock: 4, longing: "protect", longingVerb: true, statement: "I'm driven to face challenges head-on and protect what matters, even when it costs me.", descriptors: ["determined", "courageous", "protective"], stages: ["Oppressor", "Mercenary", "Fighter", "Champion", "Guardian"], opposite: "Innocent" },
     { key: "creator", name: "Creator", clock: 5, longing: "bring forth", longingVerb: true, statement: "I feel compelled to make things — ideas, art, solutions — that express my inner vision in the world.", descriptors: ["imaginative", "artistic", "expressive"], stages: ["Destroyer", "Perfectionist", "Maker", "Artisan", "Alchemist"], opposite: "Mystic" },
     { key: "sage", name: "Sage", clock: 6, longing: "truth", statement: "I'm always seeking to understand how things work, and I value truth and insight more than quick answers.", descriptors: ["analytical", "reflective", "insightful"], stages: ["Cynic", "Know-It-All", "Student", "Mentor", "Elder"], opposite: "Lover" },
     { key: "explorer", name: "Explorer", clock: 7, longing: "freedom", statement: "I crave freedom and new experiences, and I feel alive when I'm venturing beyond the familiar.", descriptors: ["adventurous", "independent", "restless"], stages: ["Deserter", "Escapist", "Wanderer", "Pathfinder", "Pilgrim"], opposite: "Caregiver" },
     { key: "rebel", name: "Rebel", clock: 8, longing: "justice", statement: "When a system feels unfair or oppressive, I feel compelled to question it and push for change.", descriptors: ["defiant", "nonconformist", "outspoken"], stages: ["Nihilist", "Contrarian", "Questioner", "Challenger", "Liberator"], opposite: "Everyman" },
-    { key: "trickster", name: "Trickster", clock: 9, longing: "to break false patterns", statement: "I love poking holes in rigid rules and using humor or mischief to expose what's fake or stuck.", descriptors: ["playful", "mischievous", "irreverent"], stages: ["Saboteur", "Deceiver", "Jokester", "Innovator", "Truth-Teller"], opposite: "Ruler" },
-    { key: "innocent", name: "Innocent", clock: 10, longing: "to trust", statement: "I believe things will work out if I stay true to what feels honest, kind, and good.", descriptors: ["hopeful", "trusting", "optimistic"], stages: ["Bitter Exile", "Avoider", "Believer", "Realist", "Wounded Healer"], opposite: "Warrior" },
+    { key: "trickster", name: "Trickster", clock: 9, longing: "break false patterns", longingVerb: true, statement: "I love poking holes in rigid rules and using humor or mischief to expose what's fake or stuck.", descriptors: ["playful", "mischievous", "irreverent"], stages: ["Saboteur", "Deceiver", "Jokester", "Innovator", "Truth-Teller"], opposite: "Ruler" },
+    { key: "innocent", name: "Innocent", clock: 10, longing: "trust", longingVerb: true, statement: "I believe things will work out if I stay true to what feels honest, kind, and good.", descriptors: ["hopeful", "trusting", "optimistic"], stages: ["Bitter Exile", "Avoider", "Believer", "Realist", "Wounded Healer"], opposite: "Warrior" },
     { key: "mystic", name: "Mystic", clock: 11, longing: "awe at something greater than yourself", statement: "I sense deeper layers beneath ordinary life and am drawn to silence, symbolism, and inner experience.", descriptors: ["intuitive", "otherworldly", "contemplative"], stages: ["Adrift", "Drifter", "Dreamer", "Seer", "Conduit"], opposite: "Creator" },
 ];
 const STAGE_NAMES = ["Devolved", "Descended", "Base", "Ascended", "Transcendent"];
@@ -138,7 +138,7 @@ const nodeXY = (i, R, c) => {
     const rad = ((i * 30 - 90) * Math.PI) / 180;
     return [c + R * Math.cos(rad), c + R * Math.sin(rad)];
 };
-const midXY = (i, j, R, c) => {
+const midXY = (i, j, R, c, thirdIdx) => {
     // Blend dots sit at exactly the midpoint between center and the outer ring
     // (R/2), in the angular direction halfway between the two parent
     // archetypes. This is simple and uniform: it naturally keeps every blend
@@ -150,10 +150,19 @@ const midXY = (i, j, R, c) => {
     let ux, uy;
     if (m < 0.01) {
         // Exactly opposite pair (an axis pair, e.g. Creator↔Mystic) — direction
-        // vectors cancel, so use the perpendicular direction instead. Still
-        // placed at the same fixed R/2 radius as every other blend dot.
-        ux = Math.cos(a + Math.PI / 2);
-        uy = Math.sin(a + Math.PI / 2);
+        // vectors cancel, so use the perpendicular direction instead. Which of
+        // the two perpendicular directions we pick matters: if the OTHER top-3
+        // vertex (thirdIdx) sits near one side, place this blend dot on the
+        // OPPOSITE side, so two blend labels near the same axis never crowd
+        // into the same space (e.g. Shaman and Magician both wanting to sit
+        // near the Sage-Mystic-Creator triangle's left edge).
+        let px = Math.cos(a + Math.PI / 2), py = Math.sin(a + Math.PI / 2);
+        if (typeof thirdIdx === "number") {
+            const t = ((thirdIdx * 30 - 90) * Math.PI) / 180;
+            const tx = Math.cos(t), ty = Math.sin(t);
+            if (px * tx + py * ty > 0) { px = -px; py = -py; } // flip away from the third vertex
+        }
+        ux = px; uy = py;
     } else {
         ux = vx / m;
         uy = vy / m;
@@ -170,7 +179,7 @@ function Mandala({ ranked, topCount = 3 }) {
     const top3 = ranked.slice(0, Math.min(3, topCount)).map((r) => idx(r.key));
     const triPts = showBlends ? top3.map((i) => nodeXY(i, R, c)) : [];
     const pairs = showBlends ? [[top3[0], top3[1]], [top3[0], top3[2]], [top3[1], top3[2]]] : [];
-    const secPts = showBlends ? pairs.map(([i, j]) => ({ xy: midXY(i, j, R, c), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") })) : [];
+    const secPts = showBlends ? pairs.map(([i, j], k) => ({ xy: midXY(i, j, R, c, top3[2 - k]), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") })) : [];
     return (React.createElement("svg", { viewBox: "0 0 340 340", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
         React.createElement("defs", null,
             React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
@@ -189,7 +198,7 @@ function Mandala({ ranked, topCount = 3 }) {
             React.createElement("text", { x: p.xy[0], y: p.xy[1] + 15, textAnchor: "middle", fontSize: "7.5", fill: "rgba(224,218,246,0.82)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.03em" } }, p.label)))),
         ARCHETYPES.map((a, i) => {
             const [x, y] = nodeXY(i, R, c);
-            const [lx, ly] = nodeXY(i, R + 24, c);
+            const [lx, ly] = nodeXY(i, R + 28, c);
             const isTop = top3.includes(i);
             return (React.createElement("g", { key: a.key },
                 React.createElement("circle", { cx: x, cy: y, r: isTop ? 11 : 6, fill: `hsl(${HUE(i)},62%,56%)`, stroke: isTop ? "rgba(255,252,240,0.95)" : "rgba(255,255,255,0.25)", strokeWidth: isTop ? 2.2 : 0.8 }),
@@ -238,7 +247,7 @@ function TwelveWithin() {
     const pairs = useMemo(() => buildPairs(TIERS[tier].pairMode), [tier, session]);
     const start = (t) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChCounts({}); setIsSample(false); setScreen("descriptors"); };
     const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChCounts({}); setPairIdx(0); };
-    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChCounts({ mind: 3, soul: 1 }); setPairIdx(0); setTier("full"); setIsSample(true); setScreen("results"); };
+    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChCounts({ mind: 3, soul: 1 }); setPairIdx(0); setTier("triad"); setIsSample(true); setScreen("results"); };
     const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
     const choosePairGraded = (leftIdx, rightIdx, position) => {
         // position 1..5: 1=strongly left, 3=truly between, 5=strongly right
@@ -302,14 +311,18 @@ function TwelveWithin() {
                 React.createElement("svg", { viewBox: "0 0 120 120", className: "w-24 h-24 mx-auto mb-6", "aria-hidden": "true" },
                     ARCHETYPES.map((_, i) => { const [x, y] = nodeXY(i, 46, 60); return React.createElement("circle", { key: i, cx: x, cy: y, r: "4", fill: `hsl(${HUE(i)},62%,56%)` }); }),
                     React.createElement("circle", { cx: "60", cy: "60", r: "4", fill: "rgb(255,252,240)" })),
-                React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-3", style: sans }, "WORKING TITLE"),
-                React.createElement("h1", { className: "text-5xl leading-none mb-4", style: serif }, "The Art of Soulcraft"),
+                React.createElement("h1", { className: "text-5xl leading-none mb-2", style: serif }, "Your Mandala"),
+                React.createElement("p", { className: "text-violet-200/80 text-[15px] italic mb-1", style: serif }, "a guide to your core archetypes"),
+                React.createElement("p", { className: "text-[11px] tracking-[0.15em] text-violet-300/50 mb-4", style: sans }, "by The Art of Soulcraft"),
                 React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-2", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
                 React.createElement("p", { className: "text-violet-300/70 text-sm leading-relaxed mb-8 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("div", { className: "grid gap-3" },
                     React.createElement(Btn, { primary: true, onClick: () => start("free") }, "Free \u00B7 your loudest voice (~2 min)"),
                     React.createElement(Btn, { onClick: () => start("triad") }, "Triad \u00B7 your top three (~4 min)"),
                     React.createElement(Btn, { onClick: () => start("full") }, "Full Mirror \u00B7 the complete ranking (~7 min)"),
+                    React.createElement("div", { className: "rounded-xl px-5 py-3.5 text-[15px] border border-violet-300/15 text-violet-300/40 flex items-center justify-between cursor-not-allowed", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
+                        React.createElement("span", null, "Compatibility \u00B7 for two"),
+                        React.createElement("span", { className: "text-[10px] tracking-[0.15em] uppercase" }, "Coming soon")),
                     React.createElement("button", { onClick: showSample, className: "text-amber-200/70 hover:text-amber-100 text-sm underline underline-offset-4 mt-1", style: sans }, "Show a sample mirror first")),
                 React.createElement("p", { className: "text-violet-300/50 text-xs mt-8", style: sans }, "A reflective tool \u2014 a mirror, not a fortune. Not prediction, not diagnosis."))),
             screen === "descriptors" && (React.createElement("div", null,
@@ -373,7 +386,7 @@ function TwelveWithin() {
             })(),
             screen === "results" && (React.createElement("div", null,
                 React.createElement("div", { className: "text-center mb-2" },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR RESULTS"),
+                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR LOOKING GLASS RESULTS"),
                     React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" \u00B7 ")),
                     TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-violet-300/75 text-sm mt-2", style: sans },
                         "Your time signature: ",
@@ -382,6 +395,7 @@ function TwelveWithin() {
                         React.createElement("span", { className: "text-violet-300/50" }, "\u00B7 hour is your loudest voice, minutes your second"))),
                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount }),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
+                React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-8 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42] p-10", style: { display: "none" } },
                     React.createElement("p", { className: "text-xs tracking-[0.3em] text-center mb-1", style: sans }, isSample ? "SAMPLE REPORT" : "YOUR RESULTS"),
                     React.createElement("h1", { className: "text-4xl text-center mb-4", style: serif },
@@ -473,7 +487,30 @@ function TwelveWithin() {
                             React.createElement("div", { className: "h-full rounded-full", style: { width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},62%,56%)` } }))))))),
                 !TIERS[tier].showFullRanking && React.createElement("p", { className: "text-center text-violet-300/60 text-sm italic mb-8", style: serif }, `Unlock the complete 1\u201312 ranking with ${TIERS.full.label}.`),
                 React.createElement("div", { className: "grid gap-3" },
-                    React.createElement(Btn, { primary: true, onClick: () => window.print() }, "Print your mandala"),
+                    React.createElement(Btn, { primary: true, onClick: () => {
+                        // Print via an isolated iframe rather than window.print() + CSS media
+                        // queries. The parent page's own CSS cascade (nested containers,
+                        // Tailwind's CDN-generated rules, etc.) has repeatedly interfered with
+                        // @media print rules in a single shared document. An iframe gets a
+                        // completely separate document with none of that inherited complexity.
+                        const src = document.getElementById("print-mandala");
+                        if (!src) return;
+                        const iframe = document.createElement("iframe");
+                        iframe.style.position = "fixed";
+                        iframe.style.right = "0"; iframe.style.bottom = "0";
+                        iframe.style.width = "0"; iframe.style.height = "0";
+                        iframe.style.border = "0";
+                        document.body.appendChild(iframe);
+                        const doc = iframe.contentWindow.document;
+                        doc.open();
+                        doc.write("<!DOCTYPE html><html><head><title>The Art of Soulcraft</title><style>@page{size:letter;margin:0.5in;} body{font-family:'Source Sans 3',system-ui,sans-serif;color:#241d42;margin:0;padding:20px;} h1{font-family:'Cormorant Garamond',Georgia,serif;} h3{font-family:'Cormorant Garamond',Georgia,serif;}</style></head><body>" + src.innerHTML + "</body></html>");
+                        doc.close();
+                        iframe.onload = () => {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                            setTimeout(() => document.body.removeChild(iframe), 500);
+                        };
+                    } }, "Print your mandala"),
                     React.createElement(Btn, { onClick: restart }, "Start over")),
                 React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))))));
 }
