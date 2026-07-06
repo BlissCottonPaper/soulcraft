@@ -4,9 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>The Art of Soulcraft — Mirror Prototype</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" defer></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" defer></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -16,283 +15,243 @@
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-presets="react">
+<script>
+"use strict";
 const { useState, useMemo } = React;
-
 /* ============================================================
    THE TWELVE WITHIN — assessment prototype (working title)
    A hall of mirrors: forced-choice ranking of the twelve
    archetypes + channel read + results mandala.
    Reflection, never prediction.
    ============================================================ */
-
 const ARCHETYPES = [
-  { key: "lover",     name: "Lover",     clock: 12, longing: "union",                    statement: "I'm drawn to deep connection and beauty, and I pour my heart into the people and passions I cherish.",              descriptors: ["passionate", "devoted", "sensual"],        stages: ["Possessor", "Craver", "Romantic", "Devoted", "Beloved"],            opposite: "Sage" },
-  { key: "caregiver", name: "Caregiver", clock: 1,  longing: "to nurture",               statement: "I naturally take responsibility for others' needs and feel fulfilled when I'm supporting people.",                 descriptors: ["nurturing", "supportive", "selfless"],     stages: ["Enabler", "Martyr", "Helper", "Nurturer", "Restorer"],              opposite: "Explorer" },
-  { key: "everyman",  name: "Everyman",  clock: 2,  longing: "to belong",                statement: "I feel most myself when I'm part of a down-to-earth group where everyone is equal and included.",                  descriptors: ["approachable", "down-to-earth", "inclusive"], stages: ["Self-Eraser", "People-Pleaser", "Neighbor", "Relater", "Bridge-Builder"], opposite: "Rebel" },
-  { key: "ruler",     name: "Ruler",     clock: 3,  longing: "order",                    statement: "I instinctively step in to organize, decide, and take charge so things feel stable and secure.",                   descriptors: ["authoritative", "decisive", "responsible"], stages: ["Tyrant", "Micromanager", "Organizer", "Steward", "Sovereign"],      opposite: "Trickster" },
-  { key: "warrior",   name: "Warrior",   clock: 4,  longing: "to protect",               statement: "I'm driven to face challenges head-on and protect what matters, even when it costs me.",                          descriptors: ["determined", "courageous", "protective"],  stages: ["Oppressor", "Mercenary", "Fighter", "Champion", "Guardian"],        opposite: "Innocent" },
-  { key: "creator",   name: "Creator",   clock: 5,  longing: "to bring forth",           statement: "I feel compelled to make things — ideas, art, solutions — that express my inner vision in the world.",             descriptors: ["imaginative", "artistic", "expressive"], stages: ["Destroyer", "Perfectionist", "Maker", "Artisan", "Alchemist"],      opposite: "Mystic" },
-  { key: "sage",      name: "Sage",      clock: 6,  longing: "truth",                    statement: "I'm always seeking to understand how things work, and I value truth and insight more than quick answers.",         descriptors: ["analytical", "reflective", "insightful"],  stages: ["Cynic", "Know-It-All", "Student", "Mentor", "Elder"],               opposite: "Lover" },
-  { key: "explorer",  name: "Explorer",  clock: 7,  longing: "freedom",                  statement: "I crave freedom and new experiences, and I feel alive when I'm venturing beyond the familiar.",                   descriptors: ["adventurous", "independent", "restless"],  stages: ["Deserter", "Escapist", "Wanderer", "Pathfinder", "Pilgrim"],        opposite: "Caregiver" },
-  { key: "rebel",     name: "Rebel",     clock: 8,  longing: "justice",                  statement: "When a system feels unfair or oppressive, I feel compelled to question it and push for change.",                  descriptors: ["defiant", "nonconformist", "outspoken"],  stages: ["Nihilist", "Contrarian", "Questioner", "Challenger", "Liberator"],  opposite: "Everyman" },
-  { key: "trickster", name: "Trickster", clock: 9,  longing: "to break false patterns",  statement: "I love poking holes in rigid rules and using humor or mischief to expose what's fake or stuck.",                   descriptors: ["playful", "mischievous", "irreverent"],     stages: ["Saboteur", "Deceiver", "Jokester", "Innovator", "Truth-Teller"],    opposite: "Ruler" },
-  { key: "innocent",  name: "Innocent",  clock: 10, longing: "to trust",                 statement: "I believe things will work out if I stay true to what feels honest, kind, and good.",                             descriptors: ["hopeful", "trusting", "optimistic"],       stages: ["Bitter Exile", "Avoider", "Believer", "Realist", "Wounded Healer"],  opposite: "Warrior" },
-  { key: "mystic",    name: "Mystic",    clock: 11, longing: "communion with mystery",   statement: "I sense deeper layers beneath ordinary life and am drawn to silence, symbolism, and inner experience.",             descriptors: ["intuitive", "otherworldly", "contemplative"], stages: ["Untethered", "Drifter", "Dreamer", "Seer", "Conduit"],             opposite: "Creator" },
+    { key: "lover", name: "Lover", clock: 12, longing: "union", statement: "I'm drawn to deep connection and beauty, and I pour my heart into the people and passions I cherish.", descriptors: ["passionate", "devoted", "sensual"], stages: ["Possessor", "Craver", "Romantic", "Devoted", "Beloved"], opposite: "Sage" },
+    { key: "caregiver", name: "Caregiver", clock: 1, longing: "to nurture", statement: "I naturally take responsibility for others' needs and feel fulfilled when I'm supporting people.", descriptors: ["nurturing", "supportive", "selfless"], stages: ["Enabler", "Martyr", "Helper", "Nurturer", "Restorer"], opposite: "Explorer" },
+    { key: "everyman", name: "Everyman", clock: 2, longing: "to belong", statement: "I feel most myself when I'm part of a down-to-earth group where everyone is equal and included.", descriptors: ["approachable", "down-to-earth", "inclusive"], stages: ["Self-Eraser", "People-Pleaser", "Neighbor", "Relater", "Bridge-Builder"], opposite: "Rebel" },
+    { key: "ruler", name: "Ruler", clock: 3, longing: "order", statement: "I instinctively step in to organize, decide, and take charge so things feel stable and secure.", descriptors: ["authoritative", "decisive", "responsible"], stages: ["Tyrant", "Micromanager", "Organizer", "Steward", "Sovereign"], opposite: "Trickster" },
+    { key: "warrior", name: "Warrior", clock: 4, longing: "to protect", statement: "I'm driven to face challenges head-on and protect what matters, even when it costs me.", descriptors: ["determined", "courageous", "protective"], stages: ["Oppressor", "Mercenary", "Fighter", "Champion", "Guardian"], opposite: "Innocent" },
+    { key: "creator", name: "Creator", clock: 5, longing: "to bring forth", statement: "I feel compelled to make things — ideas, art, solutions — that express my inner vision in the world.", descriptors: ["imaginative", "artistic", "expressive"], stages: ["Destroyer", "Perfectionist", "Maker", "Artisan", "Alchemist"], opposite: "Mystic" },
+    { key: "sage", name: "Sage", clock: 6, longing: "truth", statement: "I'm always seeking to understand how things work, and I value truth and insight more than quick answers.", descriptors: ["analytical", "reflective", "insightful"], stages: ["Cynic", "Know-It-All", "Student", "Mentor", "Elder"], opposite: "Lover" },
+    { key: "explorer", name: "Explorer", clock: 7, longing: "freedom", statement: "I crave freedom and new experiences, and I feel alive when I'm venturing beyond the familiar.", descriptors: ["adventurous", "independent", "restless"], stages: ["Deserter", "Escapist", "Wanderer", "Pathfinder", "Pilgrim"], opposite: "Caregiver" },
+    { key: "rebel", name: "Rebel", clock: 8, longing: "justice", statement: "When a system feels unfair or oppressive, I feel compelled to question it and push for change.", descriptors: ["defiant", "nonconformist", "outspoken"], stages: ["Nihilist", "Contrarian", "Questioner", "Challenger", "Liberator"], opposite: "Everyman" },
+    { key: "trickster", name: "Trickster", clock: 9, longing: "to break false patterns", statement: "I love poking holes in rigid rules and using humor or mischief to expose what's fake or stuck.", descriptors: ["playful", "mischievous", "irreverent"], stages: ["Saboteur", "Deceiver", "Jokester", "Innovator", "Truth-Teller"], opposite: "Ruler" },
+    { key: "innocent", name: "Innocent", clock: 10, longing: "to trust", statement: "I believe things will work out if I stay true to what feels honest, kind, and good.", descriptors: ["hopeful", "trusting", "optimistic"], stages: ["Bitter Exile", "Avoider", "Believer", "Realist", "Wounded Healer"], opposite: "Warrior" },
+    { key: "mystic", name: "Mystic", clock: 11, longing: "communion with mystery", statement: "I sense deeper layers beneath ordinary life and am drawn to silence, symbolism, and inner experience.", descriptors: ["intuitive", "otherworldly", "contemplative"], stages: ["Untethered", "Drifter", "Dreamer", "Seer", "Conduit"], opposite: "Creator" },
 ];
-
 const STAGE_NAMES = ["Devolved", "Descended", "Base", "Ascended", "Transcendent"];
 const STAGE_LIGHT = [30, 42, 55, 67, 79]; // lightness per stage — the light axis, literally
-
 const HUE = (i) => i * 30; // wheel position = hue; opposites are complementary colors
-
 const BLEND_NAMES = {
-  "caregiver|lover": "The Cherisher", "everyman|lover": "The Host", "lover|ruler": "The Hearthkeeper", "lover|warrior": "The Knight",
-  "creator|lover": "The Bard", "lover|sage": "The Counselor", "explorer|lover": "The Bon Vivant", "lover|rebel": "The Wildheart",
-  "lover|trickster": "The Flirt", "innocent|lover": "The Trueheart", "lover|mystic": "The Devout",
-  "caregiver|everyman": "The Good Neighbor", "caregiver|ruler": "The Caretaker", "caregiver|warrior": "The Protector",
-  "caregiver|creator": "The Nourisher", "caregiver|sage": "The Healer", "caregiver|explorer": "The Shepherd",
-  "caregiver|rebel": "The Samaritan", "caregiver|trickster": "The Merrymaker", "caregiver|innocent": "The Gentleheart", "caregiver|mystic": "The Midwife",
-  "everyman|ruler": "The Mayor", "everyman|warrior": "The Citizen-Soldier", "creator|everyman": "The Folk Artist",
-  "everyman|sage": "The Folk Sage", "everyman|explorer": "The Sojourner", "everyman|rebel": "The Folk Hero",
-  "everyman|trickster": "The Wisecracker", "everyman|innocent": "The Salt-of-the-Earth", "everyman|mystic": "The Everyday Mystic",
-  "ruler|warrior": "The General", "creator|ruler": "The Architect", "ruler|sage": "The Judge", "explorer|ruler": "The Founder",
-  "rebel|ruler": "The Revolutionary", "ruler|trickster": "The Gamemaster", "innocent|ruler": "The Benevolent",
-  "mystic|ruler": "The Visionary", // ascended reading — same pair's shadow reading is "The Priest" (institution over insight)
-  "creator|warrior": "The Smith", "sage|warrior": "The Master-at-Arms", "explorer|warrior": "The Pioneer",
-  "rebel|warrior": "The Freedom Fighter", "trickster|warrior": "The Rogue", "innocent|warrior": "The Gentle Giant", "mystic|warrior": "The Warrior-Monk",
-  "creator|sage": "The Inventor", "creator|explorer": "The Shipwright", "creator|rebel": "The Iconoclast",
-  "creator|trickster": "The Satirist", "creator|innocent": "The Toymaker", "creator|mystic": "The Magician",
-  "explorer|sage": "The Naturalist", "rebel|sage": "The Heretic", "sage|trickster": "The Riddlemaster",
-  "innocent|sage": "The Wonderer", "mystic|sage": "The Shaman",
-  "explorer|rebel": "The Maverick", "explorer|trickster": "The Stowaway", "explorer|innocent": "The Wide-Eyed Wanderer", "explorer|mystic": "The Vision-Quester",
-  "rebel|trickster": "The Provocateur", "innocent|rebel": "The Emperor's Child", "mystic|rebel": "The Prophet",
-  "innocent|trickster": "The Imp", "mystic|trickster": "The Shapeshifter",
-  "innocent|mystic": "The Holy Innocent",
+    "caregiver|lover": "The Cherisher", "everyman|lover": "The Host", "lover|ruler": "The Hearthkeeper", "lover|warrior": "The Knight",
+    "creator|lover": "The Bard", "lover|sage": "The Counselor", "explorer|lover": "The Bon Vivant", "lover|rebel": "The Wildheart",
+    "lover|trickster": "The Flirt", "innocent|lover": "The Trueheart", "lover|mystic": "The Devout",
+    "caregiver|everyman": "The Good Neighbor", "caregiver|ruler": "The Caretaker", "caregiver|warrior": "The Protector",
+    "caregiver|creator": "The Nourisher", "caregiver|sage": "The Healer", "caregiver|explorer": "The Shepherd",
+    "caregiver|rebel": "The Samaritan", "caregiver|trickster": "The Merrymaker", "caregiver|innocent": "The Gentleheart", "caregiver|mystic": "The Midwife",
+    "everyman|ruler": "The Mayor", "everyman|warrior": "The Citizen-Soldier", "creator|everyman": "The Folk Artist",
+    "everyman|sage": "The Folk Sage", "everyman|explorer": "The Sojourner", "everyman|rebel": "The Folk Hero",
+    "everyman|trickster": "The Wisecracker", "everyman|innocent": "The Salt-of-the-Earth", "everyman|mystic": "The Everyday Mystic",
+    "ruler|warrior": "The General", "creator|ruler": "The Architect", "ruler|sage": "The Judge", "explorer|ruler": "The Founder",
+    "rebel|ruler": "The Revolutionary", "ruler|trickster": "The Gamemaster", "innocent|ruler": "The Benevolent",
+    "mystic|ruler": "The Visionary", // ascended reading — same pair's shadow reading is "The Priest" (institution over insight)
+    "creator|warrior": "The Smith", "sage|warrior": "The Master-at-Arms", "explorer|warrior": "The Pioneer",
+    "rebel|warrior": "The Freedom Fighter", "trickster|warrior": "The Rogue", "innocent|warrior": "The Gentle Giant", "mystic|warrior": "The Warrior-Monk",
+    "creator|sage": "The Inventor", "creator|explorer": "The Shipwright", "creator|rebel": "The Iconoclast",
+    "creator|trickster": "The Satirist", "creator|innocent": "The Toymaker", "creator|mystic": "The Magician",
+    "explorer|sage": "The Naturalist", "rebel|sage": "The Heretic", "sage|trickster": "The Riddlemaster",
+    "innocent|sage": "The Wonderer", "mystic|sage": "The Shaman",
+    "explorer|rebel": "The Maverick", "explorer|trickster": "The Stowaway", "explorer|innocent": "The Wide-Eyed Wanderer", "explorer|mystic": "The Vision-Quester",
+    "rebel|trickster": "The Provocateur", "innocent|rebel": "The Emperor's Child", "mystic|rebel": "The Prophet",
+    "innocent|trickster": "The Imp", "mystic|trickster": "The Shapeshifter",
+    "innocent|mystic": "The Holy Innocent",
 };
-
 const CHANNEL_EXPRESSIONS = {
-  lover:     { heart: "The Sweetheart", mind: "The Admirer",       body: "The Embracer",       soul: "The Adorer" },
-  caregiver: { heart: "The Comforter",  mind: "The Coordinator",   body: "The Provider",       soul: "The Tender" },
-  everyman:  { heart: "The Welcomer",   mind: "The Moderator",     body: "The Volunteer",      soul: "The Kinkeeper" },
-  ruler:     { heart: "The Householder",mind: "The Administrator", body: "The Captain",        soul: "The Trustee" },
-  warrior:   { heart: "The Defender",   mind: "The Strategist",    body: "The Athlete",        soul: "The Oathkeeper" },
-  creator:   { heart: "The Artist",     mind: "The Designer",      body: "The Builder",        soul: "The Temple-Builder" },
-  sage:      { heart: "The Listener",   mind: "The Analyst",       body: "The Apprentice",     soul: "The Philosopher" },
-  explorer:  { heart: "The Free Spirit",mind: "The Scout",         body: "The Adventurer",     soul: "The Quester" },
-  rebel:     { heart: "The Advocate",   mind: "The Critic",        body: "The Protester",      soul: "The Objector" },
-  trickster: { heart: "The Tease",      mind: "The Wit",           body: "The Prankster",      soul: "The Holy Fool" },
-  innocent:  { heart: "The Encourager", mind: "The Idealist",      body: "The Straight Arrow", soul: "The Faithful" },
-  mystic:    { heart: "The Empath",     mind: "The Symbolist",     body: "The Ecstatic",       soul: "The Contemplative" },
+    lover: { heart: "The Sweetheart", mind: "The Admirer", body: "The Embracer", soul: "The Adorer" },
+    caregiver: { heart: "The Comforter", mind: "The Coordinator", body: "The Provider", soul: "The Tender" },
+    everyman: { heart: "The Welcomer", mind: "The Moderator", body: "The Volunteer", soul: "The Kinkeeper" },
+    ruler: { heart: "The Householder", mind: "The Administrator", body: "The Captain", soul: "The Trustee" },
+    warrior: { heart: "The Defender", mind: "The Strategist", body: "The Athlete", soul: "The Oathkeeper" },
+    creator: { heart: "The Artist", mind: "The Designer", body: "The Builder", soul: "The Temple-Builder" },
+    sage: { heart: "The Listener", mind: "The Analyst", body: "The Apprentice", soul: "The Philosopher" },
+    explorer: { heart: "The Free Spirit", mind: "The Scout", body: "The Adventurer", soul: "The Quester" },
+    rebel: { heart: "The Advocate", mind: "The Critic", body: "The Protester", soul: "The Objector" },
+    trickster: { heart: "The Tease", mind: "The Wit", body: "The Prankster", soul: "The Holy Fool" },
+    innocent: { heart: "The Encourager", mind: "The Idealist", body: "The Straight Arrow", soul: "The Faithful" },
+    mystic: { heart: "The Empath", mind: "The Symbolist", body: "The Ecstatic", soul: "The Contemplative" },
 };
-
 const CHANNELS = [
-  { key: "heart", name: "Heart", gift: "compassion", corruption: "manipulation" },
-  { key: "mind",  name: "Mind",  gift: "wisdom",     corruption: "control" },
-  { key: "body",  name: "Body",  gift: "presence",   corruption: "force" },
-  { key: "soul",  name: "Soul",  gift: "communion",  corruption: "fanaticism" },
+    { key: "heart", name: "Heart", gift: "compassion", corruption: "manipulation" },
+    { key: "mind", name: "Mind", gift: "wisdom", corruption: "control" },
+    { key: "body", name: "Body", gift: "presence", corruption: "force" },
+    { key: "soul", name: "Soul", gift: "communion", corruption: "fanaticism" },
 ];
 // Branded as "The Four Embodiments" in all user-facing copy — not a mode of service,
 // a default mode of BEING. You don't choose it; you occupy a moment through it.
-
 const CHANNEL_QUESTIONS = [
-  { q: "Something big just happened. Your first instinct is to…", options: { heart: "Feel it fully — and reach for the people involved", mind: "Understand it before anything else", body: "Act — do something about it now", soul: "Step back and ask what it means" } },
-  { q: "People who love you would say you show up with…", options: { heart: "Warmth", mind: "Clarity", body: "Hands-on help", soul: "Depth" } },
-  { q: "When it really matters, you trust…", options: { heart: "Your heart", mind: "Your reasoning", body: "Your gut and your hands", soul: "Something larger than yourself" } },
-  { q: "You feel most alive when you're…", options: { heart: "Connecting", mind: "Figuring something out", body: "Making or moving", soul: "In awe" } },
+    { q: "Something big just happened. Your first instinct is to…", options: { heart: "Feel it fully — and reach for the people involved", mind: "Understand it before anything else", body: "Act — do something about it now", soul: "Step back and ask what it means" } },
+    { q: "People who love you would say you show up with…", options: { heart: "Warmth", mind: "Clarity", body: "Hands-on help", soul: "Depth" } },
+    { q: "When it really matters, you trust…", options: { heart: "Your heart", mind: "Your reasoning", body: "Your gut and your hands", soul: "Something larger than yourself" } },
+    { q: "You feel most alive when you're…", options: { heart: "Connecting", mind: "Figuring something out", body: "Making or moving", soul: "In awe" } },
 ];
-
 /* ---------- helpers ---------- */
-
 function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
 }
-
 // full round-robin (66) or a balanced 6-round subset (36, each archetype appears 6×)
 function buildPairs(mode) {
-  const pairs = [];
-  if (mode === "full") {
-    for (let i = 0; i < 12; i++) for (let j = i + 1; j < 12; j++) pairs.push([i, j]);
-  } else {
-    let ring = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-    for (let round = 0; round < 6; round++) {
-      pairs.push([0, ring[0]]);
-      for (let k = 1; k <= 5; k++) pairs.push([ring[k], ring[11 - k]]);
-      ring = [ring[10], ...ring.slice(0, 10)];
+    const pairs = [];
+    if (mode === "full") {
+        for (let i = 0; i < 12; i++)
+            for (let j = i + 1; j < 12; j++)
+                pairs.push([i, j]);
     }
-  }
-  return shuffle(pairs).map(([a, b]) => (Math.random() < 0.5 ? [a, b] : [b, a]));
+    else {
+        let ring = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+        for (let round = 0; round < 6; round++) {
+            pairs.push([0, ring[0]]);
+            for (let k = 1; k <= 5; k++)
+                pairs.push([ring[k], ring[11 - k]]);
+            ring = [ring[10], ...ring.slice(0, 10)];
+        }
+    }
+    return shuffle(pairs).map(([a, b]) => (Math.random() < 0.5 ? [a, b] : [b, a]));
 }
-
 function hslToRgb(h, s, l) {
-  s /= 100; l /= 100;
-  const k = (n) => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  return [Math.round(255 * f(0)), Math.round(255 * f(8)), Math.round(255 * f(4))];
+    s /= 100;
+    l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [Math.round(255 * f(0)), Math.round(255 * f(8)), Math.round(255 * f(4))];
 }
 const rgbStr = (r) => `rgb(${r[0]},${r[1]},${r[2]})`;
 const mixHues = (h1, h2) => rgbStr(hslToRgb(h1, 60, 62).map((v, i) => Math.round((v + hslToRgb(h2, 60, 62)[i]) / 2)));
-
 const nodeXY = (i, R, c) => {
-  const rad = ((i * 30 - 90) * Math.PI) / 180;
-  return [c + R * Math.cos(rad), c + R * Math.sin(rad)];
+    const rad = ((i * 30 - 90) * Math.PI) / 180;
+    return [c + R * Math.cos(rad), c + R * Math.sin(rad)];
 };
 const midXY = (i, j, R, c) => {
-  const a = ((i * 30 - 90) * Math.PI) / 180, b = ((j * 30 - 90) * Math.PI) / 180;
-  let vx = Math.cos(a) + Math.cos(b), vy = Math.sin(a) + Math.sin(b);
-  const m = Math.hypot(vx, vy) || 1;
-  if (m < 0.01) { vx = Math.cos(a + Math.PI / 2); vy = Math.sin(a + Math.PI / 2); }
-  return [c + (vx / m) * R, c + (vy / m) * R];
+    const a = ((i * 30 - 90) * Math.PI) / 180, b = ((j * 30 - 90) * Math.PI) / 180;
+    let vx = Math.cos(a) + Math.cos(b), vy = Math.sin(a) + Math.sin(b);
+    const m = Math.hypot(vx, vy) || 1;
+    if (m < 0.01) {
+        vx = Math.cos(a + Math.PI / 2);
+        vy = Math.sin(a + Math.PI / 2);
+    }
+    return [c + (vx / m) * R, c + (vy / m) * R];
 };
-
 const SAMPLE_WINS = { sage: 21, creator: 19, mystic: 16, trickster: 14, ruler: 12, explorer: 10, lover: 9, warrior: 8, everyman: 7, rebel: 6, caregiver: 5, innocent: 3 };
-
 /* ---------- components ---------- */
-
 function Mandala({ ranked }) {
-  const c = 170, R = 128;
-  const idx = (key) => ARCHETYPES.findIndex((a) => a.key === key);
-  const top3 = ranked.slice(0, 3).map((r) => idx(r.key));
-  const triPts = top3.map((i) => nodeXY(i, R, c));
-  const pairs = [[top3[0], top3[1]], [top3[0], top3[2]], [top3[1], top3[2]]];
-  const secPts = pairs.map(([i, j]) => ({ xy: midXY(i, j, 86, c), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") }));
-  return (
-    <svg viewBox="0 0 340 340" className="w-full max-w-sm mx-auto block" role="img" aria-label="Your personal mandala">
-      <defs>
-        <radialGradient id="ctrGlow" r="50%">
-          <stop offset="0%" stopColor="rgba(255,252,240,0.95)" />
-          <stop offset="45%" stopColor="rgba(255,246,214,0.28)" />
-          <stop offset="100%" stopColor="rgba(255,246,214,0)" />
-        </radialGradient>
-      </defs>
-      <circle cx={c} cy={c} r={R} fill="none" stroke="rgba(210,200,240,0.14)" strokeWidth="1" />
-      {ARCHETYPES.map((_, i) => {
-        const [x, y] = nodeXY(i, R, c);
-        return <line key={"sp" + i} x1={c} y1={c} x2={x} y2={y} stroke="rgba(210,200,240,0.07)" strokeWidth="1" />;
-      })}
-      <polygon points={triPts.map((p) => p.join(",")).join(" ")} fill="rgba(255,250,235,0.06)" stroke="rgba(233,196,124,0.9)" strokeWidth="1.5" strokeLinejoin="round" />
-      <polygon points={secPts.map((p) => p.xy.join(",")).join(" ")} fill="none" stroke="rgba(220,214,244,0.4)" strokeWidth="1" strokeLinejoin="round" />
-      {secPts.map((p, k) => (
-        <g key={"s" + k}>
-          <circle cx={p.xy[0]} cy={p.xy[1]} r="5.5" fill={p.fill} stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
-          <text x={p.xy[0]} y={p.xy[1] + 15} textAnchor="middle" fontSize="7.5" fill="rgba(224,218,246,0.82)" style={{ fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.03em" }}>{p.label}</text>
-        </g>
-      ))}
-      {ARCHETYPES.map((a, i) => {
-        const [x, y] = nodeXY(i, R, c);
-        const [lx, ly] = nodeXY(i, R + 24, c);
-        const isTop = top3.includes(i);
-        return (
-          <g key={a.key}>
-            <circle cx={x} cy={y} r={isTop ? 9.5 : 6} fill={`hsl(${HUE(i)},62%,56%)`} stroke={isTop ? "rgba(255,252,240,0.95)" : "rgba(255,255,255,0.25)"} strokeWidth={isTop ? 1.8 : 0.8} />
-            <text x={lx} y={ly + 3} textAnchor="middle" fontSize="9.5" fill={isTop ? "rgba(244,240,255,0.95)" : "rgba(196,190,222,0.62)"} style={{ fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.04em" }}>{a.name}</text>
-          </g>
-        );
-      })}
-      <circle cx={c} cy={c} r="30" fill="url(#ctrGlow)" />
-      <circle cx={c} cy={c} r="6.5" fill="rgb(255,252,240)" />
-      <text x={c} y={c + 24} textAnchor="middle" fontSize="9" fill="rgba(235,228,255,0.7)" style={{ fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.22em" }}>YOU</text>
-    </svg>
-  );
+    const c = 170, R = 128;
+    const idx = (key) => ARCHETYPES.findIndex((a) => a.key === key);
+    const top3 = ranked.slice(0, 3).map((r) => idx(r.key));
+    const triPts = top3.map((i) => nodeXY(i, R, c));
+    const pairs = [[top3[0], top3[1]], [top3[0], top3[2]], [top3[1], top3[2]]];
+    const secPts = pairs.map(([i, j]) => ({ xy: midXY(i, j, 86, c), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") }));
+    return (React.createElement("svg", { viewBox: "0 0 340 340", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
+        React.createElement("defs", null,
+            React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
+                React.createElement("stop", { offset: "0%", stopColor: "rgba(255,252,240,0.95)" }),
+                React.createElement("stop", { offset: "45%", stopColor: "rgba(255,246,214,0.28)" }),
+                React.createElement("stop", { offset: "100%", stopColor: "rgba(255,246,214,0)" }))),
+        React.createElement("circle", { cx: c, cy: c, r: R, fill: "none", stroke: "rgba(210,200,240,0.14)", strokeWidth: "1" }),
+        ARCHETYPES.map((_, i) => {
+            const [x, y] = nodeXY(i, R, c);
+            return React.createElement("line", { key: "sp" + i, x1: c, y1: c, x2: x, y2: y, stroke: "rgba(210,200,240,0.07)", strokeWidth: "1" });
+        }),
+        React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: "rgba(255,250,235,0.06)", stroke: "rgba(233,196,124,0.9)", strokeWidth: "1.5", strokeLinejoin: "round" }),
+        React.createElement("polygon", { points: secPts.map((p) => p.xy.join(",")).join(" "), fill: "none", stroke: "rgba(220,214,244,0.4)", strokeWidth: "1", strokeLinejoin: "round" }),
+        secPts.map((p, k) => (React.createElement("g", { key: "s" + k },
+            React.createElement("circle", { cx: p.xy[0], cy: p.xy[1], r: "5.5", fill: p.fill, stroke: "rgba(255,255,255,0.5)", strokeWidth: "0.8" }),
+            React.createElement("text", { x: p.xy[0], y: p.xy[1] + 15, textAnchor: "middle", fontSize: "7.5", fill: "rgba(224,218,246,0.82)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.03em" } }, p.label)))),
+        ARCHETYPES.map((a, i) => {
+            const [x, y] = nodeXY(i, R, c);
+            const [lx, ly] = nodeXY(i, R + 24, c);
+            const isTop = top3.includes(i);
+            return (React.createElement("g", { key: a.key },
+                React.createElement("circle", { cx: x, cy: y, r: isTop ? 9.5 : 6, fill: `hsl(${HUE(i)},62%,56%)`, stroke: isTop ? "rgba(255,252,240,0.95)" : "rgba(255,255,255,0.25)", strokeWidth: isTop ? 1.8 : 0.8 }),
+                React.createElement("text", { x: lx, y: ly + 3, textAnchor: "middle", fontSize: "9.5", fill: isTop ? "rgba(244,240,255,0.95)" : "rgba(196,190,222,0.62)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.04em" } }, a.name)));
+        }),
+        React.createElement("circle", { cx: c, cy: c, r: "30", fill: "url(#ctrGlow)" }),
+        React.createElement("circle", { cx: c, cy: c, r: "6.5", fill: "rgb(255,252,240)" }),
+        React.createElement("text", { x: c, y: c + 24, textAnchor: "middle", fontSize: "9", fill: "rgba(235,228,255,0.7)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.22em" } }, "YOU")));
 }
-
 function Ladder({ arche }) {
-  const i = ARCHETYPES.findIndex((a) => a.key === arche.key);
-  const rows = [4, 3, 2, 1, 0]; // Transcendent → Devolved
-  return (
-    <div className="mt-3 space-y-1">
-      {rows.map((s) => (
-        <div key={s} className="flex items-center gap-2.5">
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: `hsl(${HUE(i)},58%,${STAGE_LIGHT[s]}%)` }} />
-          <span className={"text-sm " + (s === 2 ? "text-amber-200" : s > 2 ? "text-violet-100" : "text-violet-300/70")} style={{ fontFamily: "'Source Sans 3', system-ui, sans-serif" }}>
-            {arche.stages[s]}
-            <span className="text-violet-300/45 text-xs ml-2">{STAGE_NAMES[s].toLowerCase()}{s === 2 ? " · where the day begins" : ""}</span>
-          </span>
-        </div>
-      ))}
-    </div>
-  );
+    const i = ARCHETYPES.findIndex((a) => a.key === arche.key);
+    const rows = [4, 3, 2, 1, 0]; // Transcendent → Devolved
+    return (React.createElement("div", { className: "mt-3 space-y-1" }, rows.map((s) => (React.createElement("div", { key: s, className: "flex items-center gap-2.5" },
+        React.createElement("span", { className: "w-2 h-2 rounded-full shrink-0", style: { background: `hsl(${HUE(i)},58%,${STAGE_LIGHT[s]}%)` } }),
+        React.createElement("span", { className: "text-sm " + (s === 2 ? "text-amber-200" : s > 2 ? "text-violet-100" : "text-violet-300/70"), style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
+            arche.stages[s],
+            React.createElement("span", { className: "text-violet-300/45 text-xs ml-2" },
+                STAGE_NAMES[s].toLowerCase(),
+                s === 2 ? " · where the day begins" : "")))))));
 }
-
 /* ---------- main ---------- */
-
 function TwelveWithin() {
-  const [screen, setScreen] = useState("intro");
-  const [mode, setMode] = useState("quick");
-  const [session, setSession] = useState(0);
-  const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
-  const [pairIdx, setPairIdx] = useState(0);
-  const [wins, setWins] = useState({});
-  const [chIdx, setChIdx] = useState(0);
-  const [chCounts, setChCounts] = useState({});
-  const [isSample, setIsSample] = useState(false);
-
-  const chips = useMemo(() => shuffle(ARCHETYPES.flatMap((a) => a.descriptors.map((d) => ({ word: d, key: a.key })))), [session]);
-  const pairs = useMemo(() => buildPairs(mode), [mode, session]);
-
-  const start = (m) => { setMode(m); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChCounts({}); setIsSample(false); setScreen("descriptors"); };
-  const restart = () => { setScreen("intro"); setIsSample(false); };
-  const showSample = () => { setWins(SAMPLE_WINS); setPicks([]); setChCounts({ mind: 3, soul: 1 }); setIsSample(true); setScreen("results"); };
-
-  const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
-
-  const choosePairGraded = (leftIdx, rightIdx, position) => {
-    // position 1..5: 1=strongly left, 3=truly between, 5=strongly right
-    const leftPts = [4, 3, 2, 1, 0][position - 1];
-    const rightPts = [0, 1, 2, 3, 4][position - 1];
-    setWins((w) => ({
-      ...w,
-      [ARCHETYPES[leftIdx].key]: (w[ARCHETYPES[leftIdx].key] || 0) + leftPts,
-      [ARCHETYPES[rightIdx].key]: (w[ARCHETYPES[rightIdx].key] || 0) + rightPts,
-    }));
-    if (pairIdx + 1 >= pairs.length) setScreen("channel");
-    else setPairIdx(pairIdx + 1);
-  };
-
-  const chooseChannel = (key) => {
-    setChCounts((c) => ({ ...c, [key]: (c[key] || 0) + 1 }));
-    if (chIdx + 1 >= CHANNEL_QUESTIONS.length) setScreen("results");
-    else setChIdx(chIdx + 1);
-  };
-
-  const ranked = useMemo(() => {
-    const descCount = {};
-    picks.forEach((n) => { descCount[n] = (descCount[n] || 0) + 1; });
-    return ARCHETYPES
-      .map((a, i) => ({ ...a, i, score: (wins[a.key] || 0) + 0.5 * (descCount[a.key] || 0), descs: descCount[a.key] || 0 }))
-      .sort((x, y) => y.score - x.score || y.descs - x.descs || x.i - y.i);
-  }, [wins, picks]);
-
-  const channel = useMemo(() => {
-    const best = CHANNELS.map((ch) => ({ ...ch, n: chCounts[ch.key] || 0 })).sort((a, b) => b.n - a.n);
-    return best[0];
-  }, [chCounts]);
-
-  const maxScore = Math.max(...ranked.map((r) => r.score), 1);
-  const hourOf = (r) => (r.i === 0 ? 12 : r.i);
-  const timeSig = ranked.length ? `${hourOf(ranked[0])}:${String(ranked[1].i * 5).padStart(2, "0")}` : "";
-  const blendName = (a, b) => BLEND_NAMES[[a.key, b.key].sort().join("|")] || null;
-
-  const Btn = ({ children, onClick, primary, className = "" }) => (
-    <button onClick={onClick} className={"rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className} style={{ fontFamily: "'Source Sans 3', system-ui, sans-serif" }}>
-      {children}
-    </button>
-  );
-
-  const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
-  const sans = { fontFamily: "'Source Sans 3', system-ui, sans-serif" };
-
-  return (
-    <div className="min-h-screen w-full text-violet-50" style={{ background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" }}>
-      
-      <div className="max-w-md md:max-w-2xl mx-auto px-5 md:px-10 pb-16 pt-10 print:max-w-full print:px-0">
-        <style>{`
+    const [screen, setScreen] = useState("intro");
+    const [mode, setMode] = useState("quick");
+    const [session, setSession] = useState(0);
+    const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
+    const [pairIdx, setPairIdx] = useState(0);
+    const [wins, setWins] = useState({});
+    const [chIdx, setChIdx] = useState(0);
+    const [chCounts, setChCounts] = useState({});
+    const [isSample, setIsSample] = useState(false);
+    const chips = useMemo(() => shuffle(ARCHETYPES.flatMap((a) => a.descriptors.map((d) => ({ word: d, key: a.key })))), [session]);
+    const pairs = useMemo(() => buildPairs(mode), [mode, session]);
+    const start = (m) => { setMode(m); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChCounts({}); setIsSample(false); setScreen("descriptors"); };
+    const restart = () => { setScreen("intro"); setIsSample(false); };
+    const showSample = () => { setWins(SAMPLE_WINS); setPicks([]); setChCounts({ mind: 3, soul: 1 }); setIsSample(true); setScreen("results"); };
+    const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
+    const choosePairGraded = (leftIdx, rightIdx, position) => {
+        // position 1..5: 1=strongly left, 3=truly between, 5=strongly right
+        const leftPts = [4, 3, 2, 1, 0][position - 1];
+        const rightPts = [0, 1, 2, 3, 4][position - 1];
+        setWins((w) => ({
+            ...w,
+            [ARCHETYPES[leftIdx].key]: (w[ARCHETYPES[leftIdx].key] || 0) + leftPts,
+            [ARCHETYPES[rightIdx].key]: (w[ARCHETYPES[rightIdx].key] || 0) + rightPts,
+        }));
+        if (pairIdx + 1 >= pairs.length)
+            setScreen("channel");
+        else
+            setPairIdx(pairIdx + 1);
+    };
+    const chooseChannel = (key) => {
+        setChCounts((c) => ({ ...c, [key]: (c[key] || 0) + 1 }));
+        if (chIdx + 1 >= CHANNEL_QUESTIONS.length)
+            setScreen("results");
+        else
+            setChIdx(chIdx + 1);
+    };
+    const ranked = useMemo(() => {
+        const descCount = {};
+        picks.forEach((n) => { descCount[n] = (descCount[n] || 0) + 1; });
+        return ARCHETYPES
+            .map((a, i) => ({ ...a, i, score: (wins[a.key] || 0) + 0.5 * (descCount[a.key] || 0), descs: descCount[a.key] || 0 }))
+            .sort((x, y) => y.score - x.score || y.descs - x.descs || x.i - y.i);
+    }, [wins, picks]);
+    const channel = useMemo(() => {
+        const best = CHANNELS.map((ch) => ({ ...ch, n: chCounts[ch.key] || 0 })).sort((a, b) => b.n - a.n);
+        return best[0];
+    }, [chCounts]);
+    const maxScore = Math.max(...ranked.map((r) => r.score), 1);
+    const hourOf = (r) => (r.i === 0 ? 12 : r.i);
+    const timeSig = ranked.length ? `${hourOf(ranked[0])}:${String(ranked[1].i * 5).padStart(2, "0")}` : "";
+    const blendName = (a, b) => BLEND_NAMES[[a.key, b.key].sort().join("|")] || null;
+    const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
+    const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
+    const sans = { fontFamily: "'Source Sans 3', system-ui, sans-serif" };
+    return (React.createElement("div", { className: "min-h-screen w-full text-violet-50", style: { background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" } },
+        React.createElement("div", { className: "max-w-md md:max-w-2xl mx-auto px-5 md:px-10 pb-16 pt-10 print:max-w-full print:px-0" },
+            React.createElement("style", null, `
           @media (min-width: 768px) {
             .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
             .results-grid > .mandala-col { grid-row: span 2; position: sticky; top: 2rem; }
@@ -307,212 +266,205 @@ function TwelveWithin() {
             #print-mandala { position: absolute; top: 0; left: 0; width: 100%; max-width: 7.5in; font-size: 13px; }
             #print-mandala svg { max-width: 280px; margin: 0 auto; }
           }
-        `}</style>
-
-        {screen === "intro" && (
-          <div className="text-center">
-            <svg viewBox="0 0 120 120" className="w-24 h-24 mx-auto mb-6" aria-hidden="true">
-              {ARCHETYPES.map((_, i) => { const [x, y] = nodeXY(i, 46, 60); return <circle key={i} cx={x} cy={y} r="4" fill={`hsl(${HUE(i)},62%,56%)`} />; })}
-              <circle cx="60" cy="60" r="4" fill="rgb(255,252,240)" />
-            </svg>
-            <p className="text-[11px] tracking-[0.35em] text-amber-200/80 mb-3" style={sans}>WORKING TITLE</p>
-            <h1 className="text-5xl leading-none mb-4" style={serif}>The Twelve Within</h1>
-            <p className="text-violet-200/85 text-[15.5px] leading-relaxed mb-2" style={sans}>
-              You are not one of twelve types. You are all twelve — some speak louder than others.
-            </p>
-            <p className="text-violet-300/70 text-sm leading-relaxed mb-8 italic" style={serif}>
-              A hall of mirrors that shows you every side of yourself — where to go, and what to avoid.
-            </p>
-            <div className="grid gap-3">
-              <Btn primary onClick={() => start("quick")}>Begin · quick mirror (~4 min)</Btn>
-              <Btn onClick={() => start("full")}>Full mirror · all 66 pairings (~7 min)</Btn>
-              <button onClick={showSample} className="text-amber-200/70 hover:text-amber-100 text-sm underline underline-offset-4 mt-1" style={sans}>Show a sample mirror first</button>
-            </div>
-            <p className="text-violet-300/50 text-xs mt-8" style={sans}>A reflective tool — a mirror, not a fortune. Not prediction, not diagnosis.</p>
-          </div>
-        )}
-
-        {screen === "descriptors" && (
-          <div>
-            <p className="text-[11px] tracking-[0.3em] text-amber-200/80 mb-2" style={sans}>FIRST · WORDS</p>
-            <h2 className="text-3xl mb-2" style={serif}>Choose the six words most like you</h2>
-            <p className="text-violet-300/70 text-sm mb-5" style={sans}>Not who you wish you were — who you actually are, most days. {picks.length}/6 chosen.</p>
-            <div className="flex flex-wrap gap-2 mb-7">
-              {chips.map((ch, n) => {
-                const on = picks.includes(n);
-                return (
-                  <button key={n} onClick={() => toggleChip(n)} className={"px-3.5 py-2 rounded-full text-sm border transition-colors " + (on ? "bg-amber-200/90 text-[#1b1430] border-amber-200 font-semibold" : "border-violet-300/25 text-violet-100/90 hover:border-amber-200/50")} style={sans}>
-                    {ch.word}
-                  </button>
-                );
-              })}
-            </div>
-            {picks.length === 6 && <Btn primary className="w-full" onClick={() => setScreen("pairs")}>Continue</Btn>}
-          </div>
-        )}
-
-        {screen === "pairs" && (() => {
-          const [L, Rr] = pairs[pairIdx];
-          const STOPS = [1, 2, 3, 4, 5];
-          return (
-            <div>
-              <p className="text-[11px] tracking-[0.3em] text-amber-200/80 mb-2" style={sans}>SECOND · WHICH FEELS TRUER</p>
-              <h2 className="text-3xl mb-2" style={serif}>Where do you fall between these?</h2>
-              <p className="text-violet-300/70 text-sm mb-5" style={sans}>No wrong answers — and the middle is a real answer too. {pairIdx + 1} of {pairs.length}.</p>
-              <div className="h-1 rounded-full bg-violet-300/15 mb-7 overflow-hidden">
-                <div className="h-full bg-amber-200/80 transition-all duration-300" style={{ width: `${(pairIdx / pairs.length) * 100}%` }} />
-              </div>
-
-              {/* Side-by-side statements — same left/right order as the slider below, so the mapping is unambiguous on any screen width */}
-              <div className="grid grid-cols-2 gap-2.5 mb-1">
-                <div className="rounded-2xl border border-violet-300/20 px-3.5 py-4" style={{ background: "rgba(255,250,240,0.03)" }}>
-                  <p className="text-[13.5px] leading-snug text-violet-50" style={sans}>{ARCHETYPES[L].statement}</p>
-                </div>
-                <div className="rounded-2xl border border-violet-300/20 px-3.5 py-4" style={{ background: "rgba(255,250,240,0.03)" }}>
-                  <p className="text-[13.5px] leading-snug text-violet-50" style={sans}>{ARCHETYPES[Rr].statement}</p>
-                </div>
-              </div>
-
-              {/* Down-arrows tying each statement directly to its slider column beneath it */}
-              <div className="grid grid-cols-2 mb-3">
-                <div className="flex justify-center"><span className="text-amber-200/50 text-lg leading-none">↓</span></div>
-                <div className="flex justify-center"><span className="text-amber-200/50 text-lg leading-none">↓</span></div>
-              </div>
-
-              <div className="flex justify-between gap-1.5 mb-2">
-                {STOPS.map((pos) => (
-                  <button key={pos} onClick={() => choosePairGraded(L, Rr, pos)} className="flex-1 aspect-square rounded-xl border border-violet-300/25 hover:border-amber-200/80 hover:bg-amber-100/10 transition-colors flex items-center justify-center group">
-                    <span className="w-3 h-3 rounded-full bg-violet-300/30 group-hover:bg-amber-200 transition-colors" style={pos === 3 ? { width: 8, height: 8 } : {}} />
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-[10px] text-violet-300/55 px-0.5" style={sans}>
-                <span>Strongly</span><span>Somewhat</span><span>Middle</span><span>Somewhat</span><span>Strongly</span>
-              </div>
-            </div>
-          );
-        })()}
-
-        {screen === "channel" && (() => {
-          const q = CHANNEL_QUESTIONS[chIdx];
-          return (
-            <div>
-              <p className="text-[11px] tracking-[0.3em] text-amber-200/80 mb-2" style={sans}>LAST · YOUR EMBODIMENT</p>
-              <h2 className="text-3xl mb-2" style={serif}>{q.q}</h2>
-              <p className="text-violet-300/70 text-sm mb-6" style={sans}>Heart, mind, body, or soul — not how you serve, but how you occupy a moment. {chIdx + 1} of {CHANNEL_QUESTIONS.length}.</p>
-              <div className="grid gap-3">
-                {CHANNELS.map((ch) => (
-                  <button key={ch.key} onClick={() => chooseChannel(ch.key)} className="text-left rounded-2xl border border-violet-300/20 hover:border-amber-200/70 hover:bg-amber-100/5 px-5 py-4 transition-colors">
-                    <p className="text-[15.5px] text-violet-50" style={sans}>{q.options[ch.key]}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
-        {screen === "results" && (
-          <div>
-            <div className="text-center mb-2">
-              <p className="text-[11px] tracking-[0.35em] text-amber-200/80 mb-2" style={sans}>{isSample ? "A SAMPLE MIRROR" : "YOUR MIRROR"}</p>
-              <h2 className="text-4xl" style={serif}>{ranked[0].name} · {ranked[1].name} · {ranked[2].name}</h2>
-              <p className="text-violet-300/75 text-sm mt-2" style={sans}>Your time signature: <span className="text-amber-200">{timeSig}</span> <span className="text-violet-300/50">· hour is your loudest voice, minutes your second</span></p>
-            </div>
-
-            <Mandala ranked={ranked} />
-
-            <p className="text-center text-violet-300/70 text-sm -mt-1 mb-8 italic" style={serif}>
-              Your three primaries, their three blends — and you at the center, the seventh point. Fully integrated, all light becomes white.
-            </p>
-
-            {/* Hidden on screen — this is the actual PDF/print output, built from live data, one clean page */}
-            <div id="print-mandala" className="hidden print:block bg-white text-[#241d42] p-10">
-              <p className="text-xs tracking-[0.3em] text-center mb-1" style={sans}>YOUR MIRROR</p>
-              <h1 className="text-4xl text-center mb-4" style={serif}>{ranked[0].name} · {ranked[1].name} · {ranked[2].name}</h1>
-              <div className="flex justify-center mb-4"><Mandala ranked={ranked} /></div>
-              <p className="text-center text-sm italic mb-6" style={serif}>Time signature: {timeSig} · Embodiment: {channel.name}</p>
-              {ranked.slice(0, 3).map((r, n) => (
-                <div key={r.key} className="mb-4 pb-4" style={{ borderBottom: n < 2 ? "1px solid #ddd" : "none" }}>
-                  <p className="text-xs tracking-[0.2em] mb-1" style={sans}>{["LOUDEST", "SECOND", "THIRD"][n]} VOICE</p>
-                  <h3 className="text-2xl mb-1" style={serif}>{r.name} <span className="text-sm italic font-normal">longs for {r.longing}</span></h3>
-                  <p className="text-sm" style={sans}>{r.stages.join(" → ")}</p>
-                </div>
-              ))}
-              <div className="mb-4">
-                <p className="text-xs tracking-[0.2em] mb-1" style={sans}>YOUR BLENDS</p>
-                {[[0, 1], [0, 2], [1, 2]].map(([a, b]) => (
-                  <p key={a + "-" + b} className="text-sm" style={sans}>{ranked[a].name} × {ranked[b].name} → {blendName(ranked[a], ranked[b]) || "unnamed"}</p>
-                ))}
-              </div>
-              <p className="text-sm mb-1" style={sans}><strong>Quietest voice:</strong> {ranked[11].name}</p>
-              <p className="text-sm" style={sans}><strong>Growth edge:</strong> {ranked[0].opposite}</p>
-              <p className="text-center text-xs italic mt-8" style={serif}>A mirror, not a fortune. Wherever you stand today, take one rung up.</p>
-            </div>
-
-            {ranked.slice(0, 3).map((r, n) => (
-              <div key={r.key} className="rounded-2xl border border-violet-300/18 px-5 py-5 mb-4" style={{ background: "rgba(255,250,240,0.03)" }}>
-                <p className="text-[11px] tracking-[0.28em] text-amber-200/75 mb-1" style={sans}>{["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n]}</p>
-                <div className="flex items-baseline gap-3">
-                  <h3 className="text-3xl" style={{ ...serif, color: `hsl(${HUE(r.i)},70%,72%)` }}>{r.name}</h3>
-                  <span className="text-violet-300/70 text-sm italic" style={serif}>longs for {r.longing}</span>
-                </div>
-                <Ladder arche={r} />
-                {n === 0 && <p className="text-sm text-violet-200/80 mt-3" style={sans}>Across the wheel: <span className="text-amber-200">{r.opposite}</span> — your growth edge.</p>}
-              </div>
-            ))}
-
-            <div className="rounded-2xl border border-violet-300/18 px-5 py-5 mb-4" style={{ background: "rgba(255,250,240,0.03)" }}>
-              <p className="text-[11px] tracking-[0.28em] text-amber-200/75 mb-2" style={sans}>YOUR BLENDS</p>
-              {[[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
-                const nm = blendName(ranked[a], ranked[b]);
-                return (
-                  <p key={a + "-" + b} className="text-[15px] text-violet-100 mb-1.5" style={sans}>
-                    {ranked[a].name} × {ranked[b].name} → {nm ? <span className="text-amber-200">{nm}</span> : <span className="text-violet-300/60 italic">unnamed — an entry awaiting the 66-blend lexicon</span>}
-                  </p>
-                );
-              })}
-            </div>
-
-            <div className="rounded-2xl border border-violet-300/18 px-5 py-5 mb-4" style={{ background: "rgba(255,250,240,0.03)" }}>
-              <p className="text-[11px] tracking-[0.28em] text-amber-200/75 mb-1" style={sans}>QUIETEST VOICE</p>
-              <p className="text-[15px] text-violet-100" style={sans}>
-                <span style={{ color: `hsl(${HUE(ranked[11].i)},70%,72%)` }} className="font-semibold">{ranked[11].name}</span> speaks softest in you — often the blind spot, sometimes the invitation.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-violet-300/18 px-5 py-5 mb-6" style={{ background: "rgba(255,250,240,0.03)" }}>
-              <p className="text-[11px] tracking-[0.28em] text-amber-200/75 mb-1" style={sans}>YOUR EMBODIMENT</p>
-              <p className="text-[15px] text-violet-100" style={sans}>
-                You embody through the <span className="text-amber-200 font-semibold">{channel.name}</span> — not how you serve, but how you occupy a moment before you've decided to give anything at all. Your {ranked[0].name} in the {channel.name}: <span className="font-semibold" style={{ color: `hsl(${HUE(ranked[0].i)},70%,72%)` }}>{CHANNEL_EXPRESSIONS[ranked[0].key][channel.key]}</span>. At its best this becomes {channel.gift}; collapsed, it curdles into {channel.corruption}.
-              </p>
-            </div>
-
-            <p className="text-[11px] tracking-[0.28em] text-amber-200/75 mb-2" style={sans}>THE FULL RANKING</p>
-            <div className="space-y-2 mb-8">
-              {ranked.map((r) => (
-                <div key={r.key} className="flex items-center gap-3">
-                  <span className="w-20 text-right text-[13px] text-violet-200/85 shrink-0" style={sans}>{r.name}</span>
-                  <div className="flex-1 h-2.5 rounded-full bg-violet-300/10 overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},62%,56%)` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid gap-3">
-              <Btn primary onClick={() => window.print()}>Print your mandala</Btn>
-              <Btn onClick={restart}>Start over</Btn>
-            </div>
-            <p className="text-center text-violet-300/50 text-xs mt-7" style={sans}>A mirror, not a fortune. Wherever you stand today, take one rung up.</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+        `),
+            screen === "intro" && (React.createElement("div", { className: "text-center" },
+                React.createElement("svg", { viewBox: "0 0 120 120", className: "w-24 h-24 mx-auto mb-6", "aria-hidden": "true" },
+                    ARCHETYPES.map((_, i) => { const [x, y] = nodeXY(i, 46, 60); return React.createElement("circle", { key: i, cx: x, cy: y, r: "4", fill: `hsl(${HUE(i)},62%,56%)` }); }),
+                    React.createElement("circle", { cx: "60", cy: "60", r: "4", fill: "rgb(255,252,240)" })),
+                React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-3", style: sans }, "WORKING TITLE"),
+                React.createElement("h1", { className: "text-5xl leading-none mb-4", style: serif }, "The Twelve Within"),
+                React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-2", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
+                React.createElement("p", { className: "text-violet-300/70 text-sm leading-relaxed mb-8 italic", style: serif }, "A hall of mirrors that shows you every side of yourself \u2014 where to go, and what to avoid."),
+                React.createElement("div", { className: "grid gap-3" },
+                    React.createElement(Btn, { primary: true, onClick: () => start("quick") }, "Begin \u00B7 quick mirror (~4 min)"),
+                    React.createElement(Btn, { onClick: () => start("full") }, "Full mirror \u00B7 all 66 pairings (~7 min)"),
+                    React.createElement("button", { onClick: showSample, className: "text-amber-200/70 hover:text-amber-100 text-sm underline underline-offset-4 mt-1", style: sans }, "Show a sample mirror first")),
+                React.createElement("p", { className: "text-violet-300/50 text-xs mt-8", style: sans }, "A reflective tool \u2014 a mirror, not a fortune. Not prediction, not diagnosis."))),
+            screen === "descriptors" && (React.createElement("div", null,
+                React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-2", style: sans }, "FIRST \u00B7 WORDS"),
+                React.createElement("h2", { className: "text-3xl mb-2", style: serif }, "Choose the six words most like you"),
+                React.createElement("p", { className: "text-violet-300/70 text-sm mb-5", style: sans },
+                    "Not who you wish you were \u2014 who you actually are, most days. ",
+                    picks.length,
+                    "/6 chosen."),
+                React.createElement("div", { className: "flex flex-wrap gap-2 mb-7" }, chips.map((ch, n) => {
+                    const on = picks.includes(n);
+                    return (React.createElement("button", { key: n, onClick: () => toggleChip(n), className: "px-3.5 py-2 rounded-full text-sm border transition-colors " + (on ? "bg-amber-200/90 text-[#1b1430] border-amber-200 font-semibold" : "border-violet-300/25 text-violet-100/90 hover:border-amber-200/50"), style: sans }, ch.word));
+                })),
+                picks.length === 6 && React.createElement(Btn, { primary: true, className: "w-full", onClick: () => setScreen("pairs") }, "Continue"))),
+            screen === "pairs" && (() => {
+                const [L, Rr] = pairs[pairIdx];
+                const STOPS = [1, 2, 3, 4, 5];
+                return (React.createElement("div", null,
+                    React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-2", style: sans }, "SECOND \u00B7 WHICH FEELS TRUER"),
+                    React.createElement("h2", { className: "text-3xl mb-2", style: serif }, "Where do you fall between these?"),
+                    React.createElement("p", { className: "text-violet-300/70 text-sm mb-5", style: sans },
+                        "No wrong answers \u2014 and the middle is a real answer too. ",
+                        pairIdx + 1,
+                        " of ",
+                        pairs.length,
+                        "."),
+                    React.createElement("div", { className: "h-1 rounded-full bg-violet-300/15 mb-7 overflow-hidden" },
+                        React.createElement("div", { className: "h-full bg-amber-200/80 transition-all duration-300", style: { width: `${(pairIdx / pairs.length) * 100}%` } })),
+                    React.createElement("div", { className: "grid grid-cols-2 gap-2.5 mb-1" },
+                        React.createElement("div", { className: "rounded-2xl border border-violet-300/20 px-3.5 py-4", style: { background: "rgba(255,250,240,0.03)" } },
+                            React.createElement("p", { className: "text-[13.5px] leading-snug text-violet-50", style: sans }, ARCHETYPES[L].statement)),
+                        React.createElement("div", { className: "rounded-2xl border border-violet-300/20 px-3.5 py-4", style: { background: "rgba(255,250,240,0.03)" } },
+                            React.createElement("p", { className: "text-[13.5px] leading-snug text-violet-50", style: sans }, ARCHETYPES[Rr].statement))),
+                    React.createElement("div", { className: "grid grid-cols-2 mb-3" },
+                        React.createElement("div", { className: "flex justify-center" },
+                            React.createElement("span", { className: "text-amber-200/50 text-lg leading-none" }, "\u2193")),
+                        React.createElement("div", { className: "flex justify-center" },
+                            React.createElement("span", { className: "text-amber-200/50 text-lg leading-none" }, "\u2193"))),
+                    React.createElement("div", { className: "flex justify-between gap-1.5 mb-2" }, STOPS.map((pos) => (React.createElement("button", { key: pos, onClick: () => choosePairGraded(L, Rr, pos), className: "flex-1 aspect-square rounded-xl border border-violet-300/25 hover:border-amber-200/80 hover:bg-amber-100/10 transition-colors flex items-center justify-center group" },
+                        React.createElement("span", { className: "w-3 h-3 rounded-full bg-violet-300/30 group-hover:bg-amber-200 transition-colors", style: pos === 3 ? { width: 8, height: 8 } : {} }))))),
+                    React.createElement("div", { className: "flex justify-between text-[10px] text-violet-300/55 px-0.5", style: sans },
+                        React.createElement("span", null, "Strongly"),
+                        React.createElement("span", null, "Somewhat"),
+                        React.createElement("span", null, "Middle"),
+                        React.createElement("span", null, "Somewhat"),
+                        React.createElement("span", null, "Strongly"))));
+            })(),
+            screen === "channel" && (() => {
+                const q = CHANNEL_QUESTIONS[chIdx];
+                return (React.createElement("div", null,
+                    React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-2", style: sans }, "LAST \u00B7 YOUR EMBODIMENT"),
+                    React.createElement("h2", { className: "text-3xl mb-2", style: serif }, q.q),
+                    React.createElement("p", { className: "text-violet-300/70 text-sm mb-6", style: sans },
+                        "Heart, mind, body, or soul \u2014 not how you serve, but how you occupy a moment. ",
+                        chIdx + 1,
+                        " of ",
+                        CHANNEL_QUESTIONS.length,
+                        "."),
+                    React.createElement("div", { className: "grid gap-3" }, CHANNELS.map((ch) => (React.createElement("button", { key: ch.key, onClick: () => chooseChannel(ch.key), className: "text-left rounded-2xl border border-violet-300/20 hover:border-amber-200/70 hover:bg-amber-100/5 px-5 py-4 transition-colors" },
+                        React.createElement("p", { className: "text-[15.5px] text-violet-50", style: sans }, q.options[ch.key])))))));
+            })(),
+            screen === "results" && (React.createElement("div", null,
+                React.createElement("div", { className: "text-center mb-2" },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "A SAMPLE MIRROR" : "YOUR MIRROR"),
+                    React.createElement("h2", { className: "text-4xl", style: serif },
+                        ranked[0].name,
+                        " \u00B7 ",
+                        ranked[1].name,
+                        " \u00B7 ",
+                        ranked[2].name),
+                    React.createElement("p", { className: "text-violet-300/75 text-sm mt-2", style: sans },
+                        "Your time signature: ",
+                        React.createElement("span", { className: "text-amber-200" }, timeSig),
+                        " ",
+                        React.createElement("span", { className: "text-violet-300/50" }, "\u00B7 hour is your loudest voice, minutes your second"))),
+                React.createElement(Mandala, { ranked: ranked }),
+                React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
+                React.createElement("div", { id: "print-mandala", className: "hidden print:block bg-white text-[#241d42] p-10" },
+                    React.createElement("p", { className: "text-xs tracking-[0.3em] text-center mb-1", style: sans }, "YOUR MIRROR"),
+                    React.createElement("h1", { className: "text-4xl text-center mb-4", style: serif },
+                        ranked[0].name,
+                        " \u00B7 ",
+                        ranked[1].name,
+                        " \u00B7 ",
+                        ranked[2].name),
+                    React.createElement("div", { className: "flex justify-center mb-4" },
+                        React.createElement(Mandala, { ranked: ranked })),
+                    React.createElement("p", { className: "text-center text-sm italic mb-6", style: serif },
+                        "Time signature: ",
+                        timeSig,
+                        " \u00B7 Embodiment: ",
+                        channel.name),
+                    ranked.slice(0, 3).map((r, n) => (React.createElement("div", { key: r.key, className: "mb-4 pb-4", style: { borderBottom: n < 2 ? "1px solid #ddd" : "none" } },
+                        React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans },
+                            ["LOUDEST", "SECOND", "THIRD"][n],
+                            " VOICE"),
+                        React.createElement("h3", { className: "text-2xl mb-1", style: serif },
+                            r.name,
+                            " ",
+                            React.createElement("span", { className: "text-sm italic font-normal" },
+                                "longs for ",
+                                r.longing)),
+                        React.createElement("p", { className: "text-sm", style: sans }, r.stages.join(" → "))))),
+                    React.createElement("div", { className: "mb-4" },
+                        React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, "YOUR BLENDS"),
+                        [[0, 1], [0, 2], [1, 2]].map(([a, b]) => (React.createElement("p", { key: a + "-" + b, className: "text-sm", style: sans },
+                            ranked[a].name,
+                            " \u00D7 ",
+                            ranked[b].name,
+                            " \u2192 ",
+                            blendName(ranked[a], ranked[b]) || "unnamed")))),
+                    React.createElement("p", { className: "text-sm mb-1", style: sans },
+                        React.createElement("strong", null, "Quietest voice:"),
+                        " ",
+                        ranked[11].name),
+                    React.createElement("p", { className: "text-sm", style: sans },
+                        React.createElement("strong", null, "Growth edge:"),
+                        " ",
+                        ranked[0].opposite),
+                    React.createElement("p", { className: "text-center text-xs italic mt-8", style: serif }, "A mirror, not a fortune. Wherever you stand today, take one rung up.")),
+                ranked.slice(0, 3).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n]),
+                    React.createElement("div", { className: "flex items-baseline gap-3" },
+                        React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, r.name),
+                        React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif },
+                            "longs for ",
+                            r.longing)),
+                    React.createElement(Ladder, { arche: r }),
+                    n === 0 && React.createElement("p", { className: "text-sm text-violet-200/80 mt-3", style: sans },
+                        "Across the wheel: ",
+                        React.createElement("span", { className: "text-amber-200" }, r.opposite),
+                        " \u2014 your growth edge.")))),
+                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR BLENDS"),
+                    [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
+                        const nm = blendName(ranked[a], ranked[b]);
+                        return (React.createElement("p", { key: a + "-" + b, className: "text-[15px] text-violet-100 mb-1.5", style: sans },
+                            ranked[a].name,
+                            " \u00D7 ",
+                            ranked[b].name,
+                            " \u2192 ",
+                            nm ? React.createElement("span", { className: "text-amber-200" }, nm) : React.createElement("span", { className: "text-violet-300/60 italic" }, "unnamed \u2014 an entry awaiting the 66-blend lexicon")));
+                    })),
+                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "QUIETEST VOICE"),
+                    React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, ranked[11].name),
+                        " speaks softest in you \u2014 often the blind spot, sometimes the invitation.")),
+                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "YOUR EMBODIMENT"),
+                    React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                        "You embody through the ",
+                        React.createElement("span", { className: "text-amber-200 font-semibold" }, channel.name),
+                        " \u2014 not how you serve, but how you occupy a moment before you've decided to give anything at all. Your ",
+                        ranked[0].name,
+                        " in the ",
+                        channel.name,
+                        ": ",
+                        React.createElement("span", { className: "font-semibold", style: { color: `hsl(${HUE(ranked[0].i)},70%,72%)` } }, CHANNEL_EXPRESSIONS[ranked[0].key][channel.key]),
+                        ". At its best this becomes ",
+                        channel.gift,
+                        "; collapsed, it curdles into ",
+                        channel.corruption,
+                        ".")),
+                React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "THE FULL RANKING"),
+                React.createElement("div", { className: "space-y-2 mb-8" }, ranked.map((r) => (React.createElement("div", { key: r.key, className: "flex items-center gap-3" },
+                    React.createElement("span", { className: "w-20 text-right text-[13px] text-violet-200/85 shrink-0", style: sans }, r.name),
+                    React.createElement("div", { className: "flex-1 h-2.5 rounded-full bg-violet-300/10 overflow-hidden" },
+                        React.createElement("div", { className: "h-full rounded-full", style: { width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},62%,56%)` } })))))),
+                React.createElement("div", { className: "grid gap-3" },
+                    React.createElement(Btn, { primary: true, onClick: () => window.print() }, "Print your mandala"),
+                    React.createElement(Btn, { onClick: restart }, "Start over")),
+                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))))));
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<TwelveWithin />);
+function mountApp() {
+  if (typeof React === "undefined" || typeof ReactDOM === "undefined") {
+    // React/ReactDOM CDN scripts haven't finished loading yet — wait and retry
+    // rather than crashing. This makes the file robust to any preview
+    // environment or network condition that delays script execution order.
+    setTimeout(mountApp, 50);
+    return;
+  }
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(React.createElement(TwelveWithin, null));
+}
+mountApp();
 </script>
 </body>
 </html>
