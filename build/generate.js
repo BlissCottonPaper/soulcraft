@@ -13,6 +13,7 @@ const fs = require("fs");
 const path = require("path");
 const DATA = require("../assets/soulcraft-data.js");
 const CHROME = require("../assets/site-chrome.js");
+const CONTENT = require("../content/archetypes.js");   // archetype chapter prose (from Notion)
 
 const ROOT = path.join(__dirname, "..");
 
@@ -306,6 +307,89 @@ ${cards}
     </section>`;
 }
 
+// ---- Archetype page (/explore/<key>/) — DEEP, data + Notion chapter prose ----
+function archetypeMain(key) {
+  const a = DATA.ARCHETYPES.find((x) => x.key === key);
+  const i = DATA.ARCHETYPES.indexOf(a);
+  const hue = DATA.HUE(i);
+  const c = CONTENT[key];
+  const oppo = DATA.ARCHETYPES.find((x) => x.name === a.opposite);
+  const accent = `hsl(${hue},62%,72%)`;
+
+  const sections = [
+    ["Motivations", c.motivations],
+    ["Core wound — " + c.coreWoundShort, c.coreWound],
+    ["Fears", c.fears],
+    ["Addictions & substitutes", c.addictions],
+    ["Traits", c.traits],
+    ["Blind spots", c.blindSpots],
+    ["Dreams & hopes", c.dreams]
+  ].map(([h, body]) =>
+    `        <div class="card rounded-2xl px-6 py-5"><h3 class="text-[11px] tracking-[0.2em] uppercase mb-2" style="color:${accent}">${h}</h3><p class="text-violet-200/80 text-sm leading-relaxed">${body}</p></div>`
+  ).join("\n");
+
+  const ladder = DATA.STAGE_NAMES.map((sn, s) =>
+    `        <div class="flex gap-4 items-start py-3" style="border-top:1px solid rgba(196,181,253,0.10)">
+          <div class="w-16 shrink-0"><div class="h-6 rounded" style="background:hsl(${hue},48%,${DATA.STAGE_LIGHT[s]}%)"></div><p class="text-[10px] text-violet-300/60 mt-1">${sn}</p></div>
+          <div><p class="serif text-lg" style="color:${accent}">${a.stages[s]}</p><p class="text-violet-200/75 text-sm leading-relaxed">${c.stages[s]}</p></div>
+        </div>`
+  ).join("\n");
+
+  const emb = DATA.CHANNELS.map((ch) =>
+    `        <div class="card rounded-2xl px-5 py-4"><p class="text-[11px] tracking-[0.18em] uppercase text-amber-200/70 mb-1">${ch.name}</p><p class="serif text-lg mb-1">${DATA.CHANNEL_EXPRESSIONS[key][ch.key]}</p><p class="text-violet-300/70 text-sm">${c.embodiments[ch.key]}</p></div>`
+  ).join("\n");
+
+  const pairs = DATA.ARCHETYPES.filter((x) => x.key !== key).map((x) => {
+    const nm = DATA.pairingName(key, x.key);
+    const phue = DATA.HUE(DATA.ARCHETYPES.indexOf(x));
+    const desc = c.pairings[x.key] || "";
+    return `        <a href="/explore/${x.key}/" class="card card-hover rounded-xl px-5 py-3.5 flex items-baseline gap-3 transition-colors"><span class="w-2.5 h-2.5 rounded-full shrink-0 self-center" style="background:hsl(${phue},62%,56%)"></span><span class="text-violet-300/80 text-sm w-24 shrink-0">${x.name}</span><span class="text-sm"><span class="text-amber-100">${nm}</span>${desc ? ' <span class="text-violet-300/60">— ' + desc + "</span>" : ""}</span></a>`;
+  }).join("\n");
+
+  return `    <section class="pt-14 pb-8 md:pt-20">
+      <div class="flex items-center gap-3 mb-4"><span class="w-4 h-4 rounded-full" style="background:hsl(${hue},62%,56%)"></span><span class="text-[11px] tracking-[0.35em] text-violet-300/60 uppercase">Archetype · ${longs(a)}</span></div>
+      <h1 class="serif text-5xl md:text-6xl mb-3">The ${a.name}</h1>
+      <p class="text-violet-300/70 mb-6">${a.descriptors.join(" · ")}</p>
+      <p class="text-violet-200/85 text-lg leading-relaxed max-w-3xl">${c.overview}</p>
+      <div class="flex flex-wrap gap-x-8 gap-y-2 mt-6 text-sm text-violet-300/70">
+        <span>Core wound: <span class="text-violet-100">${c.coreWoundShort}</span></span>
+        <span>Growth edge: <a href="/explore/${oppo.key}/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">${a.opposite}</a></span>
+      </div>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+${sections}
+      </div>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-2">The five stages of Bandwidth</h2>
+      <p class="text-violet-300/70 text-sm mb-5 max-w-2xl">The ${a.name}'s gift, from contracted to expansive. <a href="/explore/bandwidth/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">What Bandwidth means →</a></p>
+${ladder}
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-2">The four Embodiments</h2>
+      <p class="text-violet-300/70 text-sm mb-5 max-w-2xl">How the ${a.name} shows up at Base, through each channel. <a href="/explore/embodiments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">What Embodiments mean →</a></p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+${emb}
+      </div>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-2">Pairings — ${a.name} leading</h2>
+      <p class="text-violet-300/70 text-sm mb-5 max-w-2xl">What emerges when the ${a.name} combines with each of the other eleven — both stay present and distinct.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+${pairs}
+      </div>
+    </section>
+
+    <section class="py-14 text-center border-t border-violet-300/10">
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Which voices are loudest in you? — Your Mandala</a>
+    </section>`;
+}
+
 // ---- Emit ------------------------------------------------------------------
 function write(rel, html) {
   const abs = path.join(ROOT, rel);
@@ -353,5 +437,17 @@ write("pricing/index.html", page({
   active: "pricing",
   main: pricingMain()
 }));
+
+// Deep archetype pages — only those whose chapter prose exists in /content/archetypes.js.
+Object.keys(CONTENT).forEach((key) => {
+  const a = DATA.ARCHETYPES.find((x) => x.key === key);
+  write(`explore/${key}/index.html`, page({
+    title: `The ${a.name} — the ${a.longing} archetype | The Art of Soulcraft`,
+    description: CONTENT[key].overview.slice(0, 155),
+    canonical: `https://artofsoulcraft.com/explore/${key}/`,
+    active: "explore",
+    main: archetypeMain(key)
+  }));
+});
 
 console.log("done.");
