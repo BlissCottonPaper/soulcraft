@@ -164,6 +164,148 @@ function pricingMain() {
     </section>`;
 }
 
+// ---- Bandwidth (/explore/bandwidth/) — DEEP, from Notion "CORE DEFINITION OF ATTUNEMENT" ----
+function bandwidthMain() {
+  const swatches = DATA.STAGE_NAMES.map((n, i) =>
+    `        <div class="flex-1 text-center"><div class="h-14 md:h-20 rounded-lg mb-2" style="background:hsl(280,45%,${DATA.STAGE_LIGHT[i]}%)"></div><p class="text-xs text-violet-200/80">${n}</p></div>`
+  ).join("\n");
+  return `    <section class="pt-16 pb-10 md:pt-24 max-w-3xl">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">THE FIVE-STAGE CAPACITY DIMENSION</p>
+      <h1 class="serif text-4xl md:text-6xl mb-5">Bandwidth</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed">Every archetype exists on one spectrum — how much capacity you have available right now, from all of it spent holding yourself together, to enough overflowing that you can freely extend outward to others. That spectrum is your <strong>Bandwidth</strong>.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-3">The mechanism: contraction and expansion</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-4">When you're threatened, you contract. When you're safe enough, you expand. That single physical, felt fact is what Bandwidth measures — and it's what three different lenses (fear and courage, ego-protection and dissolution, the psychology of motivation) were each describing from a different angle.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Contraction doesn't delete anything — it narrows your <em>access</em>. Under threat you can still only reach the defensive parts of yourself; the freer, more generous ones are still there, but can't get airtime. Expansion doesn't add anything new either — it widens access to what was always present but crowded out.</p>
+      <blockquote class="border-l-2 border-amber-200/60 pl-5 my-6 serif text-2xl italic text-violet-100">"Right now, do you have the bandwidth to actually take someone else in — or is all your capacity going toward holding yourself together?"</blockquote>
+      <p class="text-violet-300/70 text-sm">Everyone has been in a contracted, defensive moment and an expansive, generous one. Bandwidth is simply which one you're in — and it moves.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-6 max-w-3xl">The five stages, dark to bright</h2>
+      <div class="flex gap-2 md:gap-3 mb-8">
+${swatches}
+      </div>
+      <div class="grid md:grid-cols-5 gap-4 text-sm">
+        <p class="text-violet-300/75"><strong class="text-violet-100 block mb-1">Devolved</strong>Maximally contracted. All energy spent on defense; the archetype's gift captured by ego.</p>
+        <p class="text-violet-300/75"><strong class="text-violet-100 block mb-1">Descended</strong>Bent by fear. Grasping, defended, reactive.</p>
+        <p class="text-violet-300/75"><strong class="text-violet-100 block mb-1">Base</strong>The unexamined middle — neither deliberately defended nor deliberately open, running on habit.</p>
+        <p class="text-violet-300/75"><strong class="text-violet-100 block mb-1">Ascended</strong>The gift mastered and matured, mostly free of fear.</p>
+        <p class="text-violet-300/75"><strong class="text-violet-100 block mb-1">Transcendent</strong>Maximally expansive. Capacity overflowing, freely extended outward to others and the whole.</p>
+      </div>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-3">One dimension, two views: brightness is capacity</h2>
+      <p class="text-violet-200/80 leading-relaxed">Bandwidth is the same thing your mandala already shows you as <em>light</em>. In the geometry of the system — the cone — hue is your archetype and brightness is your stage: Devolved sits at the dark, narrow base; Transcendent at the bright, wide apex. The swatches above <em>are</em> that brightness axis. Capacity rising and light rising are one movement seen two ways.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-3">What fills the tank: Core Needs</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Bandwidth is a gauge — it reads how much capacity you have, not why. The <em>why</em> is your <strong>Core Needs</strong>: the six human needs that, met, give you room to expand, and starved, pull you into contraction. Your Core Needs are the fuel; your Bandwidth is the gauge reading how much that fuel gives you right now.</p>
+      <a href="/explore/core-needs/" class="inline-block mt-2 text-amber-200 hover:text-amber-100 underline underline-offset-4">The six Core Needs →</a>
+    </section>
+
+    <section class="py-14 text-center border-t border-violet-300/10">
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">See your own reading — Your Mandala</a>
+    </section>`;
+}
+
+// ---- Embodiments (/explore/embodiments/) — from Notion "The Four Embodiments" ----
+function embodimentsMain() {
+  const FIRST = { heart: "feeling first", mind: "thinking first", body: "doing first", soul: "meaning first" };
+  const DESC = {
+    heart: "Something happens, and the Heart-led person's whole system responds emotionally before anything else engages. Presence, warmth, and relational attunement are native here.",
+    mind: "The Mind-led person's instinct is to understand before anything else — clarity as the first move, feeling processed only afterward, if at all in the moment.",
+    body: "The Body-led person's system reaches for action — the hands, the movement, the concrete task — before words or feelings have caught up.",
+    soul: "The Soul-led person's first question, often unconsciously, is <em>what does this mean</em> — reaching for significance before urgency or emotion."
+  };
+  const cards = DATA.CHANNELS.map((ch) =>
+    `      <div class="card rounded-2xl px-6 py-6">
+        <div class="flex items-baseline justify-between mb-2"><h3 class="serif text-2xl">${ch.name}</h3><span class="text-[10px] tracking-[0.2em] text-amber-200/70">${FIRST[ch.key].toUpperCase()}</span></div>
+        <p class="text-violet-200/80 text-sm leading-relaxed mb-3">${DESC[ch.key]}</p>
+        <p class="text-sm"><span class="text-violet-300/60">At its best, </span><span class="text-amber-200">${ch.gift}</span><span class="text-violet-300/60">; collapsed, ${ch.corruption}.</span></p>
+      </div>`
+  ).join("\n");
+  return `    <section class="pt-16 pb-10 md:pt-24 max-w-3xl">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">HOW YOU SHOW UP</p>
+      <h1 class="serif text-4xl md:text-6xl mb-5">The Four Embodiments</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed">How each archetype is <em>occupied</em> — not a mode of service, a default mode of <strong>being</strong>, present before any action is taken. You don't choose your Embodiment; you find yourself already standing in it the moment something happens.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+${cards}
+      </div>
+      <p class="text-violet-300/60 text-sm mt-4 max-w-3xl"><strong class="text-violet-200/80">Named at Base only.</strong> An Embodiment is formally named at each archetype's Base expression — not at every stage, and not for every Pairing. Where richer language helps ("a Creator led by the Soul is close to what people call an artist"), it lives as prose, not new taxonomy.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-4">How Bandwidth changes your Embodiment</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-3"><strong>Contraction collapses you into one weaponized channel.</strong> Under threat, the Embodiment that is your gift turns on people instead of toward them:</p>
+      <ul class="text-violet-200/80 text-sm space-y-1 mb-5 list-none">
+        <li>Heart → manipulation (feeling used <em>on</em> people instead of <em>with</em> them)</li>
+        <li>Mind → control (thinking that dominates instead of understands)</li>
+        <li>Body → force (action that overrides instead of serves)</li>
+        <li>Soul → fanaticism (meaning that excludes instead of includes)</li>
+      </ul>
+      <p class="text-violet-200/80 leading-relaxed"><strong>Expansion integrates all four.</strong> The Transcendent expression of any archetype can reach all four Embodiments — compassion, wisdom, presence, communion — deployed as the moment actually requires, not defaulted to out of habit. That's the real meaning of balance: not living in your weakest channel, but being able to reach any of them when the moment calls.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-3">The practice: crossing</h2>
+      <p class="text-violet-200/80 leading-relaxed">Develop a quiet Embodiment by pursuing your loudest archetype's longing <em>through</em> it. The longing supplies motivation you already have; the crossing supplies the growth. A Mind-led Sage develops the Body not by abandoning the mind but by apprenticing his hands — bread, knots, a martial art — truth sought through what can't be read.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <p class="text-violet-300/70 text-sm">Your Embodiment is a <em>separate</em> layer from Bandwidth and Core Needs: it describes <em>how</em> you show up, not <em>how resourced</em> you are. A Heart-led person can be running on empty or overflowing — the channel stays the same; the Bandwidth is what moves.</p>
+    </section>
+
+    <section class="py-14 text-center border-t border-violet-300/10">
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Find your Embodiment — Your Mandala</a>
+    </section>`;
+}
+
+// ---- Core Needs (/explore/core-needs/) — OVERVIEW (deeper page + questionnaire = future work) ----
+function coreNeedsMain() {
+  const NEEDS = [
+    ["Autonomy", "Acting from genuine, self-possessed choice rather than compulsion or fear."],
+    ["Competence / Mastery", "Meeting real challenge with real, tested capability — building it, not faking it."],
+    ["Relatedness / Belonging", "Being genuinely known and connected, not merely surrounded."],
+    ["Self-Esteem", "A steady, unborrowed sense of your own worth."],
+    ["Trust", "Enough safety in yourself, others, and the world to lower your guard."],
+    ["Purpose / Meaning", "A sense that what you do matters beyond the moment."]
+  ];
+  const cards = NEEDS.map(([n, d]) =>
+    `        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-xl mb-1">${n}</h3><p class="text-sm text-violet-300/70">${d}</p></div>`
+  ).join("\n");
+  return `    <section class="pt-16 pb-10 md:pt-24 max-w-3xl">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">THE FUEL BEHIND YOUR BANDWIDTH</p>
+      <h1 class="serif text-4xl md:text-6xl mb-5">Core Needs</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed">Six human needs that, met, give you room to expand — and starved, pull you into contraction. Core Needs sit alongside <a href="/explore/bandwidth/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Bandwidth</a>, not inside it: <strong>your Core Needs are the fuel; your Bandwidth is the gauge</strong> reading how much capacity that fuel gives you right now.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-6 max-w-3xl">The six</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+${cards}
+      </div>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-3">One dashboard, four dials</h2>
+      <p class="text-violet-200/80 leading-relaxed">Core Needs are the fuel tank. Bandwidth is the gauge reading. Your <a href="/explore/#the-twelve" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Archetype</a> is the engine the fuel powers. Your <a href="/explore/embodiments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Embodiment</a> is the handling — a separate dimension entirely. Different archetypes tend to run on a different "home" need, which is part of why the same low tank shows up so differently from one person to the next.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <p class="text-violet-300/70 text-sm mb-4"><strong class="text-violet-200/80">A note on borrowed capacity.</strong> Leaning on others when you're depleted — asking for help, more time, a friend to lean on — is healthy and human. The question isn't whether you borrow, but whether the borrowing is a temporary bridge back to building your own capacity, or a permanent substitute for ever developing it. Only the second is worth watching for — because it can look identical to real capacity on the surface while staying brittle underneath.</p>
+      <p class="text-violet-300/55 text-sm">Drawn from Self-Determination Theory (Deci &amp; Ryan) and Elena Aguilar's Core Human Needs synthesis, itself drawing on the work of Gabor Maté.</p>
+      <p class="text-violet-300/45 text-xs mt-4 italic">This is an overview. A fuller Core Needs treatment — and a dedicated way to read your own six — is planned, not yet built.</p>
+    </section>`;
+}
+
 // ---- Emit ------------------------------------------------------------------
 function write(rel, html) {
   const abs = path.join(ROOT, rel);
@@ -178,6 +320,30 @@ write("explore/index.html", page({
   canonical: "https://artofsoulcraft.com/explore/",
   active: "explore",
   main: overviewMain()
+}));
+
+write("explore/bandwidth/index.html", page({
+  title: "Bandwidth — the five-stage capacity dimension | The Art of Soulcraft",
+  description: "Bandwidth is how much capacity you have available right now — from contracted around self-protection to expansive enough to include others. The Devolved-to-Transcendent ladder, explained.",
+  canonical: "https://artofsoulcraft.com/explore/bandwidth/",
+  active: "explore",
+  main: bandwidthMain()
+}));
+
+write("explore/embodiments/index.html", page({
+  title: "The Four Embodiments — Heart, Mind, Body, Soul | The Art of Soulcraft",
+  description: "Your Embodiment is how you show up — feeling, thinking, doing, or meaning first — the default mode of being you occupy before you act. How Heart, Mind, Body, and Soul shift with your Bandwidth.",
+  canonical: "https://artofsoulcraft.com/explore/embodiments/",
+  active: "explore",
+  main: embodimentsMain()
+}));
+
+write("explore/core-needs/index.html", page({
+  title: "Core Needs — the fuel behind your Bandwidth | The Art of Soulcraft",
+  description: "The six Core Human Needs — autonomy, competence, relatedness, self-esteem, trust, purpose — that fuel your capacity. Drawn from Self-Determination Theory (Deci & Ryan) and Elena Aguilar's synthesis.",
+  canonical: "https://artofsoulcraft.com/explore/core-needs/",
+  active: "explore",
+  main: coreNeedsMain()
 }));
 
 write("pricing/index.html", page({
