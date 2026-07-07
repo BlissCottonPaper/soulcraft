@@ -18,7 +18,7 @@
 <div id="root"></div>
 <script>
 "use strict";
-var useState, useMemo;
+var useState, useMemo, useEffect, useRef;
 /* ============================================================
    THE TWELVE WITHIN — assessment prototype (working title)
    A hall of mirrors: forced-choice ranking of the twelve
@@ -193,9 +193,21 @@ function Mandala({ ranked, topCount = 3 }) {
         }),
         showBlends && React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: "rgba(255,250,235,0.06)", stroke: "rgba(233,196,124,0.9)", strokeWidth: "1.5", strokeLinejoin: "round" }),
         showBlends && React.createElement("polygon", { points: secPts.map((p) => p.xy.join(",")).join(" "), fill: "none", stroke: "rgba(220,214,244,0.4)", strokeWidth: "1", strokeLinejoin: "round" }),
-        showBlends && secPts.map((p, k) => (React.createElement("g", { key: "s" + k },
-            React.createElement("circle", { cx: p.xy[0], cy: p.xy[1], r: "5.5", fill: p.fill, stroke: "rgba(255,255,255,0.5)", strokeWidth: "0.8" }),
-            React.createElement("text", { x: p.xy[0], y: p.xy[1] + 15, textAnchor: "middle", fontSize: "7.5", fill: "rgba(224,218,246,0.82)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.03em" } }, p.label)))),
+        showBlends && secPts.map((p, k) => {
+            // Push each blend's label radially outward from center (c,c),
+            // not just straight down. A fixed downward offset caused labels
+            // for diagonally-close dots (e.g. Shaman and Magician) to overlap
+            // even when the dots themselves were well separated, since both
+            // labels fell into the same lower region regardless of the dots'
+            // actual relative position.
+            const dx = p.xy[0] - c, dy = p.xy[1] - c;
+            const dist = Math.hypot(dx, dy) || 1;
+            const lx = p.xy[0] + (dx / dist) * 16;
+            const ly = p.xy[1] + (dy / dist) * 16 + 4;
+            return React.createElement("g", { key: "s" + k },
+                React.createElement("circle", { cx: p.xy[0], cy: p.xy[1], r: "5.5", fill: p.fill, stroke: "rgba(255,255,255,0.5)", strokeWidth: "0.8" }),
+                React.createElement("text", { x: lx, y: ly, textAnchor: "middle", fontSize: "7.5", fill: "rgba(224,218,246,0.82)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.03em" } }, p.label));
+        }),
         ARCHETYPES.map((a, i) => {
             const [x, y] = nodeXY(i, R, c);
             const [lx, ly] = nodeXY(i, R + 28, c);
@@ -281,6 +293,73 @@ function TwelveWithin() {
         const best = CHANNELS.map((ch) => ({ ...ch, n: chCounts[ch.key] || 0 })).sort((a, b) => b.n - a.n);
         return best[0];
     }, [chCounts]);
+
+    // --- Save to the backend the moment a REAL result is reached ---
+    // A ref (not state) tracks whether we've already saved THIS particular
+    // result, so re-renders don't trigger duplicate saves, but a genuine
+    // new attempt (session changes) is allowed to save again.
+    const savedForSession = useRef(null);
+    const [savedResultId, setSavedResultId] = useState(null);
+    const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+    const [emailInput, setEmailInput] = useState("");
+    const [emailSent, setEmailSent] = useState(false);
+
+    useEffect(() => {
+        if (screen !== "results" || isSample) return; // never save fake sample data
+        if (savedForSession.current === session) return; // already saved this exact attempt
+        savedForSession.current = session;
+        setSaveStatus("saving");
+
+        const archetypeScores = {};
+        ranked.forEach((r) => { archetypeScores[r.key] = r.score; });
+        const channelScores = {};
+        CHANNELS.forEach((ch) => { channelScores[ch.key] = chCounts[ch.key] || 0; });
+
+        fetch("/api/save-results", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                tier,
+                mode: TIERS[tier].pairMode,
+                archetypeScores,
+                channelScores,
+                descriptorPicks: picks,
+                // email intentionally omitted here — offered AFTER results are
+                // already visible (below), never required up front
+            }),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.resultId) {
+                    setSavedResultId(data.resultId);
+                    setSaveStatus("saved");
+                } else {
+                    setSaveStatus("error");
+                }
+            })
+            .catch(() => setSaveStatus("error"));
+    }, [screen, isSample, session]);
+
+    const sendMyEmail = () => {
+        if (!emailInput.trim() || !savedResultId) return;
+        fetch("/api/save-results", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                tier,
+                mode: TIERS[tier].pairMode,
+                archetypeScores: Object.fromEntries(ranked.map((r) => [r.key, r.score])),
+                channelScores: Object.fromEntries(CHANNELS.map((ch) => [ch.key, chCounts[ch.key] || 0])),
+                descriptorPicks: picks,
+                email: emailInput.trim(),
+                upgradeFromId: savedResultId, // links this email-added save back to the original
+            }),
+        })
+            .then((res) => res.json())
+            .then(() => setEmailSent(true))
+            .catch(() => {});
+    };
+
     const maxScore = Math.max(...ranked.map((r) => r.score), 1);
     const hourOf = (r) => (r.i === 0 ? 12 : r.i);
     const timeSig = ranked.length ? `${hourOf(ranked[0])}:${String(ranked[1].i * 5).padStart(2, "0")}` : "";
@@ -512,6 +591,12 @@ function TwelveWithin() {
                         };
                     } }, "Print your mandala"),
                     React.createElement(Btn, { onClick: restart }, "Start over")),
+                !isSample && saveStatus === "saved" && !emailSent && React.createElement("div", { className: "mt-6 rounded-2xl border border-violet-300/18 px-5 py-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-sm text-violet-200/85 mb-3", style: sans }, "Want a link to find this again? Enter your email (optional) \u2014 no account, no newsletter, just a way back."),
+                    React.createElement("div", { className: "flex gap-2" },
+                        React.createElement("input", { type: "email", value: emailInput, onChange: (e) => setEmailInput(e.target.value), placeholder: "you@example.com", className: "flex-1 rounded-lg bg-black/20 border border-violet-300/25 px-3 py-2 text-sm text-violet-50 outline-none focus:border-amber-200/60", style: sans }),
+                        React.createElement("button", { onClick: sendMyEmail, className: "rounded-lg px-4 py-2 text-sm bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100", style: sans }, "Send link"))),
+                !isSample && emailSent && React.createElement("p", { className: "mt-6 text-center text-sm text-amber-200/80", style: sans }, "Check your email \u2014 your link is on its way."),
                 React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))))));
 }
 
@@ -522,6 +607,8 @@ function mountApp() {
   }
   useState = React.useState;
   useMemo = React.useMemo;
+  useEffect = React.useEffect;
+  useRef = React.useRef;
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(React.createElement(TwelveWithin, null));
 }
