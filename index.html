@@ -535,43 +535,54 @@ function TwelveWithin() {
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
-                    // ---------- PAGE 1: header, headline, mandala only ----------
-                    React.createElement("div", { className: "print-page p-10" },
+                    // ---------- PAGE 1: masthead, headline, larger mandala ----------
+                    React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "40px", height: "9.5in", boxSizing: "border-box" } },
                         React.createElement("div", { className: "flex justify-between items-baseline mb-8" },
                             React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE MANDALA" : "YOUR MANDALA"),
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
                         React.createElement("h1", { className: "text-4xl text-center mb-6", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" \u00B7 ")),
                         React.createElement("div", { className: "flex justify-center mb-2", style: { width: "100%" } },
-                            React.createElement("div", { style: { width: "5.5in", maxWidth: "100%" } },
+                            React.createElement("div", { style: { width: "6.6in", maxWidth: "100%" } },
                                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true })))),
-                    // ---------- PAGE 2: voice ladders, blends, quietest voice, growth edge, embodiment ----------
-                    React.createElement("div", { className: "print-page p-10" },
-                        React.createElement("div", { className: "mb-6", style: { display: "grid", gridTemplateColumns: `repeat(${Math.min(TIERS[tier].topCount, 3)}, 1fr)`, gap: "12px" } },
-                            ranked.slice(0, TIERS[tier].topCount).map((r, n) => {
+
+                    // ---------- PAGE 2: top 3, fully developed ----------
+                    TIERS[tier].topCount >= 3 && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "36px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-4", style: sans }, "YOUR TOP THREE, IN DEPTH"),
+                        React.createElement("div", { className: "mb-6", style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" } },
+                            ranked.slice(0, 3).map((r, n) => {
                                 const hue = HUE(r.i);
-                                return React.createElement("div", { key: r.key, style: { border: `1.5px solid hsl(${hue},55%,72%)`, borderTop: `5px solid hsl(${hue},60%,52%)`, borderRadius: "10px", padding: "14px 12px", background: `hsl(${hue},70%,97%)` } },
-                                    React.createElement("p", { className: "text-[9px] tracking-[0.18em]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},50%,38%)` } }, (["LOUDEST", "SECOND", "THIRD"][n] || `VOICE ${n + 1}`) + " VOICE"),
-                                    React.createElement("h3", { className: "text-xl mb-0.5", style: { fontFamily: "'Cormorant Garamond', Georgia, serif", color: `hsl(${hue},55%,30%)` } }, r.name),
-                                    React.createElement("p", { className: "text-[10px] italic mb-2", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},35%,45%)` } }, longsPhrase(r)),
-                                    React.createElement("div", null, [4, 3, 2, 1, 0].map((s) => React.createElement("p", { key: s, className: "text-[10.5px]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: s === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,50%)`, fontWeight: s === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[s]))));
+                                return React.createElement("div", { key: r.key, style: { border: `1.5px solid hsl(${hue},55%,72%)`, borderTop: `5px solid hsl(${hue},60%,52%)`, borderRadius: "10px", padding: "12px 10px", background: `hsl(${hue},70%,97%)` } },
+                                    React.createElement("p", { className: "text-[8.5px] tracking-[0.16em]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},50%,38%)` } }, ["LOUDEST", "SECOND", "THIRD"][n] + " VOICE"),
+                                    React.createElement("h3", { className: "text-lg mb-0.5", style: { fontFamily: "'Cormorant Garamond', Georgia, serif", color: `hsl(${hue},55%,30%)` } }, r.name),
+                                    React.createElement("p", { className: "text-[9px] italic mb-1.5", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},35%,45%)` } }, longsPhrase(r)),
+                                    React.createElement("div", null, [4, 3, 2, 1, 0].map((s) => React.createElement("p", { key: s, className: "text-[9.5px]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: s === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,50%)`, fontWeight: s === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[s]))));
                             })),
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "MORE ON YOUR RESULT"),
-                        TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-sm italic mb-6", style: serif },
+                        TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-sm italic mb-4", style: serif },
                             `Time signature: ${timeSig} \u00B7 Embodiment: ${channel.name}`),
-                        TIERS[tier].showBlends && React.createElement("div", { className: "mb-8" },
-                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-2", style: sans }, "YOUR BLENDS"),
-                            [[0, 1], [0, 2], [1, 2]].map(([a, b]) => (React.createElement("p", { key: a + "-" + b, className: "text-sm mb-1", style: sans },
+                        TIERS[tier].showBlends && React.createElement("div", { className: "mb-4" },
+                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, "YOUR BLENDS"),
+                            [[0, 1], [0, 2], [1, 2]].map(([a, b]) => (React.createElement("p", { key: a + "-" + b, className: "text-sm mb-0.5", style: sans },
                                 ranked[a].name, " \u00D7 ", ranked[b].name, " \u2192 ", blendName(ranked[a], ranked[b]) || "unnamed")))),
-                        TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-2", style: sans },
-                            React.createElement("strong", null, "Quietest voice: "), ranked[11].name),
-                        React.createElement("p", { className: "text-sm mb-8", style: sans },
-                            React.createElement("strong", null, "Growth edge: "), ranked[0].opposite),
-                        TIERS[tier].showEmbodiment && React.createElement("div", { className: "mb-8" },
-                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-2", style: sans }, "YOUR EMBODIMENT"),
+                        TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-1", style: sans },
+                            React.createElement("strong", null, "Quietest voice: "), ranked[11].name, " \u2014 your lowest-scoring voice"),
+                        React.createElement("p", { className: "text-sm mb-4", style: sans },
+                            React.createElement("strong", null, "Growth edge: "), ranked[0].opposite, " \u2014 the fixed complement to your loudest voice"),
+                        TIERS[tier].showEmbodiment && React.createElement("div", { className: "mb-4" },
+                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, "YOUR EMBODIMENT"),
                             React.createElement("p", { className: "text-sm", style: sans },
                                 "You embody through the ", channel.name, ". Your ", ranked[0].name, " in the ", channel.name, ": ",
                                 CHANNEL_EXPRESSIONS[ranked[0].key][channel.key], ".")),
-                        React.createElement("p", { className: "text-center text-xs italic mt-10", style: serif }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))),
+                        React.createElement("div", { style: { marginTop: "auto" } },
+                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."))),
+
+                    // ---------- PAGE 3: the remaining 9, compact single-line format ----------
+                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "36px", height: "9.5in", boxSizing: "border-box" } },
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-4", style: sans }, "THE REMAINING NINE"),
+                        ranked.slice(3, 12).map((r, n) => React.createElement("div", { key: r.key, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "6px" } },
+                            React.createElement("span", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},55%,38%)` } }, r.name),
+                            React.createElement("span", { className: "text-xs italic", style: sans }, "  " + longsPhrase(r) + "  "),
+                            React.createElement("span", { className: "text-xs", style: sans }, r.stages.join(" \u2192 ")))),
+                        React.createElement("p", { className: "text-center text-xs italic mt-6", style: serif }, "A mirror, not a fortune. Wherever you stand today, take one rung up.")))),
                 ranked.slice(0, TIERS[tier].topCount).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
                     React.createElement("div", { className: "flex items-baseline gap-3" },
@@ -684,7 +695,7 @@ function TwelveWithin() {
                         React.createElement("input", { type: "email", value: emailInput, onChange: (e) => setEmailInput(e.target.value), placeholder: "you@example.com", className: "flex-1 rounded-lg bg-black/20 border border-violet-300/25 px-3 py-2 text-sm text-violet-50 outline-none focus:border-amber-200/60", style: sans }),
                         React.createElement("button", { onClick: sendMyEmail, className: "rounded-lg px-4 py-2 text-sm bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100", style: sans }, "Send link"))),
                 !isSample && emailSent && React.createElement("p", { className: "mt-6 text-center text-sm text-amber-200/80", style: sans }, "Check your email \u2014 your link is on its way."),
-                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))))));
+                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up.")))));
 }
 
 function mountApp() {
