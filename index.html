@@ -258,7 +258,14 @@ const TIERS = {
 
 /* ---------- main ---------- */
 function TwelveWithin() {
-    const [screen, setScreen] = useState("intro");
+    const [screen, setScreen] = useState(() => {
+        // If opened from a magic link (?token=&result=), start on a brief
+        // "verifying" screen instead of flashing the intro first.
+        try {
+            const p = new URLSearchParams(window.location.search);
+            return (p.get("token") && p.get("result")) ? "verifying" : "intro";
+        } catch (e) { return "intro"; }
+    });
     const [mode, setMode] = useState("quick");
     const [tier, setTier] = useState("full"); // which product tier is active for this session
     const [session, setSession] = useState(0);
@@ -268,10 +275,16 @@ function TwelveWithin() {
     const [chIdx, setChIdx] = useState(0);
     const [chCounts, setChCounts] = useState({});
     const [isSample, setIsSample] = useState(false);
+    // Magic-link restore state (populated when arriving via ?token=&result=)
+    const [restored, setRestored] = useState(null);
+    const [verifyStatus, setVerifyStatus] = useState("idle"); // idle | verifying | ok | expired | error
+    const [verifyMsg, setVerifyMsg] = useState("");
+    const [resendEmail, setResendEmail] = useState("");
+    const [resendRequested, setResendRequested] = useState(false);
     const chips = useMemo(() => shuffle(ARCHETYPES.flatMap((a) => a.descriptors.map((d) => ({ word: d, key: a.key })))), [session]);
     const pairs = useMemo(() => buildPairs(TIERS[tier].pairMode), [tier, session]);
     const start = (t) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChCounts({}); setIsSample(false); setScreen("descriptors"); };
-    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChCounts({}); setPairIdx(0); };
+    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChCounts({}); setPairIdx(0); setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); };
     const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChCounts({ mind: 3, soul: 1 }); setPairIdx(0); setTier("triad"); setIsSample(true); setScreen("results"); };
     const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
     const choosePairGraded = (leftIdx, rightIdx, position) => {
@@ -296,16 +309,24 @@ function TwelveWithin() {
             setChIdx(chIdx + 1);
     };
     const ranked = useMemo(() => {
+        // Restored-from-link results render directly from the saved final scores,
+        // not from the raw pair/descriptor state (which we never collected here).
+        if (restored) {
+            return ARCHETYPES
+                .map((a, i) => ({ ...a, i, score: restored.archetypeScores[a.key] || 0, descs: 0 }))
+                .sort((x, y) => y.score - x.score || x.i - y.i);
+        }
         const descCount = {};
         picks.forEach((n) => { descCount[n] = (descCount[n] || 0) + 1; });
         return ARCHETYPES
             .map((a, i) => ({ ...a, i, score: (wins[a.key] || 0) + 0.5 * (descCount[a.key] || 0), descs: descCount[a.key] || 0 }))
             .sort((x, y) => y.score - x.score || y.descs - x.descs || x.i - y.i);
-    }, [wins, picks]);
+    }, [wins, picks, restored]);
     const channel = useMemo(() => {
-        const best = CHANNELS.map((ch) => ({ ...ch, n: chCounts[ch.key] || 0 })).sort((a, b) => b.n - a.n);
+        const counts = restored ? restored.channelScores : chCounts;
+        const best = CHANNELS.map((ch) => ({ ...ch, n: counts[ch.key] || 0 })).sort((a, b) => b.n - a.n);
         return best[0];
-    }, [chCounts]);
+    }, [chCounts, restored]);
 
     // --- Save to the backend the moment a REAL result is reached ---
     // A ref (not state) tracks whether we've already saved THIS particular
@@ -318,7 +339,7 @@ function TwelveWithin() {
     const [emailSent, setEmailSent] = useState(false);
 
     useEffect(() => {
-        if (screen !== "results" || isSample) return; // never save fake sample data
+        if (screen !== "results" || isSample || restored) return; // never save sample data or a restored-from-link result
         if (savedForSession.current === session) return; // already saved this exact attempt
         savedForSession.current = session;
         setSaveStatus("saving");
@@ -351,7 +372,7 @@ function TwelveWithin() {
                 }
             })
             .catch(() => setSaveStatus("error"));
-    }, [screen, isSample, session]);
+    }, [screen, isSample, session, restored]);
 
     const sendMyEmail = () => {
         if (!emailInput.trim() || !savedResultId) return;
@@ -372,6 +393,52 @@ function TwelveWithin() {
             .then(() => setEmailSent(true))
             .catch(() => {});
     };
+
+    // --- Magic link: on first load, if the URL carries ?token=&result=, verify
+    // it against the backend and jump straight to the restored result (silent
+    // success). Expired links land on a re-entry screen. Runs once. ---
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        const result = params.get("result");
+        if (!token || !result) return;
+        setVerifyStatus("verifying");
+        fetch(`/api/verify-link?token=${encodeURIComponent(token)}&result=${encodeURIComponent(result)}`)
+            .then(async (res) => {
+                let data = {};
+                try { data = await res.json(); } catch (e) {}
+                if (res.ok && data.resultId) {
+                    setRestored({
+                        tier: data.tier,
+                        mode: data.mode,
+                        archetypeScores: data.archetypeScores || {},
+                        channelScores: data.channelScores || {},
+                        descriptorPicks: data.descriptorPicks || [],
+                    });
+                    setTier(data.tier);
+                    setMode(data.mode);
+                    setPicks(data.descriptorPicks || []);
+                    setSavedResultId(data.resultId);
+                    setVerifyStatus("ok");
+                    setScreen("results");
+                } else if (res.status === 410) {
+                    setVerifyStatus("expired");
+                    setVerifyMsg(data.error || "This link has expired. Enter your email again to get a fresh one.");
+                    setScreen("verify-error");
+                } else {
+                    setVerifyStatus("error");
+                    setVerifyMsg(data.error || "We couldn't open that link.");
+                    setScreen("verify-error");
+                }
+                // Drop the token from the URL so a refresh doesn't replay it.
+                try { window.history.replaceState({}, "", "/"); } catch (e) {}
+            })
+            .catch(() => {
+                setVerifyStatus("error");
+                setVerifyMsg("Something went wrong opening your link. Please try again.");
+                setScreen("verify-error");
+            });
+    }, []);
 
     const maxScore = Math.max(...ranked.map((r) => r.score), 1);
     const hourOf = (r) => (r.i === 0 ? 12 : r.i);
@@ -400,6 +467,26 @@ function TwelveWithin() {
             #print-mandala svg { width: 100%; height: auto; display: block; margin: 0 auto; }
           }
         `),
+            screen === "verifying" && (React.createElement("div", { className: "text-center py-24" },
+                React.createElement("svg", { viewBox: "0 0 120 120", className: "w-20 h-20 mx-auto mb-6 animate-pulse", "aria-hidden": "true" },
+                    ARCHETYPES.map((_, i) => { const [x, y] = nodeXY(i, 46, 60); return React.createElement("circle", { key: i, cx: x, cy: y, r: "4", fill: `hsl(${HUE(i)},62%,56%)` }); }),
+                    React.createElement("circle", { cx: "60", cy: "60", r: "4", fill: "rgb(255,252,240)" })),
+                React.createElement("p", { className: "text-violet-200/80 text-lg", style: serif }, "Finding your mandala…"))),
+            screen === "verify-error" && (React.createElement("div", { className: "text-center py-16 max-w-md mx-auto" },
+                React.createElement("h2", { className: "text-3xl mb-3", style: serif }, verifyStatus === "expired" ? "This link has expired" : "We couldn't open that link"),
+                React.createElement("p", { className: "text-violet-200/80 text-[15px] mb-6", style: sans }, verifyMsg),
+                verifyStatus === "expired" && !resendRequested && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-5 text-left", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-sm text-violet-200/85 mb-3", style: sans }, "Enter your email — no account, just a fresh link back to your result."),
+                    React.createElement("div", { className: "flex gap-2" },
+                        React.createElement("input", { type: "email", value: resendEmail, onChange: (e) => setResendEmail(e.target.value), placeholder: "you@example.com", className: "flex-1 rounded-lg bg-black/20 border border-violet-300/25 px-3 py-2 text-sm text-violet-50 outline-none focus:border-amber-200/60", style: sans }),
+                        React.createElement("button", { onClick: () => {
+                            // NOTE: actually SENDING the fresh link depends on email delivery,
+                            // which is the next task (save-results.js still stubs the send).
+                            // Until that's wired this confirms optimistically; no mail goes out yet.
+                            if (resendEmail.trim()) setResendRequested(true);
+                        }, className: "rounded-lg px-4 py-2 text-sm bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100", style: sans }, "Send fresh link"))),
+                verifyStatus === "expired" && resendRequested && React.createElement("p", { className: "text-sm text-amber-200/80 mb-5", style: sans }, "If a saved result matches that email, a fresh link is on its way."),
+                React.createElement("button", { onClick: restart, className: "text-amber-200/70 hover:text-amber-100 text-sm underline underline-offset-4", style: sans }, "Or take the assessment again"))),
             screen === "intro" && (React.createElement("div", { className: "text-center" },
                 React.createElement("svg", { viewBox: "0 0 120 120", className: "w-24 h-24 mx-auto mb-6", "aria-hidden": "true" },
                     ARCHETYPES.map((_, i) => { const [x, y] = nodeXY(i, 46, 60); return React.createElement("circle", { key: i, cx: x, cy: y, r: "4", fill: `hsl(${HUE(i)},62%,56%)` }); }),
