@@ -2,40 +2,42 @@
 
 *artofsoulcraft.com — a BridgeTender Studio project*
 
-A twelve-archetype developmental self-discovery system. You are not one type — you are all twelve, some louder than others. Every archetype exists on a five-stage spectrum (Altitude) from selfish (Devolved) to selfless (Transcendent). Product name: Your Mandala.
+A twelve-archetype developmental self-discovery system. You are not one type — you are all twelve, some louder than others. Every archetype exists on a five-stage spectrum (**Altitude**) from selfish (Devolved) to selfless (Transcendent). Product name: **Your Mandala**.
+
+---
 
 ## 🚦 Status: Live Prototype, Backend Written But Not Deployed
 
-The frontend is live and working. The backend exists as real code but has never been run. Honest state as of this update:
+**The frontend is live and working. The backend exists as real code but has never been run.** Honest state as of this update:
 
 ### ✅ Done
-
 - Full conceptual architecture: 12 archetypes, 5 altitudes, 48 base×embodiment expressions, 66 named blends
 - The Wheel / Clock / Cone geometry, verified correct (blend-dot placement, opposite-axis handling)
 - Full 36-statement bank written (3 flavors × 12 archetypes) — the Full Mirror's placeholder content gap is closed
-- `index.html` is live at [artofsoulcraft.com](https://artofsoulcraft.com/) (deployed via Cloudflare Pages, connected to this repo's `main` branch — pushes auto-deploy)
+- **`index.html` is live at [artofsoulcraft.com](https://artofsoulcraft.com)** (deployed via Cloudflare Pages, connected to this repo's `main` branch — pushes auto-deploy)
 - Free / Triad / Full tier logic fully implemented and gated correctly in the UI
 - Mandala renders correctly on screen and in a genuine two-page printable report (dark-on-white colors, real page break, no Tailwind-dependency bugs in print)
-- Frontend save flow is wired: finishing a real (non-sample) assessment automatically calls `/api/save-results` — but see "Not Done" below, this call currently fails safely since no backend is deployed to receive it
+- **Frontend save flow is wired**: finishing a real (non-sample) assessment automatically calls `/api/save-results` — but see "Not Done" below, this call currently fails safely since no backend is deployed to receive it
 - Optional, non-gating email capture box on the results screen (offered after results display, never required)
-- Three backend Cloudflare Pages Functions written, syntax-validated, not yet deployed: `save-results.js`, `verify-link.js`, `my-results.js` — plus `schema.sql` (5 tables: `users`, `results`, `magic_links`, `codes`, `compatibility_pairs`)
-- Brand name settled: Your Mandala, by The Art of Soulcraft
+- Three backend Cloudflare Pages Functions **written, syntax-validated, not yet deployed**: `save-results.js`, `verify-link.js`, `my-results.js` — plus `schema.sql` (5 tables: `users`, `results`, `magic_links`, `codes`, `compatibility_pairs`)
+- Brand name settled: **Your Mandala**, by The Art of Soulcraft
 - All 12 archetype content chapters, plus Altitudes and Embodiments chapters, written in Notion
 
 ### ❌ Not Done Yet
-
-- No D1 database created in Cloudflare — `schema.sql` has never been executed against a real database
-- No database binding configured — even once created, the Pages project needs to be told the DB exists (`env.DB` in the function files currently points at nothing)
-- No email sending wired — `save-results.js` has the magic-link logic but the actual send-an-email call (Resend/Postmark) is still a commented-out placeholder
-- No `verify-link.js` frontend wiring — nothing in `index.html` checks the URL for a `?token=` parameter yet, so clicking a magic link (once emails work) wouldn't restore a saved result
-- No results-history UI — `my-results.js` correctly returns every saved result for a user, but no screen renders that list yet
-- No Stripe account/products set up — tier logic exists in the UI but nothing is actually gated by payment yet
-- No `codes` table redemption flow built — the Bliss/Lavender Sky gift-code concepts are fully designed in the Build Spec but zero code exists for them
-- No Compatibility feature — UI shows it as a "coming soon" placeholder only
-- Naming audit incomplete — a structured pass through all 60 stage names / 48 embodiments / 66 blends for cultural/religious/clinical collisions has a checklist started in Notion but is not finished
-- No real user testing — only the creator has used the live site so far
+- **No D1 database created in Cloudflare** — `schema.sql` has never been executed against a real database
+- **No database binding configured** — even once created, the Pages project needs to be told the DB exists (`env.DB` in the function files currently points at nothing)
+- **No email sending wired** — `save-results.js` has the magic-link logic but the actual send-an-email call (Resend/Postmark) is still a commented-out placeholder
+- **No `verify-link.js` frontend wiring** — nothing in `index.html` checks the URL for a `?token=` parameter yet, so clicking a magic link (once emails work) wouldn't restore a saved result
+- **No results-history UI** — `my-results.js` correctly returns every saved result for a user, but no screen renders that list yet
+- **No Stripe account/products set up** — tier logic exists in the UI but nothing is actually gated by payment yet
+- **No `codes` table redemption flow built** — the Bliss/Lavender Sky gift-code concepts are fully designed in the Build Spec but zero code exists for them
+- **No Compatibility feature** — UI shows it as a "coming soon" placeholder only
+- **Naming audit incomplete** — a structured pass through all 60 stage names / 48 embodiments / 66 blends for cultural/religious/clinical collisions has a checklist started in Notion but is not finished
+- **No real user testing** — only the creator has used the live site so far
 
 **Bottom line: the frontend is a real, live, working product for taking the assessment and seeing results. The backend that would let someone SAVE and RETURN to those results is written but not turned on. That's the single biggest gap between "cool demo" and "real product with accounts."**
+
+---
 
 ## Repo Structure
 
@@ -48,21 +50,25 @@ The frontend is live and working. The backend exists as real code but has never 
   my-results.js              — returns ALL of a user's saved results (for history/compare-over-time)
 ```
 
+---
+
 ## 🤖 If You're Picking This Up in Claude Code
 
-This project was designed and built across many claude.ai chat sessions, not in Claude Code. There is no live handoff between that chat history and a Claude Code session — treat this README plus the Notion canon as the complete briefing; nothing else carries over automatically.
+**This project was designed and built across many claude.ai chat sessions, not in Claude Code.** There is no live handoff between that chat history and a Claude Code session — treat this README plus the Notion canon as the complete briefing; nothing else carries over automatically.
 
-To get the backend actually running, in order:
+**To get the backend actually running, in order:**
 
-1. In the Cloudflare dashboard: Storage & Databases → D1 → Create database
+1. In the Cloudflare dashboard: **Storage & Databases → D1 → Create database**
 2. Run `schema.sql` against it (paste into the D1 console, or `wrangler d1 execute <db-name> --file=schema.sql`)
-3. In this Pages project's settings: bind the D1 database to a variable named `DB` — this is what makes `env.DB` in the function files resolve to something real
+3. In this Pages project's settings: **bind the D1 database** to a variable named `DB` — this is what makes `env.DB` in the function files resolve to something real
 4. Set up an email-sending account (Resend is the simpler API) and wire the real `fetch()` call into the commented-out section of `save-results.js`
 5. Add the `?token=` URL-checking logic to `index.html` so a clicked magic link actually calls `verify-link.js` and restores the result
 6. Build a simple results-history screen that calls `my-results.js` and lists every saved attempt
 7. Only after 1–6 work end-to-end: set up Stripe and wire real payment to the tier logic that already exists in the UI
 
-Full system canon (architecture, decisions log, naming rationale, open questions) lives in Notion — BridgeTender Studio workspace → Archetypes — The Twelve. Start with the "Start Here" index at the top of that page. The Build Spec page there has the complete technical design (schema rationale, Stripe flow, Bliss/Lavender Sky gift-code mechanics, Compatibility design) in far more depth than fits here.
+**Full system canon (architecture, decisions log, naming rationale, open questions) lives in Notion** — BridgeTender Studio workspace → Archetypes — The Twelve. Start with the "Start Here" index at the top of that page. The **Build Spec** page there has the complete technical design (schema rationale, Stripe flow, Bliss/Lavender Sky gift-code mechanics, Compatibility design) in far more depth than fits here.
+
+---
 
 ## Canon Reference
 
