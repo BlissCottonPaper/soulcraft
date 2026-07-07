@@ -1,0 +1,4 @@
+# SPA fallback: serve the app for client-side routes like /verify?token=...
+# Cloudflare Pages Functions (/api/*) are matched BEFORE these static
+# redirects, so this does not shadow the backend endpoints.
+/*    /index.html   200
