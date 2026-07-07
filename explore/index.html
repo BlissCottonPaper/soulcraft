@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Explore the System — The Art of Soulcraft</title>
+<meta name="description" content="You are not one of twelve types — you are all twelve, some louder than others. Explore the twelve archetypes, the five Bandwidth stages, the four Embodiments, and the six Core Needs behind Your Mandala." />
+<link rel="canonical" href="https://artofsoulcraft.com/explore/" />
+<meta property="og:title" content="Explore the System — The Art of Soulcraft" />
+<meta property="og:description" content="The twelve archetypes, five Bandwidth stages, four Embodiments, and six Core Needs — the map behind Your Mandala." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://artofsoulcraft.com/explore/" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<!-- Internal architecture note (never surfaced in UI): this is the "Light" layer —
+     the public Explore content that sits alongside the "Looking Glass" (the
+     assessment/Your Mandala). Do not print these codenames anywhere user-facing. -->
+<style>
+  body { margin: 0; background: #100c22; color: #f5f3ff; font-family: 'Source Sans 3', system-ui, sans-serif; }
+  .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+  .page-bg { background: radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%); }
+  a { color: inherit; text-decoration: none; }
+  .nav-link { color: rgba(224,218,246,0.85); transition: color .15s; }
+  .nav-link:hover { color: #fde68a; }
+  .menu { display: none; }
+  .dropdown:hover .menu, .dropdown:focus-within .menu, .menu.open { display: block; }
+  .card { background: rgba(255,250,240,0.03); border: 1px solid rgba(196,181,253,0.18); }
+  .card-hover:hover { border-color: rgba(253,230,138,0.5); background: rgba(255,250,240,0.05); }
+</style>
+</head>
+<body class="page-bg">
+<div class="min-h-screen">
+  <!-- ============ NAV (shared skeleton across the Explore layer) ============ -->
+  <header class="border-b border-violet-300/10 sticky top-0 z-20" style="background: rgba(16,12,34,0.82); backdrop-filter: blur(8px);">
+    <nav class="max-w-5xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
+      <a href="/" class="serif text-xl md:text-2xl text-violet-50 hover:text-amber-100 transition-colors">The Art of Soulcraft</a>
+      <div class="flex items-center gap-5 md:gap-7 text-[15px]">
+        <a href="/" class="nav-link">Home</a>
+        <div class="dropdown relative">
+          <button id="exploreBtn" class="nav-link flex items-center gap-1" aria-haspopup="true" aria-expanded="false">Explore <span class="text-xs">▾</span></button>
+          <div class="menu absolute right-0 mt-2 w-56 rounded-xl border border-violet-300/18 py-2 shadow-xl" style="background:#1a1533;">
+            <a href="/explore/" class="block px-4 py-2 text-sm nav-link">Overview</a>
+            <a href="/explore/#the-twelve" class="block px-4 py-2 text-sm nav-link">The Twelve Archetypes</a>
+            <a href="/explore/bandwidth/" class="block px-4 py-2 text-sm nav-link">Bandwidth</a>
+            <a href="/explore/embodiments/" class="block px-4 py-2 text-sm nav-link">Embodiments</a>
+            <a href="/explore/core-needs/" class="block px-4 py-2 text-sm nav-link">Core Needs</a>
+          </div>
+        </div>
+        <a href="/pricing/" class="nav-link">Pricing</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-5 md:px-8">
+    <!-- ============ HERO ============ -->
+    <section class="text-center pt-16 pb-12 md:pt-24 md:pb-16">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">EXPLORE THE SYSTEM</p>
+      <h1 class="serif text-4xl md:text-6xl leading-tight mb-5">You are not one of twelve types.<br class="hidden md:block" /> You are all twelve.</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed max-w-2xl mx-auto mb-3">Some speak louder than others. Each of the twelve can serve the self at others' expense, or serve the whole at the ego's expense — a hall of mirrors that shows you every side of yourself, where to grow, and what to avoid.</p>
+      <p class="text-violet-300/60 italic serif text-lg mb-8">A mirror, not a fortune. For reflection, never prediction.</p>
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the assessment → Your Mandala</a>
+    </section>
+
+    <!-- ============ THE TWELVE ARCHETYPES ============ -->
+    <section id="the-twelve" class="py-12 border-t border-violet-300/10 scroll-mt-20">
+      <h2 class="serif text-3xl md:text-4xl mb-2">The Twelve Archetypes</h2>
+      <p class="text-violet-300/75 mb-8 max-w-2xl">The engine — which of the twelve energies is loudest in you. Each is a core longing, arranged as twelve hues around a wheel; opposites face each other.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Clock/wheel order (hue = position × 30°), matching the mandala -->
+        <a href="/explore/lover/"     class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(0,62%,56%)"></span><span><span class="serif text-xl block">Lover</span><span class="text-sm text-violet-300/70">longs for union</span></span></a>
+        <a href="/explore/caregiver/" class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(30,62%,56%)"></span><span><span class="serif text-xl block">Caregiver</span><span class="text-sm text-violet-300/70">longs to nurture</span></span></a>
+        <a href="/explore/everyman/"  class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(60,62%,56%)"></span><span><span class="serif text-xl block">Everyman</span><span class="text-sm text-violet-300/70">longs to belong</span></span></a>
+        <a href="/explore/ruler/"     class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(90,62%,56%)"></span><span><span class="serif text-xl block">Ruler</span><span class="text-sm text-violet-300/70">longs for order</span></span></a>
+        <a href="/explore/warrior/"   class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(120,62%,56%)"></span><span><span class="serif text-xl block">Warrior</span><span class="text-sm text-violet-300/70">longs to protect</span></span></a>
+        <a href="/explore/creator/"   class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(150,62%,56%)"></span><span><span class="serif text-xl block">Creator</span><span class="text-sm text-violet-300/70">longs to bring forth</span></span></a>
+        <a href="/explore/sage/"      class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(180,62%,56%)"></span><span><span class="serif text-xl block">Sage</span><span class="text-sm text-violet-300/70">longs for truth</span></span></a>
+        <a href="/explore/explorer/"  class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(210,62%,56%)"></span><span><span class="serif text-xl block">Explorer</span><span class="text-sm text-violet-300/70">longs for freedom</span></span></a>
+        <a href="/explore/rebel/"     class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(240,62%,56%)"></span><span><span class="serif text-xl block">Rebel</span><span class="text-sm text-violet-300/70">longs for justice</span></span></a>
+        <a href="/explore/trickster/" class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(270,62%,56%)"></span><span><span class="serif text-xl block">Trickster</span><span class="text-sm text-violet-300/70">longs to break false patterns</span></span></a>
+        <a href="/explore/innocent/"  class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(300,62%,56%)"></span><span><span class="serif text-xl block">Innocent</span><span class="text-sm text-violet-300/70">longs to trust</span></span></a>
+        <a href="/explore/mystic/"    class="card card-hover rounded-2xl px-5 py-4 flex items-center gap-4 transition-colors"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background:hsl(330,62%,56%)"></span><span><span class="serif text-xl block">Mystic</span><span class="text-sm text-violet-300/70">longs for communion with mystery</span></span></a>
+      </div>
+      <p class="text-violet-300/55 text-sm mt-4 italic">Individual archetype pages are in progress.</p>
+    </section>
+
+    <!-- ============ BANDWIDTH ============ -->
+    <section class="py-12 border-t border-violet-300/10">
+      <h2 class="serif text-3xl md:text-4xl mb-2">Five Stages of Bandwidth</h2>
+      <p class="text-violet-300/75 mb-8 max-w-2xl">Every archetype exists on one spectrum — from all your capacity spent holding yourself together, to capacity overflowing outward to others. Descent narrows; ascent integrates. <a href="/explore/bandwidth/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Read the full explainer →</a></p>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,30%)"></div><h3 class="serif text-xl mb-1">Devolved</h3><p class="text-sm text-violet-300/70">Bandwidth near empty — the energy captured by ego: domination, consumption, control.</p></div>
+        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,42%)"></div><h3 class="serif text-xl mb-1">Descended</h3><p class="text-sm text-violet-300/70">The energy bent by fear: grasping, pettiness, defense.</p></div>
+        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,55%)"></div><h3 class="serif text-xl mb-1">Base</h3><p class="text-sm text-violet-300/70">The everyday, unexamined expression — where the day begins.</p></div>
+        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,67%)"></div><h3 class="serif text-xl mb-1">Ascended</h3><p class="text-sm text-violet-300/70">The energy mastered and matured.</p></div>
+        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,79%)"></div><h3 class="serif text-xl mb-1">Transcendent</h3><p class="text-sm text-violet-300/70">Bandwidth overflowing — the energy given away, freely available to others and the whole.</p></div>
+      </div>
+    </section>
+
+    <!-- ============ EMBODIMENTS ============ -->
+    <section class="py-12 border-t border-violet-300/10">
+      <h2 class="serif text-3xl md:text-4xl mb-2">The Four Embodiments</h2>
+      <p class="text-violet-300/75 mb-8 max-w-2xl">Not <em>how resourced</em> you are, but <em>how you show up</em> — the faculty you meet a moment through, before you've decided to give anything at all. <a href="/explore/embodiments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Read the full explainer →</a></p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-2xl mb-2">Heart</h3><p class="text-sm text-violet-200/80">At its best, <span class="text-amber-200">compassion</span>.</p><p class="text-sm text-violet-300/60">Collapsed, manipulation.</p></div>
+        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-2xl mb-2">Mind</h3><p class="text-sm text-violet-200/80">At its best, <span class="text-amber-200">wisdom</span>.</p><p class="text-sm text-violet-300/60">Collapsed, control.</p></div>
+        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-2xl mb-2">Body</h3><p class="text-sm text-violet-200/80">At its best, <span class="text-amber-200">presence</span>.</p><p class="text-sm text-violet-300/60">Collapsed, force.</p></div>
+        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-2xl mb-2">Soul</h3><p class="text-sm text-violet-200/80">At its best, <span class="text-amber-200">communion</span>.</p><p class="text-sm text-violet-300/60">Collapsed, fanaticism.</p></div>
+      </div>
+    </section>
+
+    <!-- ============ CORE NEEDS ============ -->
+    <section class="py-12 border-t border-violet-300/10">
+      <h2 class="serif text-3xl md:text-4xl mb-2">The Six Core Needs</h2>
+      <p class="text-violet-300/75 mb-8 max-w-2xl">A separate, complementary layer — not folded into Bandwidth, but what <em>feeds</em> it. Your Core Needs are the fuel; your Bandwidth is the gauge reading how much capacity that fuel gives you right now. <a href="/explore/core-needs/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Read the full explainer →</a></p>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Autonomy</h3></div>
+        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Competence / Mastery</h3></div>
+        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Relatedness / Belonging</h3></div>
+        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Self-Esteem</h3></div>
+        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Trust</h3></div>
+        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Purpose / Meaning</h3></div>
+      </div>
+      <p class="text-violet-300/55 text-sm mt-4">Drawn from Self-Determination Theory (Deci &amp; Ryan), Elena Aguilar's Core Human Needs synthesis, and the work of Gabor Maté.</p>
+    </section>
+
+    <!-- ============ PAIRINGS ============ -->
+    <section class="py-12 border-t border-violet-300/10">
+      <h2 class="serif text-3xl md:text-4xl mb-2">Pairings</h2>
+      <p class="text-violet-300/75 max-w-2xl mb-4">What emerges when two archetypes combine — both stay present and distinct; nothing dissolves into a third thing. Your top two voices name a Pairing: the Creator and the Mystic together read as <span class="text-amber-100">the Magician</span>; the Explorer and the Creator, <span class="text-amber-100">the Cartographer</span>.</p>
+      <p class="text-violet-300/60 text-sm max-w-2xl">There are 66 in all — one for every pair of the twelve. Your results name the three that arise from your top three voices.</p>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="py-14 text-center border-t border-violet-300/10">
+      <h2 class="serif text-3xl md:text-4xl mb-3">See your own mirror</h2>
+      <p class="text-violet-200/80 mb-6 max-w-xl mx-auto">The assessment ranks all twelve within you, names your top three and their Pairings, and renders your personal mandala.</p>
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Begin — Your Mandala</a>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="border-t border-violet-300/10 mt-8">
+    <div class="max-w-5xl mx-auto px-5 md:px-8 py-10 text-sm text-violet-300/55 flex flex-col md:flex-row gap-4 md:justify-between">
+      <p class="serif text-violet-200/70">The Art of Soulcraft <span class="text-violet-300/40">· a BridgeTender Studio project</span></p>
+      <div class="flex flex-wrap gap-x-5 gap-y-2">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/explore/" class="nav-link">Overview</a>
+        <a href="/explore/bandwidth/" class="nav-link">Bandwidth</a>
+        <a href="/explore/embodiments/" class="nav-link">Embodiments</a>
+        <a href="/explore/core-needs/" class="nav-link">Core Needs</a>
+        <a href="/pricing/" class="nav-link">Pricing</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Mobile/click support for the Explore dropdown (hover handles desktop via CSS).
+  (function () {
+    var btn = document.getElementById('exploreBtn');
+    var menu = btn && btn.parentElement.querySelector('.menu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', function () {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+  })();
+</script>
+</body>
+</html>

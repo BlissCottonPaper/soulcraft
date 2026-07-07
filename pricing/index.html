@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pricing — The Art of Soulcraft</title>
+<meta name="description" content="Your Mandala pricing: Free, Triad ($9), and the Full Mirror ($19). No subscriptions — pay once for the depth you want." />
+<link rel="canonical" href="https://artofsoulcraft.com/pricing/" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #100c22; color: #f5f3ff; font-family: 'Source Sans 3', system-ui, sans-serif; }
+  .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+  .page-bg { background: radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%); }
+  a { color: inherit; text-decoration: none; }
+  .nav-link { color: rgba(224,218,246,0.85); transition: color .15s; }
+  .nav-link:hover { color: #fde68a; }
+  .menu { display: none; }
+  .dropdown:hover .menu, .dropdown:focus-within .menu, .menu.open { display: block; }
+  .card { background: rgba(255,250,240,0.03); border: 1px solid rgba(196,181,253,0.18); }
+</style>
+</head>
+<body class="page-bg">
+<div class="min-h-screen">
+  <header class="border-b border-violet-300/10 sticky top-0 z-20" style="background: rgba(16,12,34,0.82); backdrop-filter: blur(8px);">
+    <nav class="max-w-5xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
+      <a href="/" class="serif text-xl md:text-2xl text-violet-50 hover:text-amber-100 transition-colors">The Art of Soulcraft</a>
+      <div class="flex items-center gap-5 md:gap-7 text-[15px]">
+        <a href="/" class="nav-link">Home</a>
+        <div class="dropdown relative">
+          <button id="exploreBtn" class="nav-link flex items-center gap-1" aria-haspopup="true" aria-expanded="false">Explore <span class="text-xs">▾</span></button>
+          <div class="menu absolute right-0 mt-2 w-56 rounded-xl border border-violet-300/18 py-2 shadow-xl" style="background:#1a1533;">
+            <a href="/explore/" class="block px-4 py-2 text-sm nav-link">Overview</a>
+            <a href="/explore/#the-twelve" class="block px-4 py-2 text-sm nav-link">The Twelve Archetypes</a>
+            <a href="/explore/bandwidth/" class="block px-4 py-2 text-sm nav-link">Bandwidth</a>
+            <a href="/explore/embodiments/" class="block px-4 py-2 text-sm nav-link">Embodiments</a>
+            <a href="/explore/core-needs/" class="block px-4 py-2 text-sm nav-link">Core Needs</a>
+          </div>
+        </div>
+        <a href="/pricing/" class="nav-link text-amber-100">Pricing</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-5 md:px-8">
+    <section class="text-center pt-16 pb-10 md:pt-24">
+      <h1 class="serif text-4xl md:text-6xl mb-4">Pay once for the depth you want</h1>
+      <p class="text-violet-200/80 text-lg max-w-xl mx-auto">No subscriptions. Start free; unlock more of your mirror whenever you're ready.</p>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 pb-8">
+      <div class="card rounded-2xl px-6 py-7">
+        <h2 class="serif text-2xl mb-1">Free</h2>
+        <p class="text-4xl mb-4">$0</p>
+        <p class="text-violet-300/75 text-sm mb-4">Your loudest voice — the single archetype speaking most loudly in you, on the wheel.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Begin free</a>
+      </div>
+      <div class="card rounded-2xl px-6 py-7" style="border-color: rgba(253,230,138,0.4);">
+        <h2 class="serif text-2xl mb-1">Triad</h2>
+        <p class="text-4xl mb-4">$9</p>
+        <p class="text-violet-300/75 text-sm mb-4">Your top three voices, their three Pairings, and your quietest voice — the fuller shape of your mandala.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Choose Triad</a>
+      </div>
+      <div class="card rounded-2xl px-6 py-7">
+        <h2 class="serif text-2xl mb-1">Full Mirror</h2>
+        <p class="text-4xl mb-4">$19</p>
+        <p class="text-violet-300/75 text-sm mb-4">The complete 1–12 ranking, your Embodiment, and the full reading. Already have Triad? Upgrade for the $10 difference — not a fresh charge.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Choose Full Mirror</a>
+      </div>
+    </section>
+
+    <section class="pb-16 text-center">
+      <p class="text-violet-300/60 text-sm">Curious first? <a href="/explore/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Explore the system</a> before you begin.</p>
+    </section>
+  </main>
+
+  <footer class="border-t border-violet-300/10 mt-8">
+    <div class="max-w-5xl mx-auto px-5 md:px-8 py-10 text-sm text-violet-300/55 flex flex-col md:flex-row gap-4 md:justify-between">
+      <p class="serif text-violet-200/70">The Art of Soulcraft <span class="text-violet-300/40">· a BridgeTender Studio project</span></p>
+      <div class="flex flex-wrap gap-x-5 gap-y-2">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/explore/" class="nav-link">Overview</a>
+        <a href="/pricing/" class="nav-link">Pricing</a>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+  (function () {
+    var btn = document.getElementById('exploreBtn');
+    var menu = btn && btn.parentElement.querySelector('.menu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function (e) { e.stopPropagation(); var open = menu.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    document.addEventListener('click', function () { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); });
+  })();
+</script>
+</body>
+</html>
