@@ -58,7 +58,7 @@ const BLEND_NAMES = {
     "mystic|ruler": "The Visionary", // ascended reading — same pair's shadow reading is "The Priest" (institution over insight)
     "creator|warrior": "The Smith", "sage|warrior": "The Master-at-Arms", "explorer|warrior": "The Pioneer",
     "rebel|warrior": "The Freedom Fighter", "trickster|warrior": "The Rogue", "innocent|warrior": "The Gentle Giant", "mystic|warrior": "The Warrior-Monk",
-    "creator|sage": "The Inventor", "creator|explorer": "The Shipwright", "creator|rebel": "The Iconoclast",
+    "creator|sage": "The Inventor", "creator|explorer": "The Cartographer", "creator|rebel": "The Iconoclast",
     "creator|trickster": "The Satirist", "creator|innocent": "The Toymaker", "creator|mystic": "The Magician",
     "explorer|sage": "The Naturalist", "rebel|sage": "The Heretic", "sage|trickster": "The Riddlemaster",
     "innocent|sage": "The Wonderer", "mystic|sage": "The Shaman",
@@ -184,7 +184,7 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
     // color below has a print-mode alternative, chosen for legibility on white.
     const wheelStroke = forPrint ? "rgba(80,80,90,0.35)" : "rgba(210,200,240,0.14)";
     const spokeStroke = forPrint ? "rgba(80,80,90,0.18)" : "rgba(210,200,240,0.07)";
-    const secPolyStroke = forPrint ? "rgba(90,80,60,0.5)" : "rgba(220,214,244,0.4)";
+    const secPolyStroke = forPrint ? "rgba(80,80,90,0.18)" : "rgba(210,200,240,0.07)";
     const blendLabelFill = forPrint ? "rgba(40,38,45,0.9)" : "rgba(224,218,246,0.82)";
     const dotStroke = forPrint ? "rgba(60,55,65,0.5)" : "rgba(255,255,255,0.5)";
     const labelFillTop = forPrint ? "rgba(20,18,25,0.95)" : "rgba(244,240,255,0.95)";
@@ -192,6 +192,7 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
     const nodeStrokeTop = forPrint ? "rgba(255,255,255,0.9)" : "rgba(255,252,240,0.95)";
     const nodeStrokeOther = forPrint ? "rgba(80,75,85,0.4)" : "rgba(255,255,255,0.25)";
     const youFill = forPrint ? "rgba(60,50,20,0.85)" : "rgba(235,228,255,0.7)";
+    const triStroke = forPrint ? "rgba(180,130,40,0.95)" : "rgba(233,196,124,0.9)";
     return (React.createElement("svg", { viewBox: "-30 -30 400 400", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
         React.createElement("defs", null,
             React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
@@ -203,7 +204,7 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
             const [x, y] = nodeXY(i, R, c);
             return React.createElement("line", { key: "sp" + i, x1: c, y1: c, x2: x, y2: y, stroke: spokeStroke, strokeWidth: "1" });
         }),
-        showBlends && React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: "rgba(255,250,235,0.06)", stroke: "rgba(233,196,124,0.9)", strokeWidth: "1.5", strokeLinejoin: "round" }),
+        showBlends && React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: "rgba(255,250,235,0.06)", stroke: triStroke, strokeWidth: "1.5", strokeLinejoin: "round" }),
         showBlends && React.createElement("polygon", { points: secPts.map((p) => p.xy.join(",")).join(" "), fill: "none", stroke: secPolyStroke, strokeWidth: "1", strokeLinejoin: "round" }),
         showBlends && secPts.map((p, k) => {
             // Push each blend's label radially outward from center (c,c),
@@ -489,24 +490,24 @@ function TwelveWithin() {
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-8 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
-                    // ---------- PAGE 1: the visual + headline + ladders ----------
+                    // ---------- PAGE 1: header, headline, mandala only ----------
                     React.createElement("div", { className: "print-page p-10" },
                         React.createElement("div", { className: "flex justify-between items-baseline mb-8" },
-                            React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE REPORT" : "YOUR MANDALA"),
+                            React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE MANDALA" : "YOUR MANDALA"),
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
                         React.createElement("h1", { className: "text-4xl text-center mb-6", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" \u00B7 ")),
                         React.createElement("div", { className: "flex justify-center mb-2", style: { width: "100%" } },
                             React.createElement("div", { style: { width: "5.5in", maxWidth: "100%" } },
-                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true }))),
-                        React.createElement("div", { className: "mt-6" },
-                            ranked.slice(0, TIERS[tier].topCount).map((r, n) => (React.createElement("div", { key: r.key, className: "mb-4 pb-4", style: { borderBottom: n < TIERS[tier].topCount - 1 ? "1px solid #ddd" : "none" } },
+                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true })))),
+                    // ---------- PAGE 2: voice ladders, blends, quietest voice, growth edge, embodiment ----------
+                    React.createElement("div", { className: "print-page p-10" },
+                        React.createElement("div", { className: "mb-6" },
+                            ranked.slice(0, TIERS[tier].topCount).map((r, n) => (React.createElement("div", { key: r.key, className: "mb-4 pb-4", style: { borderBottom: "1px solid #ddd" } },
                                 React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, (["LOUDEST", "SECOND", "THIRD"][n] || `VOICE ${n + 1}`) + " VOICE"),
                                 React.createElement("h3", { className: "text-2xl mb-1", style: serif },
                                     r.name, " ",
                                     React.createElement("span", { className: "text-sm italic font-normal" }, longsPhrase(r))),
-                                React.createElement("p", { className: "text-sm", style: sans }, r.stages.join(" \u2192 "))))))),
-                    // ---------- PAGE 2: blends, quietest voice, growth edge, embodiment ----------
-                    TIERS[tier].topCount >= 3 && React.createElement("div", { className: "print-page p-10", style: { pageBreakBefore: "always" } },
+                                React.createElement("p", { className: "text-sm", style: sans }, r.stages.join(" \u2192 ")))))),
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "MORE ON YOUR RESULT"),
                         TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-sm italic mb-6", style: serif },
                             `Time signature: ${timeSig} \u00B7 Embodiment: ${channel.name}`),
@@ -592,7 +593,36 @@ function TwelveWithin() {
                         const doc = iframe.contentWindow.document;
                         doc.open();
                         const grayscaleRule = wantsColor ? "" : "svg, svg * { filter: grayscale(1) !important; }";
-                        doc.write("<!DOCTYPE html><html><head><title>The Art of Soulcraft</title><style>@page{size:letter;margin:0.5in;} body{font-family:'Source Sans 3',system-ui,sans-serif;color:#241d42;margin:0;padding:20px;} h1{font-family:'Cormorant Garamond',Georgia,serif;} h3{font-family:'Cormorant Garamond',Georgia,serif;} " + grayscaleRule + "</style></head><body>" + src.innerHTML + "</body></html>");
+                        const printCSS = `
+                          @page { size: letter; margin: 0.5in; }
+                          * { box-sizing: border-box; }
+                          body { font-family: 'Source Sans 3', system-ui, sans-serif; color: #241d42; margin: 0; padding: 20px; }
+                          h1, h3 { font-family: 'Cormorant Garamond', Georgia, serif; margin: 0; }
+                          .print-page { page-break-after: always; }
+                          .print-page:last-child { page-break-after: auto; }
+                          .flex { display: flex; width: 100%; }
+                          .justify-between { justify-content: space-between; }
+                          .justify-center { justify-content: center; }
+                          .items-baseline { align-items: baseline; }
+                          .text-center { text-align: center; }
+                          .text-4xl { font-size: 2.25rem; line-height: 1.2; }
+                          .text-2xl { font-size: 1.5rem; }
+                          .text-sm { font-size: 0.875rem; }
+                          .text-xs { font-size: 0.75rem; }
+                          .italic { font-style: italic; }
+                          .font-normal { font-weight: 400; }
+                          .mb-1 { margin-bottom: 0.25rem; }
+                          .mb-2 { margin-bottom: 0.5rem; }
+                          .mb-4 { margin-bottom: 1rem; }
+                          .mb-6 { margin-bottom: 1.5rem; }
+                          .mb-8 { margin-bottom: 2rem; }
+                          .mb-10 { margin-bottom: 2.5rem; }
+                          .mt-6 { margin-top: 1.5rem; }
+                          .mt-10 { margin-top: 2.5rem; }
+                          .pb-4 { padding-bottom: 1rem; }
+                          .p-10 { padding: 2.5rem; }
+                        `;
+                        doc.write("<!DOCTYPE html><html><head><title>The Art of Soulcraft</title><style>" + printCSS + " " + grayscaleRule + "</style></head><body>" + src.innerHTML + "</body></html>");
                         doc.close();
                         iframe.onload = () => {
                             iframe.contentWindow.focus();
