@@ -140,6 +140,45 @@ ${DATA.TEMPERAMENTS.map((ch) => `        <div class="card rounded-2xl px-5 py-5"
 }
 
 // ---- Pricing (/pricing/) ---------------------------------------------------
+function contactMain() {
+  return `    <section class="text-center pt-16 pb-8 md:pt-24">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">WORK WITH US</p>
+      <h1 class="serif text-4xl md:text-6xl mb-4">Go deeper with coaching</h1>
+      <p class="text-violet-200/80 text-lg max-w-xl mx-auto">A question, an invitation to collaborate, or a coaching enquiry — send a note and we'll get back to you.</p>
+    </section>
+    <section class="max-w-xl mx-auto pb-20">
+      <form id="contact-form" class="grid gap-4" novalidate>
+        <label class="block"><span class="text-sm text-violet-200/80">Name</span>
+          <input name="name" type="text" required autocomplete="name" class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60" /></label>
+        <label class="block"><span class="text-sm text-violet-200/80">Email</span>
+          <input name="email" type="email" required autocomplete="email" class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60" /></label>
+        <label class="block"><span class="text-sm text-violet-200/80">Message</span>
+          <textarea name="message" rows="6" required class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60"></textarea></label>
+        <button type="submit" id="contact-submit" class="rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Send message</button>
+        <p id="contact-status" class="text-sm text-center min-h-[1.25rem]" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+    <script>
+    (function(){
+      var f=document.getElementById('contact-form'); if(!f) return;
+      var btn=document.getElementById('contact-submit'), s=document.getElementById('contact-status');
+      f.addEventListener('submit', function(e){
+        e.preventDefault();
+        var d={ name:f.name.value.trim(), email:f.email.value.trim(), message:f.message.value.trim() };
+        if(!d.name||!d.email||!d.message){ s.style.color='#fca5a5'; s.textContent='Please fill in every field.'; return; }
+        var old=btn.textContent; btn.disabled=true; btn.textContent='Sending…'; s.textContent='';
+        fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+          .then(function(r){ return r.json().catch(function(){return {};}).then(function(j){ return {ok:r.ok, j:j}; }); })
+          .then(function(res){
+            if(res.ok){ f.reset(); s.style.color='#fde68a'; s.textContent='Thank you — your message is on its way.'; }
+            else { s.style.color='#fca5a5'; s.textContent=(res.j&&res.j.error)||'Something went wrong. Please try again.'; }
+          })
+          .catch(function(){ s.style.color='#fca5a5'; s.textContent='Network error — please try again.'; })
+          .then(function(){ btn.disabled=false; btn.textContent=old; });
+      });
+    })();
+    </script>`;
+}
 function pricingMain() {
   return `    <section class="text-center pt-16 pb-10 md:pt-24">
       <h1 class="serif text-4xl md:text-6xl mb-4">Pay once for the depth you want</h1>
@@ -536,6 +575,14 @@ write("pricing/index.html", page({
   canonical: "https://artofsoulcraft.com/pricing/",
   active: "pricing",
   main: pricingMain()
+}));
+
+write("contact/index.html", page({
+  title: "Work with us — The Art of Soulcraft",
+  description: "Questions, collaboration, or coaching enquiries — send a note and we'll get back to you.",
+  canonical: "https://artofsoulcraft.com/contact/",
+  active: "contact",
+  main: contactMain()
 }));
 
 // Deep archetype pages — only those whose chapter prose exists in /content/archetypes.js.
