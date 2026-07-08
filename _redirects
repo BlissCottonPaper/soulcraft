@@ -1,4 +1,11 @@
-# SPA fallback: serve the app for client-side routes like /verify?token=...
-# Cloudflare Pages Functions (/api/*) are matched BEFORE these static
-# redirects, so this does not shadow the backend endpoints.
-/*    /index.html   200
+# SPA fallback for the magic-link return route ONLY.
+# The assessment is a single page that reads ?token=&result= from the query
+# string (new URLSearchParams(window.location.search)) and does NO path-based
+# routing, so /verify is the only client-side path that must serve the app.
+# A broad `/*  /index.html  200` catch-all here shadows the static Explore/
+# pricing pages — e.g. /explore/sage/ would return the assessment app instead
+# of the Sage archetype page. Keep this scoped to /verify.
+# (The root `/` serves index.html natively; real static pages serve themselves;
+#  genuinely missing paths now 404, which is correct for SEO.)
+# Cloudflare Pages Functions (/api/*) are matched BEFORE these static redirects.
+/verify   /index.html   200

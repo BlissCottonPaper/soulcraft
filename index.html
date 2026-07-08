@@ -7,15 +7,26 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
+<!-- Canonical data (archetypes, 66 Pairings, channels) + shared nav/footer chrome —
+     single source of truth, shared with the Explore content pages. -->
+<script src="/assets/soulcraft-data.js"></script>
+<script src="/assets/site-chrome.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <style>
   body { margin: 0; background: #100c22; }
   @media screen { #root { zoom: 1.12; } }
 </style>
+<!-- Shared nav/footer/chrome CSS baked from /assets/site-chrome.js by
+     /build/generate.js (stampIndex). Do not hand-edit between the SC markers —
+     edit site-chrome.js and re-run the build. Real markup so the nav shows with
+     zero JS and is crawlable; site-chrome.js only wires the dropdown here. -->
+<!--SC:STYLE--><style id="sc-styles">#site-header{position:sticky;top:0;z-index:30;background:rgba(16,12,34,0.82);backdrop-filter:blur(8px);border-bottom:1px solid rgba(196,181,253,0.10);font-family:'Source Sans 3',system-ui,sans-serif;}.sc-nav{max-width:64rem;margin:0 auto;padding:0 1.25rem;height:4rem;display:flex;align-items:center;justify-content:space-between;}.sc-brand{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.35rem;color:#f5f3ff;text-decoration:none;}.sc-brand:hover{color:#fde8b0;}.sc-links{display:flex;align-items:center;gap:1.25rem;font-size:15px;}.sc-link{color:rgba(224,218,246,0.85);text-decoration:none;transition:color .15s;background:none;border:none;cursor:pointer;font:inherit;display:flex;align-items:center;gap:.25rem;}.sc-link:hover{color:#fde68a;}.sc-link.sc-active{color:#fde8b0;}.sc-dd{position:relative;}.sc-menu{display:none;position:absolute;right:0;margin-top:.5rem;width:14rem;background:#1a1533;border:1px solid rgba(196,181,253,0.18);border-radius:.75rem;padding:.5rem 0;box-shadow:0 10px 30px rgba(0,0,0,0.4);}.sc-dd:hover .sc-menu,.sc-dd:focus-within .sc-menu,.sc-menu.sc-open{display:block;}.sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}.sc-menu a:hover{color:#fde68a;}#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}.sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1rem;}@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}.sc-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;}.sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}.sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}</style><!--/SC:STYLE-->
 </head>
 <body>
+<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/embodiments/">Embodiments</a><a href="/explore/core-needs/">Core Needs</a></div></div><a class="sc-link" href="/pricing/">Pricing</a></div></nav></header><!--/SC:HEADER-->
 <div id="root"></div>
+<!--SC:FOOTER--><footer id="site-footer"><div class="sc-foot"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><a href="/">Home</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/embodiments/">Embodiments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a></div></div></footer><!--/SC:FOOTER-->
 <script>
 "use strict";
 var useState, useMemo, useEffect, useRef;
@@ -25,68 +36,13 @@ var useState, useMemo, useEffect, useRef;
    archetypes + channel read + results mandala.
    Reflection, never prediction.
    ============================================================ */
-const ARCHETYPES = [
-    { key: "lover", name: "Lover", clock: 12, longing: "union", statement: "I'm drawn to deep connection and beauty, and I pour my heart into the people and passions I cherish.", descriptors: ["passionate", "devoted", "sensual"], stages: ["Possessor", "Craver", "Romantic", "Devoted", "Beloved"], opposite: "Sage" },
-    { key: "caregiver", name: "Caregiver", clock: 1, longing: "nurture", longingVerb: true, statement: "I naturally take responsibility for others' needs and feel fulfilled when I'm supporting people.", descriptors: ["nurturing", "supportive", "selfless"], stages: ["Enabler", "Martyr", "Helper", "Nurturer", "Restorer"], opposite: "Explorer" },
-    { key: "everyman", name: "Everyman", clock: 2, longing: "belong", longingVerb: true, statement: "I feel most myself when I'm part of a down-to-earth group where everyone is equal and included.", descriptors: ["approachable", "down-to-earth", "inclusive"], stages: ["Self-Eraser", "People-Pleaser", "Neighbor", "Relater", "Bridge-Builder"], opposite: "Rebel" },
-    { key: "ruler", name: "Ruler", clock: 3, longing: "order", statement: "I instinctively step in to organize, decide, and take charge so things feel stable and secure.", descriptors: ["authoritative", "decisive", "responsible"], stages: ["Tyrant", "Micromanager", "Organizer", "Steward", "Sovereign"], opposite: "Trickster" },
-    { key: "warrior", name: "Warrior", clock: 4, longing: "protect", longingVerb: true, statement: "I'm driven to face challenges head-on and protect what matters, even when it costs me.", descriptors: ["determined", "courageous", "protective"], stages: ["Oppressor", "Mercenary", "Fighter", "Champion", "Guardian"], opposite: "Innocent" },
-    { key: "creator", name: "Creator", clock: 5, longing: "bring forth", longingVerb: true, statement: "I feel compelled to make things — ideas, art, solutions — that express my inner vision in the world.", descriptors: ["imaginative", "artistic", "expressive"], stages: ["Destroyer", "Perfectionist", "Maker", "Artisan", "Alchemist"], opposite: "Mystic" },
-    { key: "sage", name: "Sage", clock: 6, longing: "truth", statement: "I'm always seeking to understand how things work, and I value truth and insight more than quick answers.", descriptors: ["analytical", "reflective", "insightful"], stages: ["Cynic", "Know-It-All", "Student", "Mentor", "Elder"], opposite: "Lover" },
-    { key: "explorer", name: "Explorer", clock: 7, longing: "freedom", statement: "I crave freedom and new experiences, and I feel alive when I'm venturing beyond the familiar.", descriptors: ["adventurous", "independent", "restless"], stages: ["Deserter", "Escapist", "Wanderer", "Pathfinder", "Trailblazer"], opposite: "Caregiver" },
-    { key: "rebel", name: "Rebel", clock: 8, longing: "justice", statement: "When a system feels unfair or oppressive, I feel compelled to question it and push for change.", descriptors: ["defiant", "nonconformist", "outspoken"], stages: ["Nihilist", "Contrarian", "Questioner", "Challenger", "Liberator"], opposite: "Everyman" },
-    { key: "trickster", name: "Trickster", clock: 9, longing: "break false patterns", longingVerb: true, statement: "I love poking holes in rigid rules and using humor or mischief to expose what's fake or stuck.", descriptors: ["playful", "mischievous", "irreverent"], stages: ["Saboteur", "Deceiver", "Jokester", "Innovator", "Truth-Teller"], opposite: "Ruler" },
-    { key: "innocent", name: "Innocent", clock: 10, longing: "trust", longingVerb: true, statement: "I believe things will work out if I stay true to what feels honest, kind, and good.", descriptors: ["hopeful", "trusting", "optimistic"], stages: ["Bitter Exile", "Avoider", "Believer", "Realist", "Wounded Healer"], opposite: "Warrior" },
-    { key: "mystic", name: "Mystic", clock: 11, longing: "awe at something greater than yourself", statement: "I sense deeper layers beneath ordinary life and am drawn to silence, symbolism, and inner experience.", descriptors: ["intuitive", "otherworldly", "contemplative"], stages: ["Adrift", "Drifter", "Dreamer", "Seer", "Conduit"], opposite: "Creator" },
-];
-const STAGE_NAMES = ["Devolved", "Descended", "Base", "Ascended", "Transcendent"];
+/* ── Canonical data (the twelve archetypes with their five-stage Bandwidth
+   ladders, the 66 Pairing names, and the Embodiment/channel data) now lives in
+   ONE place: /assets/soulcraft-data.js — loaded in <head> before this script,
+   exposing ARCHETYPES, STAGE_NAMES, STAGE_LIGHT, HUE, BLEND_NAMES,
+   CHANNEL_EXPRESSIONS and CHANNELS as globals. The Explore content pages read
+   the very same file, so there is a single source of truth. ── */
 const ALTITUDE_LABEL = "Altitude"; // the name for the five-stage dimension itself — how selfish/selfless an archetype's current expression is
-const STAGE_LIGHT = [30, 42, 55, 67, 79]; // lightness per stage — the light axis, literally
-const HUE = (i) => i * 30; // wheel position = hue; opposites are complementary colors
-const BLEND_NAMES = {
-    "caregiver|lover": "The Cherisher", "everyman|lover": "The Host", "lover|ruler": "The Hearthkeeper", "lover|warrior": "The Knight",
-    "creator|lover": "The Bard", "lover|sage": "The Counselor", "explorer|lover": "The Bon Vivant", "lover|rebel": "The Wildheart",
-    "lover|trickster": "The Flirt", "innocent|lover": "The Trueheart", "lover|mystic": "The Devout",
-    "caregiver|everyman": "The Good Neighbor", "caregiver|ruler": "The Caretaker", "caregiver|warrior": "The Protector",
-    "caregiver|creator": "The Nourisher", "caregiver|sage": "The Healer", "caregiver|explorer": "The Shepherd",
-    "caregiver|rebel": "The Samaritan", "caregiver|trickster": "The Merrymaker", "caregiver|innocent": "The Gentleheart", "caregiver|mystic": "The Midwife",
-    "everyman|ruler": "The Mayor", "everyman|warrior": "The Citizen-Soldier", "creator|everyman": "The Folk Artist",
-    "everyman|sage": "The Folk Sage", "everyman|explorer": "The Sojourner", "everyman|rebel": "The Folk Hero",
-    "everyman|trickster": "The Wisecracker", "everyman|innocent": "The Salt-of-the-Earth", "everyman|mystic": "The Everyday Mystic",
-    "ruler|warrior": "The General", "creator|ruler": "The Architect", "ruler|sage": "The Judge", "explorer|ruler": "The Founder",
-    "rebel|ruler": "The Revolutionary", "ruler|trickster": "The Gamemaster", "innocent|ruler": "The Benevolent",
-    "mystic|ruler": "The Visionary", // ascended reading — same pair's shadow reading is "The Priest" (institution over insight)
-    "creator|warrior": "The Smith", "sage|warrior": "The Master-at-Arms", "explorer|warrior": "The Pioneer",
-    "rebel|warrior": "The Freedom Fighter", "trickster|warrior": "The Rogue", "innocent|warrior": "The Gentle Giant", "mystic|warrior": "The Warrior-Monk",
-    "creator|sage": "The Inventor", "creator|explorer": "The Cartographer", "creator|rebel": "The Iconoclast",
-    "creator|trickster": "The Satirist", "creator|innocent": "The Toymaker", "creator|mystic": "The Magician",
-    "explorer|sage": "The Naturalist", "rebel|sage": "The Heretic", "sage|trickster": "The Riddlemaster",
-    "innocent|sage": "The Wonderer", "mystic|sage": "The Shaman",
-    "explorer|rebel": "The Maverick", "explorer|trickster": "The Stowaway", "explorer|innocent": "The Wide-Eyed Wanderer", "explorer|mystic": "The Vision-Quester",
-    "rebel|trickster": "The Provocateur", "innocent|rebel": "The Emperor's Child", "mystic|rebel": "The Prophet",
-    "innocent|trickster": "The Imp", "mystic|trickster": "The Shapeshifter",
-    "innocent|mystic": "The Holy Innocent",
-};
-const CHANNEL_EXPRESSIONS = {
-    lover: { heart: "The Sweetheart", mind: "The Admirer", body: "The Embracer", soul: "The Adorer" },
-    caregiver: { heart: "The Comforter", mind: "The Coordinator", body: "The Provider", soul: "The Tender" },
-    everyman: { heart: "The Welcomer", mind: "The Moderator", body: "The Volunteer", soul: "The Kinkeeper" },
-    ruler: { heart: "The Householder", mind: "The Administrator", body: "The Captain", soul: "The Trustee" },
-    warrior: { heart: "The Defender", mind: "The Strategist", body: "The Athlete", soul: "The Oathkeeper" },
-    creator: { heart: "The Artist", mind: "The Designer", body: "The Builder", soul: "The Temple-Builder" },
-    sage: { heart: "The Listener", mind: "The Analyst", body: "The Apprentice", soul: "The Philosopher" },
-    explorer: { heart: "The Free Spirit", mind: "The Scout", body: "The Adventurer", soul: "The Quester" },
-    rebel: { heart: "The Advocate", mind: "The Critic", body: "The Protester", soul: "The Objector" },
-    trickster: { heart: "The Tease", mind: "The Wit", body: "The Prankster", soul: "The Holy Fool" },
-    innocent: { heart: "The Encourager", mind: "The Idealist", body: "The Straight Arrow", soul: "The Faithful" },
-    mystic: { heart: "The Empath", mind: "The Symbolist", body: "The Ecstatic", soul: "The Contemplative" },
-};
-const CHANNELS = [
-    { key: "heart", name: "Heart", gift: "compassion", corruption: "manipulation" },
-    { key: "mind", name: "Mind", gift: "wisdom", corruption: "control" },
-    { key: "body", name: "Body", gift: "presence", corruption: "force" },
-    { key: "soul", name: "Soul", gift: "communion", corruption: "fanaticism" },
-];
 // Branded as "The Four Embodiments" in all user-facing copy — not a mode of service,
 // a default mode of BEING. You don't choose it; you occupy a moment through it.
 const CHANNEL_QUESTIONS = [
@@ -494,12 +450,13 @@ function TwelveWithin() {
                 React.createElement("h1", { className: "text-5xl leading-none mb-2", style: serif }, "Your Mandala"),
                 React.createElement("p", { className: "text-violet-200/80 text-[15px] italic mb-1", style: serif }, "a guide to your core archetypes"),
                 React.createElement("p", { className: "text-[11px] tracking-[0.15em] text-violet-300/50 mb-4", style: sans }, "by The Art of Soulcraft"),
-                React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-2", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
-                React.createElement("p", { className: "text-violet-300/70 text-sm leading-relaxed mb-8 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
+                React.createElement("p", { className: "text-violet-200/80 text-[16px] leading-relaxed mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
+                React.createElement("p", { className: "text-[11px] tracking-[0.15em] text-violet-300/45 mb-6", style: sans }, "\u2014 after Jung"),
+                React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-8", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
                 React.createElement("div", { className: "grid gap-3" },
-                    React.createElement(Btn, { primary: true, onClick: () => start("free") }, "Free \u00B7 your loudest voice (~2 min)"),
-                    React.createElement(Btn, { onClick: () => start("triad") }, "Triad \u00B7 your top three (~4 min)"),
-                    React.createElement(Btn, { onClick: () => start("full") }, "Full Mirror \u00B7 the complete ranking (~7 min)"),
+                    React.createElement(Btn, { primary: true, onClick: () => start("free") }, "Free \u00B7 your loudest voice (~10 min)"),
+                    React.createElement(Btn, { onClick: () => start("triad") }, "Triad \u00B7 your top three (~10 min)"),
+                    React.createElement(Btn, { onClick: () => start("full") }, "Full Mirror \u00B7 the complete ranking (~18 min)"),
                     React.createElement("div", { className: "rounded-xl px-5 py-3.5 text-[15px] border border-violet-300/15 text-violet-300/40 flex items-center justify-between cursor-not-allowed", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
                         React.createElement("span", null, "Compatibility \u00B7 for two"),
                         React.createElement("span", { className: "text-[10px] tracking-[0.15em] uppercase" }, "Coming soon")),
@@ -575,7 +532,8 @@ function TwelveWithin() {
                         React.createElement("span", { className: "text-violet-300/50" }, "\u00B7 hour is your loudest voice, minutes your second"))),
                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount }),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
-                React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-8 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
+                React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
+                React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
                     // ---------- PAGE 1: header, headline, mandala only ----------
                     React.createElement("div", { className: "print-page p-10" },
