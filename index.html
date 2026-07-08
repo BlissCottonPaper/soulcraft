@@ -94,6 +94,12 @@ const longsPhrase = (a) => a.longingVerb ? `longs to ${a.longing}` : `longs for 
 // surrounding color/size so it still reads as styled text; underlines on hover.
 const archLink = (r, extraStyle) => React.createElement("a", { key: "al-" + r.key, href: `/explore/${r.key}/`, className: "arch-link", style: Object.assign({ color: "inherit", textDecoration: "none" }, extraStyle || {}) }, r.name);
 const archLinkByName = (name, extraStyle) => { const a = ARCHETYPES.find((x) => x.name === name); return a ? archLink(a, extraStyle) : name; };
+// "Heart" / "Heart and Mind" / "Heart, Mind, and Body" — for co-led ties.
+function joinNames(names) {
+    if (!names || names.length <= 1) return (names && names[0]) || "";
+    if (names.length === 2) return names[0] + " and " + names[1];
+    return names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
+}
 const mixHues = (h1, h2) => rgbStr(hslToRgb(h1, 60, 62).map((v, i) => Math.round((v + hslToRgb(h2, 60, 62)[i]) / 2)));
 const nodeXY = (i, R, c) => {
     const rad = ((i * 30 - 90) * Math.PI) / 180;
@@ -283,11 +289,34 @@ function TwelveWithin() {
             .map((a, i) => ({ ...a, i, score: (wins[a.key] || 0) + 0.5 * (descCount[a.key] || 0), descs: descCount[a.key] || 0 }))
             .sort((x, y) => y.score - x.score || y.descs - x.descs || x.i - y.i);
     }, [wins, picks, restored]);
-    const channel = useMemo(() => {
+    // The leading Embodiment(s). A tie is real — several channels can share the
+    // top count (a perfect 1/1/1/1 answer ties all four). We keep the FULL set of
+    // co-leaders (in wheel order) so the results can say "you move fluidly between
+    // X and Y" instead of silently crowning whichever sorted first.
+    const channelLead = useMemo(() => {
         const counts = restored ? restored.channelScores : chCounts;
-        const best = CHANNELS.map((ch) => ({ ...ch, n: counts[ch.key] || 0 })).sort((a, b) => b.n - a.n);
-        return best[0];
+        const scored = CHANNELS.map((ch) => ({ ...ch, n: counts[ch.key] || 0 }));
+        const max = Math.max.apply(null, scored.map((c) => c.n).concat(0));
+        const leaders = scored.filter((c) => c.n === max);
+        return { leaders: leaders, tied: leaders.length > 1, all: leaders.length === CHANNELS.length };
     }, [chCounts, restored]);
+    // Single "primary" channel for the many single-value references; on a tie this
+    // is the first co-leader, but the display branches on channelLead.tied so it is
+    // never presented as the lone winner.
+    const channel = channelLead.leaders[0];
+    // Archetypes tied for the loudest voice. Score ties are broken by wheel order
+    // for a stable, deterministic display (never a crash), but a genuine tie at the
+    // top is surfaced as a co-lead rather than silently presented as a strict rank.
+    const topTie = ranked.length && ranked.filter((r) => r.score === ranked[0].score).length > 1
+        ? ranked.filter((r) => r.score === ranked[0].score)
+        : null;
+    // Growth Edge = the fixed wheel-opposite of the loudest voice. When that same
+    // archetype is ALSO one of the already-loud top voices, plain "growth edge"
+    // copy reads as "underdeveloped" when it plainly isn't — so the card adapts.
+    const growthName = ranked.length ? ranked[0].opposite : null;
+    const growthIdx = growthName ? ranked.findIndex((r) => r.name === growthName) : -1;
+    const GROWTH_ORD = ["", "second", "third"];
+    const growthIsTopVoice = growthIdx >= 1 && growthIdx <= 2 && growthIdx < TIERS[tier].topCount;
 
     // --- Save to the backend the moment a REAL result is reached ---
     // A ref (not state) tracks whether we've already saved THIS particular
@@ -535,6 +564,8 @@ function TwelveWithin() {
                         React.createElement("span", { className: "text-amber-200" }, timeSig),
                         " ",
                         React.createElement("span", { className: "text-violet-300/50" }, "\u00B7 hour is your loudest voice, minutes your second"))),
+                topTie && React.createElement("p", { className: "text-center text-amber-200/80 text-sm mt-1 mb-1", style: sans },
+                    joinNames(topTie.map((r) => r.name)), " are tied for your loudest voice \u2014 the order shown is only by wheel position, not by strength."),
                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount }),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
@@ -563,7 +594,7 @@ function TwelveWithin() {
                                     React.createElement("div", null, [4, 3, 2, 1, 0].map((s) => React.createElement("p", { key: s, className: "text-[9.5px]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: s === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,50%)`, fontWeight: s === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[s]))));
                             })),
                         TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-sm italic mb-4", style: serif },
-                            `Time signature: ${timeSig} \u00B7 Embodiment: ${channel.name}`),
+                            `Time signature: ${timeSig} \u00B7 Embodiment: ${channelLead.tied ? joinNames(channelLead.leaders.map((c) => c.name)) + " (co-led)" : channel.name}`),
                         TIERS[tier].showBlends && React.createElement("div", { className: "mb-4" },
                             React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, "YOUR BLENDS"),
                             [[0, 1], [0, 2], [1, 2]].map(([a, b]) => (React.createElement("p", { key: a + "-" + b, className: "text-sm mb-0.5", style: sans },
@@ -571,12 +602,21 @@ function TwelveWithin() {
                         TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-1", style: sans },
                             React.createElement("strong", null, "Quietest voice: "), ranked[11].name, " \u2014 your lowest-scoring voice"),
                         React.createElement("p", { className: "text-sm mb-4", style: sans },
-                            React.createElement("strong", null, "Growth edge: "), ranked[0].opposite, " \u2014 the fixed complement to your loudest voice"),
+                            React.createElement("strong", null, "Growth edge: "), growthName,
+                            growthIsTopVoice
+                                ? ` \u2014 also your ${GROWTH_ORD[growthIdx]} voice; growth means drawing on it more deliberately, not building it from nothing`
+                                : " \u2014 the fixed complement to your loudest voice"),
                         TIERS[tier].showEmbodiment && React.createElement("div", { className: "mb-4" },
-                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, "YOUR EMBODIMENT"),
-                            React.createElement("p", { className: "text-sm", style: sans },
-                                "You embody through the ", channel.name, ". Your ", ranked[0].name, " in the ", channel.name, ": ",
-                                CHANNEL_EXPRESSIONS[ranked[0].key][channel.key], ".")),
+                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, channelLead.tied ? "YOUR EMBODIMENT · CO-LED" : "YOUR EMBODIMENT"),
+                            channelLead.tied
+                                ? React.createElement("p", { className: "text-sm", style: sans },
+                                    channelLead.all ? "You move fluidly across all four Embodiments — " : "You move fluidly between the ",
+                                    joinNames(channelLead.leaders.map((c) => c.name)),
+                                    channelLead.all ? " — none leads; you meet each moment through whichever it calls for. " : " — no single channel dominant. ",
+                                    "Your " + ranked[0].name + " reads as " + channelLead.leaders.map((c) => CHANNEL_EXPRESSIONS[ranked[0].key][c.key] + " (" + c.name + ")").join(", ") + ".")
+                                : React.createElement("p", { className: "text-sm", style: sans },
+                                    "You embody through the ", channel.name, ". Your ", ranked[0].name, " in the ", channel.name, ": ",
+                                    CHANNEL_EXPRESSIONS[ranked[0].key][channel.key], ".")),
                         React.createElement("div", { style: { marginTop: "auto" } },
                             React.createElement("p", { className: "text-center text-xs italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."))),
 
@@ -593,11 +633,7 @@ function TwelveWithin() {
                     React.createElement("div", { className: "flex items-baseline gap-3" },
                         React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
                         React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r))),
-                    React.createElement(Ladder, { arche: r }),
-                    n === 0 && React.createElement("p", { className: "text-sm text-violet-200/80 mt-3", style: sans },
-                        "Across the wheel: ",
-                        React.createElement("span", { className: "text-amber-200" }, archLinkByName(r.opposite)),
-                        " \u2014 your growth edge.")))),
+                    React.createElement(Ladder, { arche: r })))),
                 TIERS[tier].showBlends && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR BLENDS"),
                     [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
@@ -614,22 +650,41 @@ function TwelveWithin() {
                     React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
                         React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
                         " speaks softest in you \u2014 often the blind spot, sometimes the invitation.")),
+                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "GROWTH EDGE"),
+                    growthIsTopVoice
+                        ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
+                            ` is both your ${GROWTH_ORD[growthIdx]} voice and your growth edge \u2014 you already carry real ${growthName} energy, so growth here means drawing on it more deliberately, not building it from nothing.`)
+                        : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                            "Across the wheel sits ",
+                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
+                            " \u2014 your growth edge. Deliberately developing it is how your loudest voice stops casting so long a shadow.")),
                 TIERS[tier].showEmbodiment && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "YOUR EMBODIMENT"),
-                    React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                        "You embody through the ",
-                        React.createElement("span", { className: "text-amber-200 font-semibold" }, channel.name),
-                        " \u2014 not how you serve, but how you occupy a moment before you've decided to give anything at all. Your ",
-                        archLink(ranked[0]),
-                        " in the ",
-                        channel.name,
-                        ": ",
-                        React.createElement("span", { className: "font-semibold", style: { color: `hsl(${HUE(ranked[0].i)},70%,72%)` } }, CHANNEL_EXPRESSIONS[ranked[0].key][channel.key]),
-                        ". At its best this becomes ",
-                        channel.gift,
-                        "; collapsed, it curdles into ",
-                        channel.corruption,
-                        ".")),
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, channelLead.tied ? "YOUR EMBODIMENT \u00b7 CO-LED" : "YOUR EMBODIMENT"),
+                    channelLead.tied
+                        ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                            "You move fluidly ",
+                            channelLead.all ? "across all four Embodiments \u2014 " : "between the ",
+                            React.createElement("span", { className: "text-amber-200 font-semibold" }, joinNames(channelLead.leaders.map((c) => c.name))),
+                            channelLead.all ? " \u2014 none leads; you meet each moment through whichever it calls for. " : " \u2014 no single channel dominant. ",
+                            "Your ", archLink(ranked[0]), " reads as ",
+                            React.createElement("span", { className: "font-semibold" }, channelLead.leaders.map((c) => CHANNEL_EXPRESSIONS[ranked[0].key][c.key] + " (" + c.name + ")").join(", ")),
+                            ".")
+                        : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                            "You embody through the ",
+                            React.createElement("span", { className: "text-amber-200 font-semibold" }, channel.name),
+                            " \u2014 not how you serve, but how you occupy a moment before you've decided to give anything at all. Your ",
+                            archLink(ranked[0]),
+                            " in the ",
+                            channel.name,
+                            ": ",
+                            React.createElement("span", { className: "font-semibold", style: { color: `hsl(${HUE(ranked[0].i)},70%,72%)` } }, CHANNEL_EXPRESSIONS[ranked[0].key][channel.key]),
+                            ". At its best this becomes ",
+                            channel.gift,
+                            "; collapsed, it curdles into ",
+                            channel.corruption,
+                            ".")),
                 TIERS[tier].showFullRanking && React.createElement(React.Fragment, null,
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "THE FULL RANKING"),
                     React.createElement("div", { className: "space-y-2 mb-8" }, ranked.map((r) => (React.createElement("div", { key: r.key, className: "flex items-center gap-3" },
@@ -700,6 +755,9 @@ function TwelveWithin() {
                         React.createElement("input", { type: "email", value: emailInput, onChange: (e) => setEmailInput(e.target.value), placeholder: "you@example.com", className: "flex-1 rounded-lg bg-black/20 border border-violet-300/25 px-3 py-2 text-sm text-violet-50 outline-none focus:border-amber-200/60", style: sans }),
                         React.createElement("button", { onClick: sendMyEmail, className: "rounded-lg px-4 py-2 text-sm bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100", style: sans }, "Send link"))),
                 !isSample && emailSent && React.createElement("p", { className: "mt-6 text-center text-sm text-amber-200/80", style: sans }, "Check your email \u2014 your link is on its way."),
+                // Save is best-effort and fully independent of the reading above: if it
+                // fails we say so quietly and never touch the result render.
+                !isSample && saveStatus === "error" && React.createElement("p", { className: "mt-6 text-center text-violet-300/55 text-sm", style: sans }, "Your reading below is complete. (We couldn't save a copy to return to later \u2014 no problem; you can retake anytime.)"),
                 React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))))));
 }
 
