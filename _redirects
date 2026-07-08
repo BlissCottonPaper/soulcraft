@@ -9,3 +9,8 @@
 #  genuinely missing paths now 404, which is correct for SEO.)
 # Cloudflare Pages Functions (/api/*) are matched BEFORE these static redirects.
 /verify   /index.html   200
+
+# "Embodiments" was renamed to "Temperaments" (locked July 2026). Keep the old
+# path working for any existing links.
+/explore/embodiments/  /explore/temperaments/  301
+/explore/embodiments   /explore/temperaments/  301

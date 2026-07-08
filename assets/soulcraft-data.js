@@ -2,7 +2,7 @@
    THE ART OF SOULCRAFT — CANONICAL DATA (single source of truth)
    ----------------------------------------------------------------------------
    The archetypes (names, longings, five-stage Bandwidth ladders), the 66
-   Pairing names, and the Embodiment/channel data live HERE and nowhere else.
+   Pairing names, and the Temperament/temperament data live HERE and nowhere else.
    Consumed by BOTH:
      • the assessment (index.html) — via the browser globals below
      • the Explore content pages   — baked at build time by /build/generate.js
@@ -21,8 +21,8 @@
     root.STAGE_LIGHT = data.STAGE_LIGHT;
     root.HUE = data.HUE;
     root.BLEND_NAMES = data.BLEND_NAMES;
-    root.CHANNEL_EXPRESSIONS = data.CHANNEL_EXPRESSIONS;
-    root.CHANNELS = data.CHANNELS;
+    root.TEMPERAMENT_EXPRESSIONS = data.TEMPERAMENT_EXPRESSIONS;
+    root.TEMPERAMENTS = data.TEMPERAMENTS;
   }
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
@@ -37,7 +37,7 @@
     { key: "sage", name: "Sage", clock: 6, longing: "truth", statement: "I'm always seeking to understand how things work, and I value truth and insight more than quick answers.", descriptors: ["analytical", "reflective", "insightful"], stages: ["Know-It-All", "Cynic", "Student", "Mentor", "Elder"], opposite: "Lover" },
     { key: "explorer", name: "Explorer", clock: 7, longing: "freedom", statement: "I crave freedom and new experiences, and I feel alive when I'm venturing beyond the familiar.", descriptors: ["adventurous", "independent", "restless"], stages: ["Deserter", "Escapist", "Wanderer", "Pathfinder", "Trailblazer"], opposite: "Caregiver" },
     { key: "rebel", name: "Rebel", clock: 8, longing: "justice", statement: "When a system feels unfair or oppressive, I feel compelled to question it and push for change.", descriptors: ["defiant", "nonconformist", "outspoken"], stages: ["Nihilist", "Contrarian", "Questioner", "Challenger", "Liberator"], opposite: "Everyman" },
-    { key: "trickster", name: "Trickster", clock: 9, longing: "break false patterns", longingVerb: true, statement: "I love poking holes in rigid rules and using humor or mischief to expose what's fake or stuck.", descriptors: ["playful", "mischievous", "irreverent"], stages: ["Saboteur", "Deceiver", "Jokester", "Innovator", "Truth-Teller"], opposite: "Ruler" },
+    { key: "trickster", name: "Trickster", clock: 9, longing: "revelation", statement: "I love poking holes in rigid rules and using humor or mischief to expose what's fake or stuck.", descriptors: ["playful", "mischievous", "irreverent"], stages: ["Saboteur", "Deceiver", "Jokester", "Innovator", "Truth-Teller"], opposite: "Ruler" },
     { key: "innocent", name: "Innocent", clock: 10, longing: "trust", longingVerb: true, statement: "I believe things will work out if I stay true to what feels honest, kind, and good.", descriptors: ["hopeful", "trusting", "optimistic"], stages: ["Bitter Exile", "Avoider", "Believer", "Realist", "Wounded Healer"], opposite: "Warrior" },
     { key: "mystic", name: "Mystic", clock: 11, longing: "awe at something greater than yourself", statement: "I sense deeper layers beneath ordinary life and am drawn to silence, symbolism, and inner experience.", descriptors: ["intuitive", "otherworldly", "contemplative"], stages: ["Unmoored", "Drifter", "Dreamer", "Seer", "Conduit"], opposite: "Creator" }
   ];
@@ -71,7 +71,7 @@
     "innocent|mystic": "The Holy Innocent"
   };
 
-  var CHANNEL_EXPRESSIONS = {
+  var TEMPERAMENT_EXPRESSIONS = {
     lover: { heart: "The Sweetheart", mind: "The Admirer", body: "The Embracer", soul: "The Adorer" },
     caregiver: { heart: "The Comforter", mind: "The Coordinator", body: "The Provider", soul: "The Tender" },
     everyman: { heart: "The Welcomer", mind: "The Moderator", body: "The Volunteer", soul: "The Kinkeeper" },
@@ -86,7 +86,7 @@
     mystic: { heart: "The Empath", mind: "The Symbolist", body: "The Ecstatic", soul: "The Contemplative" }
   };
 
-  var CHANNELS = [
+  var TEMPERAMENTS = [
     { key: "heart", name: "Heart", gift: "compassion", corruption: "manipulation" },
     { key: "mind", name: "Mind", gift: "wisdom", corruption: "control" },
     { key: "body", name: "Body", gift: "presence", corruption: "force" },
@@ -102,8 +102,8 @@
     STAGE_LIGHT: STAGE_LIGHT,
     HUE: HUE,
     BLEND_NAMES: BLEND_NAMES,
-    CHANNEL_EXPRESSIONS: CHANNEL_EXPRESSIONS,
-    CHANNELS: CHANNELS,
+    TEMPERAMENT_EXPRESSIONS: TEMPERAMENT_EXPRESSIONS,
+    TEMPERAMENTS: TEMPERAMENTS,
     pairingName: pairingName
   };
 });

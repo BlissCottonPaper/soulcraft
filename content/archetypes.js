@@ -1,14 +1,14 @@
 /* ============================================================================
    ARCHETYPE CHAPTER CONTENT — prose transcribed from the Notion canon
    ("Archetype Profiles — The Twelve Chapters"). Source of truth for the PROSE
-   only. Structural data (names, stage-ladder names, Embodiment names, the 66
+   only. Structural data (names, stage-ladder names, Temperament names, the 66
    Pairing names, longing, opposite, hue) comes from /assets/soulcraft-data.js
    and is merged in by the generator — never duplicate those here.
 
    Per archetype: overview, motivations, coreWound, fears, addictions, traits,
    blindSpots, dreams; stages[] (the "what it looks like" line per Bandwidth
-   stage, index 0..4 = Devolved..Transcendent); embodiments (one line per
-   channel, the Base read); pairings (one line per partner key, this archetype
+   stage, index 0..4 = Devolved..Transcendent); temperaments (one line per
+   temperament, the Base read); pairings (one line per partner key, this archetype
    leading; "" where the chapter hasn't written that reading yet).
 
    NOTE: verbatim from the chapters, with inline production notes removed for
@@ -36,7 +36,7 @@ module.exports = {
       `Mature understanding — shares insight generously, holds certainty loosely.`,
       `Teaches not to be right, but to set someone else free — wisdom entirely at others' service.`
     ],
-    embodiments: { heart: `seeks truth in people, through real attention`, mind: `takes truth apart, piece by piece`, body: `learns by hand — knowledge that can't be read`, soul: `literally, "lover of wisdom" — truth pursued as devotion` },
+    temperaments: { heart: `seeks truth in people, through real attention`, mind: `takes truth apart, piece by piece`, body: `learns by hand — knowledge that can't be read`, soul: `literally, "lover of wisdom" — truth pursued as devotion` },
     pairings: { lover: `feeling that understands, understanding that feels`, caregiver: `diagnosis fused with tending`, everyman: `everyday wisdom, spoken in the common tongue`, ruler: `order weighed by truth`, warrior: `discipline and knowledge under arms`, creator: `understanding that builds something new`, explorer: `truth sought by expedition, in the field rather than the library`, rebel: `chooses its own truth over inherited orthodoxy`, trickster: `teaches by irritating complacent certainty, like Socrates himself`, innocent: `beginner's mind — truth approached with awe rather than defense`, mystic: `carries direct communion back as living, usable truth` }
   },
 
@@ -57,7 +57,7 @@ module.exports = {
       `Mature love — committed, generous, able to hold both closeness and the other's freedom.`,
       `Loves without needing return. The love itself has become the point, not what it earns back.`
     ],
-    embodiments: { heart: `wears devotion openly, leads with warmth`, mind: `loves by knowing the beloved deeply — their history, their mind`, body: `love as touch and physical presence`, soul: `the beloved held as sacred` },
+    temperaments: { heart: `wears devotion openly, leads with warmth`, mind: `loves by knowing the beloved deeply — their history, their mind`, body: `love as touch and physical presence`, soul: `the beloved held as sacred` },
     pairings: { caregiver: `love that tends as much as it feels`, everyman: `warmth turned into hospitality, welcome`, ruler: `devotion fused with domestic order`, warrior: `devotion armed; love that will fight for its object`, creator: `feeling given voice, form, performance`, sage: `feeling that understands, understanding that feels`, explorer: `in love with the world itself, not just one person`, rebel: `love untamed by convention or approval`, trickster: `play fused with desire`, innocent: `carries trust and the real risk of faith, not just uncomplicated youthful devotion`, mystic: `love aimed at the infinite, not only the human` }
   },
 
@@ -78,7 +78,7 @@ module.exports = {
       `Mature care — gives from abundance, can say no, tends without losing itself.`,
       `Helps others become whole, not dependent — the tending aimed at the other's freedom, not the Caregiver's role.`
     ],
-    embodiments: { heart: `holds space, soothes with presence`, mind: `care as logistics — meal trains, appointments, systems of support`, body: `casseroles, rides, repairs, hands-on help`, soul: `tends the spirit, not just the practical need` },
+    temperaments: { heart: `holds space, soothes with presence`, mind: `care as logistics — meal trains, appointments, systems of support`, body: `casseroles, rides, repairs, hands-on help`, soul: `tends the spirit, not just the practical need` },
     pairings: { lover: ``, everyman: `ordinary, reliable care between equals`, ruler: `responsible authority exercised through tending`, warrior: `fierce tending, care that will fight for its object`, creator: `cares for food, people, ideas, and talent alike`, sage: `tending fused with diagnosis; care that also understands the root`, explorer: `tends while still roaming, care without confinement`, rebel: `care that crosses forbidden lines to reach who needs it`, trickster: `lifts spirits through mischief and lightness`, innocent: `soft, uncomplicated kindness`, mystic: `attends the thresholds — birth, death, transformation` }
   },
 
@@ -99,7 +99,7 @@ module.exports = {
       `Genuine connector — belongs without losing itself, bridges people naturally.`,
       `Actively builds belonging for others — makes room at the table rather than just occupying a seat.`
     ],
-    embodiments: { heart: `makes room for everyone, warmly`, mind: `keeps the group fair, tracks who's been heard`, body: `shows up, stacks the chairs, does the unglamorous work`, soul: `keeps the bonds — birthdays, traditions, who's connected to whom` },
+    temperaments: { heart: `makes room for everyone, warmly`, mind: `keeps the group fair, tracks who's been heard`, body: `shows up, stacks the chairs, does the unglamorous work`, soul: `keeps the bonds — birthdays, traditions, who's connected to whom` },
     pairings: { lover: ``, caregiver: ``, ruler: `authority earned through belonging, not imposed from above`, warrior: `ordinary person who stands up when it matters`, creator: `makes art of and for the people, not above them`, sage: `plainspoken wisdom, no jargon`, explorer: `belongs everywhere for a while, at home among strangers`, rebel: `of the people, against unjust power`, trickster: `surviving hierarchy through cunning and irreverence`, innocent: `plain, trustworthy goodness`, mystic: `finds the sacred in ordinary life, not apart from it` }
   },
 
@@ -120,7 +120,7 @@ module.exports = {
       `Mature order — holds structure responsibly, delegates, order in service of people.`,
       `Rules with clean hands entirely for the good of those governed, not for the ego of governing.`
     ],
-    embodiments: { heart: `runs the home as its own small realm`, mind: `order through systems, policy, process`, body: `hands-on command, in the work alongside those it leads`, soul: `holds order on behalf of something larger than itself` },
+    temperaments: { heart: `runs the home as its own small realm`, mind: `order through systems, policy, process`, body: `hands-on command, in the work alongside those it leads`, soul: `holds order on behalf of something larger than itself` },
     pairings: { lover: ``, caregiver: `responsible authority through tending`, everyman: ``, warrior: `order enforced through disciplined force`, creator: `builds the very structure of the realm`, sage: `order weighed against truth`, explorer: `carries order to the frontier, builds where nothing stood before`, rebel: `rebellion with intent to build a new order, not just overthrow`, trickster: `rules the game while still playing it`, innocent: `rules with clean, trusting hands`, mystic: `leads from genuine inner sight, not inherited law alone` }
   },
 
@@ -141,7 +141,7 @@ module.exports = {
       `Disciplined, admirable strength — fights well, for the right things, on its own terms.`,
       `Guards the defenseless, not its own honor — strength entirely at others' service.`
     ],
-    embodiments: { heart: `fights for people, motivated by love`, mind: `wins the fight before it starts, through planning`, body: `the fight mastered as physical discipline`, soul: `fights from vow, from something sworn` },
+    temperaments: { heart: `fights for people, motivated by love`, mind: `wins the fight before it starts, through planning`, body: `the fight mastered as physical discipline`, soul: `fights from vow, from something sworn` },
     pairings: { lover: ``, caregiver: ``, everyman: ``, ruler: ``, creator: `force refined into craft`, sage: `discipline as its own form of knowledge`, explorer: `courage aimed at the frontier, not just the enemy`, rebel: `protection turned toward liberation`, trickster: `fights sideways, unconventional tactics`, innocent: `strength that stays kind`, mystic: `discipline in service of something transcendent` }
   },
 
@@ -162,7 +162,7 @@ module.exports = {
       `Mastered craft — makes skillfully, finishes, takes real pride without perfectionism's grip.`,
       `Transforms raw material — and often pain — into something that serves others, not just the self.`
     ],
-    embodiments: { heart: `feeling given form`, mind: `form solved as a problem, structure-first`, body: `hands and material, making as physical act`, soul: `making as offering, not just output` },
+    temperaments: { heart: `feeling given form`, mind: `form solved as a problem, structure-first`, body: `hands and material, making as physical act`, soul: `making as offering, not just output` },
     pairings: { lover: ``, caregiver: `cares for food, people, ideas, and talent alike`, everyman: ``, ruler: ``, warrior: ``, sage: `truth-seeking fused with bringing-into-form; the systems thinker`, explorer: `makes something whose purpose is showing others the way`, rebel: `creates by breaking existing forms`, trickster: `makes through mockery and exaggeration`, innocent: `bringing-into-being while wonder, not technical mastery, stays the driving force`, mystic: `pulls the unseen into form` }
   },
 
@@ -183,7 +183,7 @@ module.exports = {
       `Mature freedom — explores with purpose, can commit without feeling caged.`,
       `Marks a path for others to follow, purely through how they serve — being genuinely first, for others' sake.`
     ],
-    embodiments: { heart: `feeling-led freedom, follows what moves it`, mind: `explores to map, to understand the terrain first`, body: `the physical frontier, movement as the point`, soul: `travels specifically for meaning` },
+    temperaments: { heart: `feeling-led freedom, follows what moves it`, mind: `explores to map, to understand the terrain first`, body: `the physical frontier, movement as the point`, soul: `travels specifically for meaning` },
     pairings: { lover: ``, caregiver: `tends while still roaming`, everyman: ``, ruler: ``, warrior: ``, creator: `makes something whose purpose is showing others the way`, sage: ``, rebel: `refuses the herd's brand entirely`, trickster: `gets where it's not supposed to be`, innocent: `discovery held with wonder, not cynicism`, mystic: `journeys through space and toward the sacred at once` }
   },
 
@@ -204,7 +204,7 @@ module.exports = {
       `Mature resistance — questions with purpose, builds coalitions, fights winnable fights.`,
       `Disrupts stagnant power specifically in service of those still trapped by it.`
     ],
-    embodiments: { heart: `questions on behalf of the hurt, not the abstract principle`, mind: `questions through argument, dismantles reasoning`, body: `feet in the street, physical presence as resistance`, soul: `conscientious refusal, quiet and permanent` },
+    temperaments: { heart: `questions on behalf of the hurt, not the abstract principle`, mind: `questions through argument, dismantles reasoning`, body: `feet in the street, physical presence as resistance`, soul: `conscientious refusal, quiet and permanent` },
     pairings: { lover: ``, caregiver: ``, everyman: `of the people, against the crown`, ruler: `rebellion with intent to build a new order, not just overthrow`, warrior: ``, creator: ``, sage: ``, explorer: ``, trickster: `mockery deployed as resistance`, innocent: `the one who simply says the emperor is naked`, mystic: `defies stagnant power in the name of what's been forgotten` }
   },
 
@@ -225,7 +225,7 @@ module.exports = {
       `Sees what others can't — disruption in service of genuine, useful new patterns.`,
       `The one fool allowed to tell the king the truth — disruption entirely in service of what's real.`
     ],
-    embodiments: { heart: `roasting as a form of affection`, mind: `wordplay, satire, the sharpened line`, body: `physical comedy, the pratfall, the setup`, soul: `the jest aimed at pretension around the sacred itself` },
+    temperaments: { heart: `roasting as a form of affection`, mind: `wordplay, satire, the sharpened line`, body: `physical comedy, the pratfall, the setup`, soul: `the jest aimed at pretension around the sacred itself` },
     pairings: { lover: ``, caregiver: ``, everyman: `surviving hierarchy through cunning and irreverence`, ruler: `rules the game while playing it`, warrior: ``, creator: ``, sage: `Socrates' own historical epithet — a truth-seeker who irritates complacent certainty`, explorer: ``, rebel: ``, innocent: `mischief without malice`, mystic: `Loki, Coyote, Raven — trickery of the unseen itself` }
   },
 
@@ -246,7 +246,7 @@ module.exports = {
       `Trust rebuilt clear-eyed — hope that has actually looked at harm and chosen to trust again anyway.`,
       `Knows the worst and trusts anyway — the healed wound now helps others survive theirs.`
     ],
-    embodiments: { heart: `believes in you, specifically, out loud`, mind: `belief held as principle, articulated`, body: `trust enacted plainly, does the honest thing`, soul: `trust as faith, a way of orienting to the whole of life` },
+    temperaments: { heart: `believes in you, specifically, out loud`, mind: `belief held as principle, articulated`, body: `trust enacted plainly, does the honest thing`, soul: `trust as faith, a way of orienting to the whole of life` },
     pairings: { lover: `carries trust and the real risk of faith, not just uncomplicated youthful devotion`, caregiver: ``, everyman: ``, ruler: ``, warrior: `strength that stays kind`, creator: `bringing-into-being while wonder stays the driving force`, sage: ``, explorer: `discovery expected to be marvelous, not just movement`, rebel: ``, trickster: ``, mystic: `trust extended past the visible, into mystery itself` }
   },
 
@@ -265,9 +265,9 @@ module.exports = {
       `Elsewhere as a permanent address; presence in ordinary life has become optional.`,
       `Everyday Mystic — senses deeper layers, drawn to silence, symbolism, inner experience.`,
       `Mature perception — sees clearly into what's hidden, stays grounded while doing it.`,
-      `Channels what it perceives directly into service of others — mystery made useful, not just felt.`
+      `Temperaments what it perceives directly into service of others — mystery made useful, not just felt.`
     ],
-    embodiments: { heart: `feels the unseen in people, deeply attuned to the invisible`, mind: `reads signs, dreams, the grammar of a tradition`, body: `the unseen through dance, breath, ritual, embodied practice`, soul: `communion in silence, sustained stillness` },
+    temperaments: { heart: `feels the unseen in people, deeply attuned to the invisible`, mind: `reads signs, dreams, the grammar of a tradition`, body: `the unseen through dance, breath, ritual, embodied practice`, soul: `communion in silence, sustained stillness` },
     pairings: { lover: ``, caregiver: ``, everyman: ``, ruler: ``, warrior: ``, creator: `pulls the unseen into form`, sage: `carries direct communion back as living truth`, explorer: `journeys through space and toward the sacred at once`, rebel: ``, trickster: ``, innocent: `` }
   }
 };
