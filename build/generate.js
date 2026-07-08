@@ -323,11 +323,13 @@ function archetypeMain(key) {
     ["Addictions & substitutes", c.addictions, ""],
     ["Traits", c.traits, ""],
     ["Blind spots", c.blindSpots, ""],
-    // Dreams & Hopes closes the grid full-width — the aspirational note that
-    // leads the reader into the Bandwidth growth ladder below.
-    ["Dreams & hopes", c.dreams, " md:col-span-2"]
-  ].map(([h, body, span]) =>
-    `        <div class="card rounded-2xl px-6 py-5${span}"><h3 class="text-[11px] tracking-[0.2em] uppercase mb-2" style="color:${accent}">${h}</h3><p class="text-violet-200/80 text-sm leading-relaxed">${body}</p></div>`
+    // Hopes & Dreams closes the grid full-width — the aspirational note that
+    // leads the reader into the Bandwidth growth ladder below. Uses an explicit
+    // grid-column span (not a Tailwind utility) so it never depends on the CDN
+    // generating md:col-span-2 at runtime.
+    ["Hopes & dreams", c.dreams, ` style="grid-column:1 / -1"`]
+  ].map(([h, body, style]) =>
+    `        <div class="card rounded-2xl px-6 py-5"${style}><h3 class="text-[11px] tracking-[0.2em] uppercase mb-2" style="color:${accent}">${h}</h3><p class="text-violet-200/80 text-sm leading-relaxed">${body}</p></div>`
   ).join("\n");
 
   const ladder = DATA.STAGE_NAMES.map((sn, s) =>
@@ -355,7 +357,7 @@ function archetypeMain(key) {
       <p class="text-violet-200/85 text-lg leading-relaxed max-w-3xl">${c.overview}</p>
       <div class="flex flex-wrap gap-x-8 gap-y-2 mt-6 text-sm text-violet-300/70">
         <span>Core wound: <span class="text-violet-100">${c.coreWoundShort}</span></span>
-        <span>Growth edge: <a href="/explore/${oppo.key}/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">${a.opposite}</a></span>
+        <span>Growth edge: <a href="/explore/${oppo.key}/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">${a.opposite}</a> <a href="/explore/growth-edge/" class="text-violet-300/50 hover:text-amber-100 text-xs underline underline-offset-2">what's this?</a></span>
       </div>
     </section>
 
@@ -389,6 +391,68 @@ ${pairs}
 
     <section class="py-14 text-center border-t border-violet-300/10">
       <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Which voices are loudest in you? — Your Mandala</a>
+    </section>`;
+}
+
+// ---- Growth Edge & Quietest Voice (/explore/growth-edge/) — step 7 explainer ----
+function growthEdgeMain() {
+  const seen = new Set();
+  const axes = [];
+  DATA.ARCHETYPES.forEach((a, i) => {
+    const opp = DATA.ARCHETYPES.find((x) => x.name === a.opposite);
+    const j = DATA.ARCHETYPES.indexOf(opp);
+    const pair = [i, j].sort((x, y) => x - y).join("-");
+    if (seen.has(pair)) return;
+    seen.add(pair);
+    axes.push([a, opp, i, j]);
+  });
+  const axisRows = axes.map(([a, opp, i, j]) =>
+    `        <div class="card rounded-2xl px-5 py-4 flex items-center justify-center gap-3">
+          <a href="/explore/${a.key}/" class="flex items-center gap-2 hover:text-amber-100"><span class="w-2.5 h-2.5 rounded-full" style="background:hsl(${DATA.HUE(i)},62%,56%)"></span>${a.name}</a>
+          <span class="text-violet-300/40">↔</span>
+          <a href="/explore/${opp.key}/" class="flex items-center gap-2 hover:text-amber-100">${opp.name}<span class="w-2.5 h-2.5 rounded-full" style="background:hsl(${DATA.HUE(j)},62%,56%)"></span></a>
+        </div>`
+  ).join("\n");
+  return `    <section class="pt-16 pb-10 md:pt-24 max-w-3xl">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">TWO IDEAS PEOPLE CONFUSE</p>
+      <h1 class="serif text-4xl md:text-6xl mb-5">Growth Edge &amp; Quietest Voice</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed">Your results name two different "edges," and they're easy to mix up — one is personal to how you scored, the other is fixed by the shape of the wheel. Here's the difference.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="card rounded-2xl px-6 py-6">
+          <h2 class="serif text-2xl mb-2">Quietest Voice</h2>
+          <p class="text-violet-200/80 leading-relaxed text-sm">Your <strong>Quietest Voice</strong> is simply your lowest-scoring archetype — the one that speaks softest in you. It's <em>personal</em>: it depends on how you actually scored, so it's different for everyone. Often a blind spot; sometimes an invitation.</p>
+        </div>
+        <div class="card rounded-2xl px-6 py-6">
+          <h2 class="serif text-2xl mb-2">Growth Edge</h2>
+          <p class="text-violet-200/80 leading-relaxed text-sm">Your <strong>Growth Edge</strong> is the <em>fixed opposite</em> of your loudest voice on the wheel. It's structural, not personal — for a given top voice it's always the same archetype, no matter how you scored everything else. Deliberately developing it is a balancing practice.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-3xl">
+      <div class="card rounded-2xl px-6 py-5" style="border-color:rgba(253,230,138,0.35)">
+        <p class="text-violet-100 leading-relaxed">They are <strong>not the same thing.</strong> Your Quietest Voice moves with your scores; your Growth Edge is fixed by the wheel — it depends only on which voice is loudest. They can land on the same archetype, but usually don't.</p>
+      </div>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-2 max-w-3xl">The six growth edges</h2>
+      <p class="text-violet-300/75 mb-6 max-w-3xl">Every archetype sits directly across the wheel from exactly one other. Those six oppositions are the growth edges — your loudest voice points you to yours.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+${axisRows}
+      </div>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-3">What to do with it</h2>
+      <p class="text-violet-200/80 leading-relaxed">The move isn't to silence your loudest voice — it's to consciously develop the one across from it, so your strength stops casting so long a shadow. The Lover borrows the Sage's clear sight; the Warrior, the Innocent's trust; the Ruler, the Trickster's play.</p>
+    </section>
+
+    <section class="py-14 text-center border-t border-violet-300/10">
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Find your loudest and quietest — Your Mandala</a>
     </section>`;
 }
 
@@ -430,6 +494,14 @@ write("explore/core-needs/index.html", page({
   canonical: "https://artofsoulcraft.com/explore/core-needs/",
   active: "explore",
   main: coreNeedsMain()
+}));
+
+write("explore/growth-edge/index.html", page({
+  title: "Growth Edge & Quietest Voice — how they differ | The Art of Soulcraft",
+  description: "Your Quietest Voice is your lowest-scoring archetype; your Growth Edge is the fixed opposite of your loudest voice on the wheel. Two different ideas people often confuse — explained.",
+  canonical: "https://artofsoulcraft.com/explore/growth-edge/",
+  active: "explore",
+  main: growthEdgeMain()
 }));
 
 write("pricing/index.html", page({
