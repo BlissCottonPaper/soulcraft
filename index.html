@@ -266,6 +266,27 @@ function Radar({ scores, size }) {
         React.createElement("circle", { cx: c, cy: c, r: 2, fill: "rgba(196,181,253,0.4)" }));
 }
 const INTEGRATED_PROFILE_COPY = "You move fluidly between all four channels. Integration, not dominance, is your signature — you adapt how you show up to what the moment actually needs. Your growth edge is different: developing the discipline to choose intentionally rather than flow automatically.";
+// Per-archetype × channel Embodiment prose for the results readout.
+//   loud   = how you naturally show up when that channel is a loud voice (raw 3–4)
+//   growth = the quieter-voice / growth-edge reading when it's low (raw 1–2)
+// Only the Build Spec's verbatim examples (Sage) are filled in; the rest are
+// intentionally absent and render nothing until the launch copy is supplied
+// (Sage, Caregiver, Explorer, Lover, Warrior first). Nothing here is invented.
+const EMBODIMENT_PROSE = {
+    sage: {
+        mind: { loud: "You pursue truth through analysis — reading, researching, reasoning your way toward understanding." },
+        soul: { loud: "You pursue truth through contemplation — sitting with questions longer than most, listening for what meaning emerges beneath the surface." },
+        heart: { growth: "A Sage leading with Heart becomes a listener first. Where you naturally reach for the answer, this version of you reaches for the person — and discovers that being truly heard sometimes does more than being truly right. In relationships especially, this is where your wisdom lands." }
+    }
+};
+// For one archetype, split its loud/quiet channels (from the centered profile)
+// into the prose that actually exists. Returns { loud:[], growth:[] } of strings.
+function embodimentReadout(archetypeKey, profile) {
+    const table = EMBODIMENT_PROSE[archetypeKey] || {};
+    const loud = profile.loud.map((a) => table[a.key] && table[a.key].loud).filter(Boolean);
+    const growth = profile.quiet.map((a) => table[a.key] && table[a.key].growth).filter(Boolean);
+    return { loud: loud, growth: growth, hasAny: loud.length > 0 || growth.length > 0 };
+}
 // TIER CONFIG — single source of truth for what each paid tier unlocks.
 // No Stripe wired yet: `tier` is just app state, chosen at the intro screen.
 // Swapping in real payment later means setting this from a verified purchase
@@ -727,6 +748,21 @@ function TwelveWithin() {
                     embodimentProfile(embodimentScores).integrated
                         ? React.createElement("p", { className: "text-violet-200/85 text-sm leading-relaxed mt-5 max-w-xl mx-auto text-center", style: sans }, INTEGRATED_PROFILE_COPY)
                         : React.createElement("p", { className: "text-violet-300/55 text-xs mt-4 text-center", style: sans }, "Outside the dashed ring, a channel runs loud; inside it, quieter \u2014 a growth edge.")),
+                TIERS[tier].showEmbodiment && (() => {
+                    // Per top-three archetype: how each loud channel shows up, and the
+                    // growth-edge reading for each quiet channel. Renders only the prose
+                    // that exists (Sage today); archetypes without launch copy are skipped.
+                    const prof = embodimentProfile(embodimentScores);
+                    const blocks = ranked.slice(0, 3).map((a) => ({ a: a, readout: embodimentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
+                    if (!blocks.length) return null;
+                    return React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
+                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-3", style: sans }, "HOW YOUR TOP VOICES SHOW UP"),
+                        blocks.map(({ a, readout }) => React.createElement("div", { key: a.key, className: "mb-4 last:mb-0" },
+                            React.createElement("h4", { className: "serif text-xl mb-1", style: { color: `hsl(${HUE(a.i)},70%,72%)` } }, archLink(a)),
+                            readout.loud.map((s, i) => React.createElement("p", { key: "l" + i, className: "text-sm text-violet-200/85 mb-1.5 leading-relaxed", style: sans }, s)),
+                            readout.growth.map((s, i) => React.createElement("p", { key: "g" + i, className: "text-sm text-violet-300/75 mb-1.5 leading-relaxed", style: sans },
+                                React.createElement("span", { className: "text-amber-200/80" }, "Growth edge \u2014 "), s)))));
+                })(),
                 TIERS[tier].showEmbodiment && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, channelLead.tied ? "YOUR EMBODIMENT \u00b7 CO-LED" : "YOUR EMBODIMENT"),
                     channelLead.tied
