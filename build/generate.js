@@ -14,10 +14,12 @@ const path = require("path");
 const DATA = require("../assets/soulcraft-data.js");
 const CHROME = require("../assets/site-chrome.js");
 const CONTENT = require("../content/archetypes.js");   // archetype chapter prose (from Notion)
+const PROSE = require("../assets/temperament-prose.js").TEMPERAMENT_PROSE;   // archetype × temperament (The 48)
 
 const ROOT = path.join(__dirname, "..");
 
 const longs = (a) => (a.longingVerb ? "longs to " : "longs for ") + a.longing;
+const GIFTS = { heart: "warmth", mind: "clarity", body: "presence", soul: "meaning" };   // radar axis gift words
 
 // ---- Page shell (head + baked chrome + main + footer) ----------------------
 function page({ title, description, canonical, active, main }) {
@@ -340,7 +342,7 @@ function archetypeMain(key) {
   ).join("\n");
 
   const emb = DATA.TEMPERAMENTS.map((ch) =>
-    `        <div class="card rounded-2xl px-5 py-4"><p class="text-[11px] tracking-[0.18em] uppercase text-amber-200/70 mb-1">${ch.name}</p><p class="serif text-lg mb-1">${DATA.TEMPERAMENT_EXPRESSIONS[key][ch.key]}</p><p class="text-violet-300/70 text-sm">${c.temperaments[ch.key]}</p></div>`
+    `        <div class="card rounded-2xl px-5 py-5"><p class="text-[11px] tracking-[0.18em] uppercase text-amber-200/70 mb-1">${ch.name} · ${GIFTS[ch.key]}</p><p class="serif text-lg mb-1.5">${DATA.TEMPERAMENT_EXPRESSIONS[key][ch.key]}</p><p class="text-violet-200/80 text-sm leading-relaxed">${PROSE[key][ch.key].loud}</p></div>`
   ).join("\n");
 
   const pairs = DATA.ARCHETYPES.filter((x) => x.key !== key).map((x) => {
@@ -375,8 +377,8 @@ ${ladder}
 
     <section class="py-10 border-t border-violet-300/10">
       <h2 class="serif text-3xl mb-2">The four Temperaments</h2>
-      <p class="text-violet-300/70 text-sm mb-5 max-w-2xl">How the ${a.name} shows up at Base, through each temperament. <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">What Temperaments mean →</a></p>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <p class="text-violet-300/70 text-sm mb-6 max-w-2xl">What the ${a.name} looks like through each temperament — the same archetype, met through Heart, Mind, Body, or Soul. Most people recognize themselves in one or two. <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">What Temperaments mean →</a></p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 ${emb}
       </div>
     </section>

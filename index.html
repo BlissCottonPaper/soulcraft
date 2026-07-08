@@ -10,6 +10,7 @@
 <!-- Canonical data (archetypes, 66 Pairings, temperaments) + shared nav/footer chrome —
      single source of truth, shared with the Explore content pages. -->
 <script src="/assets/soulcraft-data.js"></script>
+<script src="/assets/temperament-prose.js"></script>
 <script src="/assets/site-chrome.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
@@ -239,7 +240,10 @@ function temperamentProfile(scores) {
     const integrated = (Math.max.apply(null, raws) - Math.min.apply(null, raws)) <= 0.5;
     const loud = axes.filter((a) => a.v > 0);       // raw 3 or 4
     const quiet = axes.filter((a) => a.v < 0);      // raw 1 or 2
-    return { axes: axes, integrated: integrated, loud: loud, quiet: quiet };
+    const maxRaw = Math.max.apply(null, raws), minRaw = Math.min.apply(null, raws);
+    const dominant = axes.filter((a) => a.raw === maxRaw);   // loudest temperament(s); ties → several
+    const quietest = axes.filter((a) => a.raw === minRaw);   // quietest temperament(s)
+    return { axes: axes, integrated: integrated, loud: loud, quiet: quiet, dominant: dominant, quietest: quietest };
 }
 function Radar({ scores, size }) {
     size = size || 300;
@@ -266,25 +270,15 @@ function Radar({ scores, size }) {
         React.createElement("circle", { cx: c, cy: c, r: 2, fill: "rgba(196,181,253,0.4)" }));
 }
 const INTEGRATED_PROFILE_COPY = "You move fluidly between all four temperaments. Integration, not dominance, is your signature — you adapt how you show up to what the moment actually needs. Your growth edge is different: developing the discipline to choose intentionally rather than flow automatically.";
-// Per-archetype × temperament Temperament prose for the results readout.
-//   loud   = how you naturally show up when that temperament is a loud voice (raw 3–4)
-//   growth = the quieter-voice / growth-edge reading when it's low (raw 1–2)
-// Only the Build Spec's verbatim examples (Sage) are filled in; the rest are
-// intentionally absent and render nothing until the launch copy is supplied
-// (Sage, Caregiver, Explorer, Lover, Warrior first). Nothing here is invented.
-const TEMPERAMENT_PROSE = {
-    sage: {
-        mind: { loud: "You pursue truth through analysis — reading, researching, reasoning your way toward understanding." },
-        soul: { loud: "You pursue truth through contemplation — sitting with questions longer than most, listening for what meaning emerges beneath the surface." },
-        heart: { growth: "A Sage leading with Heart becomes a listener first. Where you naturally reach for the answer, this version of you reaches for the person — and discovers that being truly heard sometimes does more than being truly right. In relationships especially, this is where your wisdom lands." }
-    }
-};
-// For one archetype, split its loud/quiet temperaments (from the centered profile)
-// into the prose that actually exists. Returns { loud:[], growth:[] } of strings.
+// The archetype × temperament prose (The 48 + Crossing Practices) lives in
+// /assets/temperament-prose.js as the global TEMPERAMENT_PROSE, shared with the
+// Explore pages. For one archetype: the "loud" string(s) for the person's
+// DOMINANT temperament(s) (how they show up), and the growth-edge crossing
+// practice(s) for their QUIETEST temperament(s).
 function temperamentReadout(archetypeKey, profile) {
-    const table = TEMPERAMENT_PROSE[archetypeKey] || {};
-    const loud = profile.loud.map((a) => table[a.key] && table[a.key].loud).filter(Boolean);
-    const growth = profile.quiet.map((a) => table[a.key] && table[a.key].growth).filter(Boolean);
+    const table = (typeof TEMPERAMENT_PROSE !== "undefined" && TEMPERAMENT_PROSE[archetypeKey]) || {};
+    const loud = profile.dominant.map((a) => table[a.key] && table[a.key].loud).filter(Boolean);
+    const growth = profile.quietest.map((a) => table[a.key] && table[a.key].growth).filter(Boolean);
     return { loud: loud, growth: growth, hasAny: loud.length > 0 || growth.length > 0 };
 }
 // TIER CONFIG — single source of truth for what each paid tier unlocks.
@@ -749,10 +743,12 @@ function TwelveWithin() {
                         ? React.createElement("p", { className: "text-violet-200/85 text-sm leading-relaxed mt-5 max-w-xl mx-auto text-center", style: sans }, INTEGRATED_PROFILE_COPY)
                         : React.createElement("p", { className: "text-violet-300/55 text-xs mt-4 text-center", style: sans }, "Outside the dashed ring, a temperament runs loud; inside it, quieter \u2014 a growth edge.")),
                 TIERS[tier].showTemperament && (() => {
-                    // Per top-three archetype: how each loud temperament shows up, and the
-                    // growth-edge reading for each quiet temperament. Renders only the prose
-                    // that exists (Sage today); archetypes without launch copy are skipped.
+                    // Per top-three archetype: how the dominant temperament(s) show up (The 48),
+                    // and the growth-edge crossing practice for the quietest temperament(s).
                     const prof = temperamentProfile(radarScores);
+                    // When the profile is flat, dominant === quietest === all four; the
+                    // Integrated Profile copy above covers it, so skip the per-archetype split.
+                    if (prof.integrated) return null;
                     const blocks = ranked.slice(0, 3).map((a) => ({ a: a, readout: temperamentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
                     if (!blocks.length) return null;
                     return React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
