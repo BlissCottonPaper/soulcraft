@@ -32,14 +32,14 @@ export async function onRequestPost({ request, env }) {
       tier,               // 'free' | 'triad' | 'full'
       mode,               // 'quick' | 'full'
       archetypeScores,    // { lover: 14, sage: 21, ... }
-      channelScores,      // { heart: 8, mind: 30, ... }
+      temperamentScores,      // { heart: 8, mind: 30, ... }
       descriptorPicks,    // array, optional
       email,              // optional — may be null/undefined/empty
       redeemCode,         // optional — a code from the `codes` table, if this came via a partner gift
       upgradeFromId,      // optional — set when this save is an upgrade of an earlier result (Triad -> Full), not a fresh retake
     } = body;
 
-    if (!tier || !mode || !archetypeScores || !channelScores) {
+    if (!tier || !mode || !archetypeScores || !temperamentScores) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -101,7 +101,7 @@ export async function onRequestPost({ request, env }) {
         finalTier,
         mode,
         JSON.stringify(archetypeScores),
-        JSON.stringify(channelScores),
+        JSON.stringify(temperamentScores),
         descriptorPicks ? JSON.stringify(descriptorPicks) : null,
         upgradeFromId || null,
         now

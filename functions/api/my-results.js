@@ -54,7 +54,7 @@ export async function onRequestGet({ request, env }) {
       tier: r.tier,
       mode: r.mode,
       archetypeScores: JSON.parse(r.archetype_scores),
-      channelScores: JSON.parse(r.channel_scores),
+      temperamentScores: JSON.parse(r.channel_scores),
       wasUpgradeOf: r.upgraded_from_id || null, // null = a fresh attempt, not an upgrade
       createdAt: r.created_at,
     }));

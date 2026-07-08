@@ -63,7 +63,7 @@
     { href: "/explore/", label: "Overview" },
     { href: "/explore/#the-twelve", label: "The Twelve Archetypes" },
     { href: "/explore/bandwidth/", label: "Bandwidth" },
-    { href: "/explore/embodiments/", label: "Embodiments" },
+    { href: "/explore/temperaments/", label: "Temperaments" },
     { href: "/explore/core-needs/", label: "Core Needs" }
   ];
 
@@ -99,7 +99,7 @@
         '<p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p>' +
         '<div class="sc-foot-links">' +
           '<a href="/">Home</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a>' +
-          '<a href="/explore/embodiments/">Embodiments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a>' +
+          '<a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a>' +
         '</div>' +
       '</div></footer>';
   }

@@ -79,7 +79,7 @@ export async function onRequestGet({ request, env }) {
         tier: result.tier,
         mode: result.mode,
         archetypeScores: JSON.parse(result.archetype_scores),
-        channelScores: JSON.parse(result.channel_scores),
+        temperamentScores: JSON.parse(result.channel_scores),
         descriptorPicks: result.descriptor_picks ? JSON.parse(result.descriptor_picks) : [],
         createdAt: result.created_at,
       }),
@@ -119,7 +119,7 @@ export async function onRequestGetPublic({ params, env }) {
       resultId: result.id,
       tier: result.tier,
       archetypeScores: JSON.parse(result.archetype_scores),
-      channelScores: JSON.parse(result.channel_scores),
+      temperamentScores: JSON.parse(result.channel_scores),
     }),
     { status: 200, headers: { "Content-Type": "application/json" } }
   );

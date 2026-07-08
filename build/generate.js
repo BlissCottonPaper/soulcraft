@@ -103,10 +103,10 @@ ${grid}
     </section>
 
     <section class="py-12 border-t border-violet-300/10">
-      <h2 class="serif text-3xl md:text-4xl mb-2">The Four Embodiments</h2>
-      <p class="text-violet-300/75 mb-8 max-w-2xl">Not <em>how resourced</em> you are, but <em>how you show up</em> — the faculty you meet a moment through, before you've decided to give anything at all. <a href="/explore/embodiments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Read the full explainer →</a></p>
+      <h2 class="serif text-3xl md:text-4xl mb-2">The Four Temperaments</h2>
+      <p class="text-violet-300/75 mb-8 max-w-2xl">Not <em>how resourced</em> you are, but <em>how you show up</em> — the faculty you meet a moment through, before you've decided to give anything at all. <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Read the full explainer →</a></p>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-${DATA.CHANNELS.map((ch) => `        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-2xl mb-2">${ch.name}</h3><p class="text-sm text-violet-200/80">At its best, <span class="text-amber-200">${ch.gift}</span>.</p><p class="text-sm text-violet-300/60">Collapsed, ${ch.corruption}.</p></div>`).join("\n")}
+${DATA.TEMPERAMENTS.map((ch) => `        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-2xl mb-2">${ch.name}</h3><p class="text-sm text-violet-200/80">At its best, <span class="text-amber-200">${ch.gift}</span>.</p><p class="text-sm text-violet-300/60">Collapsed, ${ch.corruption}.</p></div>`).join("\n")}
       </div>
     </section>
 
@@ -156,7 +156,7 @@ function pricingMain() {
       </div>
       <div class="card rounded-2xl px-6 py-7 flex flex-col">
         <h2 class="serif text-2xl mb-1">Full Mirror</h2><p class="text-4xl mb-4">$19</p>
-        <p class="text-violet-300/75 text-sm mb-6">The complete 1–12 ranking, your Embodiment, and the full reading. Already have Triad? Upgrade for the $10 difference — not a fresh charge.</p>
+        <p class="text-violet-300/75 text-sm mb-6">The complete 1–12 ranking, your Temperament, and the full reading. Already have Triad? Upgrade for the $10 difference — not a fresh charge.</p>
         <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Choose Full Mirror</a>
       </div>
     </section>
@@ -214,8 +214,8 @@ ${swatches}
     </section>`;
 }
 
-// ---- Embodiments (/explore/embodiments/) — from Notion "The Four Embodiments" ----
-function embodimentsMain() {
+// ---- Temperaments (/explore/temperaments/) — from Notion "The Four Temperaments" ----
+function temperamentsMain() {
   const FIRST = { heart: "feeling first", mind: "thinking first", body: "doing first", soul: "meaning first" };
   const DESC = {
     heart: "Something happens, and the Heart-led person's whole system responds emotionally before anything else engages. Presence, warmth, and relational attunement are native here.",
@@ -223,7 +223,7 @@ function embodimentsMain() {
     body: "The Body-led person's system reaches for action — the hands, the movement, the concrete task — before words or feelings have caught up.",
     soul: "The Soul-led person's first question, often unconsciously, is <em>what does this mean</em> — reaching for significance before urgency or emotion."
   };
-  const cards = DATA.CHANNELS.map((ch) =>
+  const cards = DATA.TEMPERAMENTS.map((ch) =>
     `      <div class="card rounded-2xl px-6 py-6">
         <div class="flex items-baseline justify-between mb-2"><h3 class="serif text-2xl">${ch.name}</h3><span class="text-[10px] tracking-[0.2em] text-amber-200/70">${FIRST[ch.key].toUpperCase()}</span></div>
         <p class="text-violet-200/80 text-sm leading-relaxed mb-3">${DESC[ch.key]}</p>
@@ -232,40 +232,40 @@ function embodimentsMain() {
   ).join("\n");
   return `    <section class="pt-16 pb-10 md:pt-24 max-w-3xl">
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">HOW YOU SHOW UP</p>
-      <h1 class="serif text-4xl md:text-6xl mb-5">The Four Embodiments</h1>
-      <p class="text-violet-200/85 text-lg leading-relaxed">How each archetype is <em>occupied</em> — not a mode of service, a default mode of <strong>being</strong>, present before any action is taken. You don't choose your Embodiment; you find yourself already standing in it the moment something happens.</p>
+      <h1 class="serif text-4xl md:text-6xl mb-5">The Four Temperaments</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed">How each archetype is <em>occupied</em> — not a mode of service, a default mode of <strong>being</strong>, present before any action is taken. You don't choose your Temperament; you find yourself already standing in it the moment something happens.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 ${cards}
       </div>
-      <p class="text-violet-300/60 text-sm mt-4 max-w-3xl"><strong class="text-violet-200/80">Named at Base only.</strong> An Embodiment is formally named at each archetype's Base expression — not at every stage, and not for every Pairing. Where richer language helps ("a Creator led by the Soul is close to what people call an artist"), it lives as prose, not new taxonomy.</p>
+      <p class="text-violet-300/60 text-sm mt-4 max-w-3xl"><strong class="text-violet-200/80">Named at Base only.</strong> An Temperament is formally named at each archetype's Base expression — not at every stage, and not for every Pairing. Where richer language helps ("a Creator led by the Soul is close to what people call an artist"), it lives as prose, not new taxonomy.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
-      <h2 class="serif text-3xl mb-4">How Bandwidth changes your Embodiment</h2>
-      <p class="text-violet-200/80 leading-relaxed mb-3"><strong>Contraction collapses you into one weaponized channel.</strong> Under threat, the Embodiment that is your gift turns on people instead of toward them:</p>
+      <h2 class="serif text-3xl mb-4">How Bandwidth changes your Temperament</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-3"><strong>Contraction collapses you into one weaponized temperament.</strong> Under threat, the Temperament that is your gift turns on people instead of toward them:</p>
       <ul class="text-violet-200/80 text-sm space-y-1 mb-5 list-none">
         <li>Heart → manipulation (feeling used <em>on</em> people instead of <em>with</em> them)</li>
         <li>Mind → control (thinking that dominates instead of understands)</li>
         <li>Body → force (action that overrides instead of serves)</li>
         <li>Soul → fanaticism (meaning that excludes instead of includes)</li>
       </ul>
-      <p class="text-violet-200/80 leading-relaxed"><strong>Expansion integrates all four.</strong> The Transcendent expression of any archetype can reach all four Embodiments — compassion, wisdom, presence, communion — deployed as the moment actually requires, not defaulted to out of habit. That's the real meaning of balance: not living in your weakest channel, but being able to reach any of them when the moment calls.</p>
+      <p class="text-violet-200/80 leading-relaxed"><strong>Expansion integrates all four.</strong> The Transcendent expression of any archetype can reach all four Temperaments — compassion, wisdom, presence, communion — deployed as the moment actually requires, not defaulted to out of habit. That's the real meaning of balance: not living in your weakest temperament, but being able to reach any of them when the moment calls.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
       <h2 class="serif text-3xl mb-3">The practice: crossing</h2>
-      <p class="text-violet-200/80 leading-relaxed">Develop a quiet Embodiment by pursuing your loudest archetype's longing <em>through</em> it. The longing supplies motivation you already have; the crossing supplies the growth. A Mind-led Sage develops the Body not by abandoning the mind but by apprenticing his hands — bread, knots, a martial art — truth sought through what can't be read.</p>
+      <p class="text-violet-200/80 leading-relaxed">Develop a quiet Temperament by pursuing your loudest archetype's longing <em>through</em> it. The longing supplies motivation you already have; the crossing supplies the growth. A Mind-led Sage develops the Body not by abandoning the mind but by apprenticing his hands — bread, knots, a martial art — truth sought through what can't be read.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
-      <p class="text-violet-300/70 text-sm">Your Embodiment is a <em>separate</em> layer from Bandwidth and Core Needs: it describes <em>how</em> you show up, not <em>how resourced</em> you are. A Heart-led person can be running on empty or overflowing — the channel stays the same; the Bandwidth is what moves.</p>
+      <p class="text-violet-300/70 text-sm">Your Temperament is a <em>separate</em> layer from Bandwidth and Core Needs: it describes <em>how</em> you show up, not <em>how resourced</em> you are. A Heart-led person can be running on empty or overflowing — the temperament stays the same; the Bandwidth is what moves.</p>
     </section>
 
     <section class="py-14 text-center border-t border-violet-300/10">
-      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Find your Embodiment — Your Mandala</a>
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Find your Temperament — Your Mandala</a>
     </section>`;
 }
 
@@ -297,7 +297,7 @@ ${cards}
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
       <h2 class="serif text-3xl mb-3">One dashboard, four dials</h2>
-      <p class="text-violet-200/80 leading-relaxed">Core Needs are the fuel tank. Bandwidth is the gauge reading. Your <a href="/explore/#the-twelve" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Archetype</a> is the engine the fuel powers. Your <a href="/explore/embodiments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Embodiment</a> is the handling — a separate dimension entirely. Different archetypes tend to run on a different "home" need, which is part of why the same low tank shows up so differently from one person to the next.</p>
+      <p class="text-violet-200/80 leading-relaxed">Core Needs are the fuel tank. Bandwidth is the gauge reading. Your <a href="/explore/#the-twelve" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Archetype</a> is the engine the fuel powers. Your <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Temperament</a> is the handling — a separate dimension entirely. Different archetypes tend to run on a different "home" need, which is part of why the same low tank shows up so differently from one person to the next.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
@@ -339,8 +339,8 @@ function archetypeMain(key) {
         </div>`
   ).join("\n");
 
-  const emb = DATA.CHANNELS.map((ch) =>
-    `        <div class="card rounded-2xl px-5 py-4"><p class="text-[11px] tracking-[0.18em] uppercase text-amber-200/70 mb-1">${ch.name}</p><p class="serif text-lg mb-1">${DATA.CHANNEL_EXPRESSIONS[key][ch.key]}</p><p class="text-violet-300/70 text-sm">${c.embodiments[ch.key]}</p></div>`
+  const emb = DATA.TEMPERAMENTS.map((ch) =>
+    `        <div class="card rounded-2xl px-5 py-4"><p class="text-[11px] tracking-[0.18em] uppercase text-amber-200/70 mb-1">${ch.name}</p><p class="serif text-lg mb-1">${DATA.TEMPERAMENT_EXPRESSIONS[key][ch.key]}</p><p class="text-violet-300/70 text-sm">${c.temperaments[ch.key]}</p></div>`
   ).join("\n");
 
   const pairs = DATA.ARCHETYPES.filter((x) => x.key !== key).map((x) => {
@@ -374,8 +374,8 @@ ${ladder}
     </section>
 
     <section class="py-10 border-t border-violet-300/10">
-      <h2 class="serif text-3xl mb-2">The four Embodiments</h2>
-      <p class="text-violet-300/70 text-sm mb-5 max-w-2xl">How the ${a.name} shows up at Base, through each channel. <a href="/explore/embodiments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">What Embodiments mean →</a></p>
+      <h2 class="serif text-3xl mb-2">The four Temperaments</h2>
+      <p class="text-violet-300/70 text-sm mb-5 max-w-2xl">How the ${a.name} shows up at Base, through each temperament. <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">What Temperaments mean →</a></p>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
 ${emb}
       </div>
@@ -490,7 +490,7 @@ function stampIndex() {
 
 write("explore/index.html", page({
   title: "Explore the System — The Art of Soulcraft",
-  description: "You are not one of twelve types — you are all twelve, some louder than others. Explore the twelve archetypes, the five Bandwidth stages, the four Embodiments, and the six Core Needs behind Your Mandala.",
+  description: "You are not one of twelve types — you are all twelve, some louder than others. Explore the twelve archetypes, the five Bandwidth stages, the four Temperaments, and the six Core Needs behind Your Mandala.",
   canonical: "https://artofsoulcraft.com/explore/",
   active: "explore",
   main: overviewMain()
@@ -504,12 +504,12 @@ write("explore/bandwidth/index.html", page({
   main: bandwidthMain()
 }));
 
-write("explore/embodiments/index.html", page({
-  title: "The Four Embodiments — Heart, Mind, Body, Soul | The Art of Soulcraft",
-  description: "Your Embodiment is how you show up — feeling, thinking, doing, or meaning first — the default mode of being you occupy before you act. How Heart, Mind, Body, and Soul shift with your Bandwidth.",
-  canonical: "https://artofsoulcraft.com/explore/embodiments/",
+write("explore/temperaments/index.html", page({
+  title: "The Four Temperaments — Heart, Mind, Body, Soul | The Art of Soulcraft",
+  description: "Your Temperament is how you show up — feeling, thinking, doing, or meaning first — the default mode of being you occupy before you act. How Heart, Mind, Body, and Soul shift with your Bandwidth.",
+  canonical: "https://artofsoulcraft.com/explore/temperaments/",
   active: "explore",
-  main: embodimentsMain()
+  main: temperamentsMain()
 }));
 
 write("explore/core-needs/index.html", page({

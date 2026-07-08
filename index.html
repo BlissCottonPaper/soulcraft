@@ -7,7 +7,7 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Canonical data (archetypes, 66 Pairings, channels) + shared nav/footer chrome —
+<!-- Canonical data (archetypes, 66 Pairings, temperaments) + shared nav/footer chrome —
      single source of truth, shared with the Explore content pages. -->
 <script src="/assets/soulcraft-data.js"></script>
 <script src="/assets/site-chrome.js"></script>
@@ -25,31 +25,31 @@
 <!--SC:STYLE--><style id="sc-styles">#site-header{position:sticky;top:0;z-index:30;background:rgba(16,12,34,0.82);backdrop-filter:blur(8px);border-bottom:1px solid rgba(196,181,253,0.10);font-family:'Source Sans 3',system-ui,sans-serif;}.sc-nav{max-width:64rem;margin:0 auto;padding:0 1.25rem;height:4rem;display:flex;align-items:center;justify-content:space-between;}.sc-brand{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.35rem;color:#f5f3ff;text-decoration:none;}.sc-brand:hover{color:#fde8b0;}.sc-links{display:flex;align-items:center;gap:1.25rem;font-size:15px;}.sc-link{color:rgba(224,218,246,0.85);text-decoration:none;transition:color .15s;background:none;border:none;cursor:pointer;font:inherit;display:flex;align-items:center;gap:.25rem;}.sc-link:hover{color:#fde68a;}.sc-link.sc-active{color:#fde8b0;}.sc-dd{position:relative;}.sc-menu{display:none;position:absolute;right:0;margin-top:.5rem;width:14rem;background:#1a1533;border:1px solid rgba(196,181,253,0.18);border-radius:.75rem;padding:.5rem 0;box-shadow:0 10px 30px rgba(0,0,0,0.4);}.sc-dd:hover .sc-menu,.sc-dd:focus-within .sc-menu,.sc-menu.sc-open{display:block;}.sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}.sc-menu a:hover{color:#fde68a;}#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}.sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1rem;}@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}.sc-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;}.sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}.sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}</style><!--/SC:STYLE-->
 </head>
 <body>
-<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/embodiments/">Embodiments</a><a href="/explore/core-needs/">Core Needs</a></div></div><a class="sc-link" href="/pricing/">Pricing</a></div></nav></header><!--/SC:HEADER-->
+<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a></div></div><a class="sc-link" href="/pricing/">Pricing</a></div></nav></header><!--/SC:HEADER-->
 <div id="root"></div>
-<!--SC:FOOTER--><footer id="site-footer"><div class="sc-foot"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><a href="/">Home</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/embodiments/">Embodiments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a></div></div></footer><!--/SC:FOOTER-->
+<!--SC:FOOTER--><footer id="site-footer"><div class="sc-foot"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><a href="/">Home</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a></div></div></footer><!--/SC:FOOTER-->
 <script>
 "use strict";
 var useState, useMemo, useEffect, useRef;
 /* ============================================================
    THE TWELVE WITHIN — assessment prototype (working title)
    A hall of mirrors: forced-choice ranking of the twelve
-   archetypes + channel read + results mandala.
+   archetypes + temperament read + results mandala.
    Reflection, never prediction.
    ============================================================ */
 /* ── Canonical data (the twelve archetypes with their five-stage Bandwidth
-   ladders, the 66 Pairing names, and the Embodiment/channel data) now lives in
+   ladders, the 66 Pairing names, and the Temperament/temperament data) now lives in
    ONE place: /assets/soulcraft-data.js — loaded in <head> before this script,
    exposing ARCHETYPES, STAGE_NAMES, STAGE_LIGHT, HUE, BLEND_NAMES,
-   CHANNEL_EXPRESSIONS and CHANNELS as globals. The Explore content pages read
+   TEMPERAMENT_EXPRESSIONS and TEMPERAMENTS as globals. The Explore content pages read
    the very same file, so there is a single source of truth. ── */
 const BANDWIDTH_LABEL = "Bandwidth"; // the name for the five-stage dimension itself — how selfish/selfless an archetype's current expression is
-// Branded as "The Four Embodiments" in all user-facing copy — not a mode of service,
+// Branded as "The Four Temperaments" in all user-facing copy — not a mode of service,
 // a default mode of BEING. You don't choose it; you occupy a moment through it.
-// One Likert statement per channel — a 4-point scale, NO middle option (forces a
-// lean). Raw score 1–4 per channel; centered around 2.5 for the radar. Statement
+// One Likert statement per temperament — a 4-point scale, NO middle option (forces a
+// lean). Raw score 1–4 per temperament; centered around 2.5 for the radar. Statement
 // text is verbatim from the Build Spec.
-const CHANNEL_LIKERT = [
+const TEMPERAMENT_LIKERT = [
     { key: "heart", statement: "When something happens, I feel it before I think about it — my emotional response arrives first and I work outward from there." },
     { key: "mind", statement: "When something happens, my instinct is to understand it — I reach for clarity first, and feelings get processed once I've made sense of things." },
     { key: "body", statement: "When something happens, I move — I reach for action, a task, something concrete to do before I've fully put it into words." },
@@ -217,18 +217,18 @@ function Ladder({ arche }) {
                 STAGE_NAMES[s].toLowerCase(),
                 s === 2 ? " · where the day begins" : "")))))))); 
 }
-// EMBODIMENT RADAR — four channels on 4 axes (90° apart). Raw Likert 1–4 is
+// TEMPERAMENT RADAR — four temperaments on 4 axes (90° apart). Raw Likert 1–4 is
 // centered on 2.5 (range −1.5..+1.5): the dashed mid-ring is neutral (0), outside
 // it = a loud/active voice, inside it = a quieter voice / growth edge. The gift
 // word on each axis is the Build Spec's label (warmth/clarity/presence/meaning),
-// distinct from CHANNELS[].gift used in the prose elsewhere.
+// distinct from TEMPERAMENTS[].gift used in the prose elsewhere.
 const RADAR_AXES = [
     { key: "heart", name: "Heart", gift: "warmth", angle: -90 },
     { key: "mind", name: "Mind", gift: "clarity", angle: 0 },
     { key: "body", name: "Body", gift: "presence", angle: 90 },
     { key: "soul", name: "Soul", gift: "meaning", angle: 180 },
 ];
-function embodimentProfile(scores) {
+function temperamentProfile(scores) {
     scores = scores || {};
     const axes = RADAR_AXES.map((a) => {
         const raw = scores[a.key] || 0;
@@ -243,14 +243,14 @@ function embodimentProfile(scores) {
 }
 function Radar({ scores, size }) {
     size = size || 300;
-    const prof = embodimentProfile(scores);
+    const prof = temperamentProfile(scores);
     const c = size / 2;
     const Rmax = size * 0.30;
     const toXY = (angle, r) => { const rad = (angle * Math.PI) / 180; return [c + r * Math.cos(rad), c + r * Math.sin(rad)]; };
     const rOf = (v) => ((Math.max(-1.5, Math.min(1.5, v)) + 1.5) / 3) * Rmax;
     const pts = prof.axes.map((a) => toXY(a.angle, rOf(a.v)));
     const polyPoints = pts.map((p) => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
-    return React.createElement("svg", { viewBox: "0 0 " + size + " " + size, className: "w-full max-w-xs mx-auto block", role: "img", "aria-label": "Your Embodiment radar" },
+    return React.createElement("svg", { viewBox: "0 0 " + size + " " + size, className: "w-full max-w-xs mx-auto block", role: "img", "aria-label": "Your Temperament radar" },
         React.createElement("circle", { cx: c, cy: c, r: Rmax, fill: "none", stroke: "rgba(196,181,253,0.18)", strokeWidth: 1 }),
         React.createElement("circle", { cx: c, cy: c, r: Rmax / 2, fill: "none", stroke: "rgba(253,230,138,0.30)", strokeWidth: 1, strokeDasharray: "3 3" }),
         prof.axes.map((a) => {
@@ -265,24 +265,24 @@ function Radar({ scores, size }) {
         pts.map((p, i) => React.createElement("circle", { key: i, cx: p[0], cy: p[1], r: 3.5, fill: "#fde68a" })),
         React.createElement("circle", { cx: c, cy: c, r: 2, fill: "rgba(196,181,253,0.4)" }));
 }
-const INTEGRATED_PROFILE_COPY = "You move fluidly between all four channels. Integration, not dominance, is your signature — you adapt how you show up to what the moment actually needs. Your growth edge is different: developing the discipline to choose intentionally rather than flow automatically.";
-// Per-archetype × channel Embodiment prose for the results readout.
-//   loud   = how you naturally show up when that channel is a loud voice (raw 3–4)
+const INTEGRATED_PROFILE_COPY = "You move fluidly between all four temperaments. Integration, not dominance, is your signature — you adapt how you show up to what the moment actually needs. Your growth edge is different: developing the discipline to choose intentionally rather than flow automatically.";
+// Per-archetype × temperament Temperament prose for the results readout.
+//   loud   = how you naturally show up when that temperament is a loud voice (raw 3–4)
 //   growth = the quieter-voice / growth-edge reading when it's low (raw 1–2)
 // Only the Build Spec's verbatim examples (Sage) are filled in; the rest are
 // intentionally absent and render nothing until the launch copy is supplied
 // (Sage, Caregiver, Explorer, Lover, Warrior first). Nothing here is invented.
-const EMBODIMENT_PROSE = {
+const TEMPERAMENT_PROSE = {
     sage: {
         mind: { loud: "You pursue truth through analysis — reading, researching, reasoning your way toward understanding." },
         soul: { loud: "You pursue truth through contemplation — sitting with questions longer than most, listening for what meaning emerges beneath the surface." },
         heart: { growth: "A Sage leading with Heart becomes a listener first. Where you naturally reach for the answer, this version of you reaches for the person — and discovers that being truly heard sometimes does more than being truly right. In relationships especially, this is where your wisdom lands." }
     }
 };
-// For one archetype, split its loud/quiet channels (from the centered profile)
+// For one archetype, split its loud/quiet temperaments (from the centered profile)
 // into the prose that actually exists. Returns { loud:[], growth:[] } of strings.
-function embodimentReadout(archetypeKey, profile) {
-    const table = EMBODIMENT_PROSE[archetypeKey] || {};
+function temperamentReadout(archetypeKey, profile) {
+    const table = TEMPERAMENT_PROSE[archetypeKey] || {};
     const loud = profile.loud.map((a) => table[a.key] && table[a.key].loud).filter(Boolean);
     const growth = profile.quiet.map((a) => table[a.key] && table[a.key].growth).filter(Boolean);
     return { loud: loud, growth: growth, hasAny: loud.length > 0 || growth.length > 0 };
@@ -292,9 +292,9 @@ function embodimentReadout(archetypeKey, profile) {
 // Swapping in real payment later means setting this from a verified purchase
 // instead of a button click — nothing else in the app needs to change.
 const TIERS = {
-    free:  { label: "Free",  topCount: 1,  showBlends: false, showEmbodiment: false, showFullRanking: false, showQuietest: false, pairMode: "quick" },
-    triad: { label: "Triad", topCount: 3,  showBlends: true,  showEmbodiment: false, showFullRanking: false, showQuietest: true,  pairMode: "quick" },
-    full:  { label: "Full",  topCount: 12, showBlends: true,  showEmbodiment: true,  showFullRanking: true,  showQuietest: true,  pairMode: "full"  },
+    free:  { label: "Free",  topCount: 1,  showBlends: false, showTemperament: false, showFullRanking: false, showQuietest: false, pairMode: "quick" },
+    triad: { label: "Triad", topCount: 3,  showBlends: true,  showTemperament: false, showFullRanking: false, showQuietest: true,  pairMode: "quick" },
+    full:  { label: "Full",  topCount: 12, showBlends: true,  showTemperament: true,  showFullRanking: true,  showQuietest: true,  pairMode: "full"  },
 };
 
 /* ---------- main ---------- */
@@ -338,15 +338,15 @@ function TwelveWithin() {
             [ARCHETYPES[rightIdx].key]: (w[ARCHETYPES[rightIdx].key] || 0) + rightPts,
         }));
         if (pairIdx + 1 >= pairs.length)
-            setScreen(TIERS[tier].showEmbodiment ? "channel" : "results");
+            setScreen(TIERS[tier].showTemperament ? "temperament" : "results");
         else
             setPairIdx(pairIdx + 1);
     };
-    const rateChannel = (score) => {
-        // score is 1–4 for the current channel's Likert statement.
-        const key = CHANNEL_LIKERT[chIdx].key;
+    const rateTemperament = (score) => {
+        // score is 1–4 for the current temperament's Likert statement.
+        const key = TEMPERAMENT_LIKERT[chIdx].key;
         setChScores((c) => ({ ...c, [key]: score }));
-        if (chIdx + 1 >= CHANNEL_LIKERT.length)
+        if (chIdx + 1 >= TEMPERAMENT_LIKERT.length)
             setScreen("results");
         else
             setChIdx(chIdx + 1);
@@ -365,23 +365,23 @@ function TwelveWithin() {
             .map((a, i) => ({ ...a, i, score: (wins[a.key] || 0) + 0.5 * (descCount[a.key] || 0), descs: descCount[a.key] || 0 }))
             .sort((x, y) => y.score - x.score || y.descs - x.descs || x.i - y.i);
     }, [wins, picks, restored]);
-    // The leading Embodiment(s). A tie is real — several channels can share the
+    // The leading Temperament(s). A tie is real — several temperaments can share the
     // top count (a perfect 1/1/1/1 answer ties all four). We keep the FULL set of
     // co-leaders (in wheel order) so the results can say "you move fluidly between
     // X and Y" instead of silently crowning whichever sorted first.
-    const channelLead = useMemo(() => {
-        const counts = restored ? restored.channelScores : chScores;
-        const scored = CHANNELS.map((ch) => ({ ...ch, n: counts[ch.key] || 0 }));
+    const temperamentLead = useMemo(() => {
+        const counts = restored ? restored.temperamentScores : chScores;
+        const scored = TEMPERAMENTS.map((ch) => ({ ...ch, n: counts[ch.key] || 0 }));
         const max = Math.max.apply(null, scored.map((c) => c.n).concat(0));
         const leaders = scored.filter((c) => c.n === max);
-        return { leaders: leaders, tied: leaders.length > 1, all: leaders.length === CHANNELS.length };
+        return { leaders: leaders, tied: leaders.length > 1, all: leaders.length === TEMPERAMENTS.length };
     }, [chScores, restored]);
-    // Single "primary" channel for the many single-value references; on a tie this
-    // is the first co-leader, but the display branches on channelLead.tied so it is
+    // Single "primary" temperament for the many single-value references; on a tie this
+    // is the first co-leader, but the display branches on temperamentLead.tied so it is
     // never presented as the lone winner.
-    const channel = channelLead.leaders[0];
+    const temperament = temperamentLead.leaders[0];
     // Raw 1–4 Likert scores for the radar (from a restored result or this session).
-    const embodimentScores = restored ? restored.channelScores : chScores;
+    const radarScores = restored ? restored.temperamentScores : chScores;
     // Archetypes tied for the loudest voice. Score ties are broken by wheel order
     // for a stable, deterministic display (never a crash), but a genuine tie at the
     // top is surfaced as a co-lead rather than silently presented as a strict rank.
@@ -414,8 +414,8 @@ function TwelveWithin() {
 
         const archetypeScores = {};
         ranked.forEach((r) => { archetypeScores[r.key] = r.score; });
-        const channelScores = {};
-        CHANNELS.forEach((ch) => { channelScores[ch.key] = chScores[ch.key] || 0; });
+        const temperamentScores = {};
+        TEMPERAMENTS.forEach((ch) => { temperamentScores[ch.key] = chScores[ch.key] || 0; });
 
         fetch("/api/save-results", {
             method: "POST",
@@ -424,7 +424,7 @@ function TwelveWithin() {
                 tier,
                 mode: TIERS[tier].pairMode,
                 archetypeScores,
-                channelScores,
+                temperamentScores,
                 descriptorPicks: picks,
                 // email intentionally omitted here — offered AFTER results are
                 // already visible (below), never required up front
@@ -451,7 +451,7 @@ function TwelveWithin() {
                 tier,
                 mode: TIERS[tier].pairMode,
                 archetypeScores: Object.fromEntries(ranked.map((r) => [r.key, r.score])),
-                channelScores: Object.fromEntries(CHANNELS.map((ch) => [ch.key, chScores[ch.key] || 0])),
+                temperamentScores: Object.fromEntries(TEMPERAMENTS.map((ch) => [ch.key, chScores[ch.key] || 0])),
                 descriptorPicks: picks,
                 email: emailInput.trim(),
                 upgradeFromId: savedResultId, // links this email-added save back to the original
@@ -480,7 +480,7 @@ function TwelveWithin() {
                         tier: data.tier,
                         mode: data.mode,
                         archetypeScores: data.archetypeScores || {},
-                        channelScores: data.channelScores || {},
+                        temperamentScores: data.temperamentScores || {},
                         descriptorPicks: data.descriptorPicks || [],
                     });
                     setTier(data.tier);
@@ -619,20 +619,20 @@ function TwelveWithin() {
                         React.createElement("span", null, "Somewhat"),
                         React.createElement("span", null, "Strongly"))));
             })(),
-            screen === "channel" && (() => {
-                const item = CHANNEL_LIKERT[chIdx];
+            screen === "temperament" && (() => {
+                const item = TEMPERAMENT_LIKERT[chIdx];
                 return (React.createElement("div", null,
-                    React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-2", style: sans }, "LAST \u00B7 YOUR EMBODIMENT"),
+                    React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-2", style: sans }, "LAST \u00B7 YOUR TEMPERAMENT"),
                     React.createElement("h2", { className: "text-3xl mb-2", style: serif }, "How true is this of you?"),
                     React.createElement("p", { className: "text-violet-300/70 text-sm mb-6", style: sans },
-                        "Not how you serve, but how you occupy a moment \u2014 the channel you meet things through. ",
+                        "Not how you serve, but how you occupy a moment \u2014 the temperament you meet things through. ",
                         chIdx + 1,
                         " of ",
-                        CHANNEL_LIKERT.length,
+                        TEMPERAMENT_LIKERT.length,
                         "."),
                     React.createElement("div", { className: "rounded-2xl border border-violet-300/20 px-6 py-6 mb-6", style: { background: "rgba(255,250,240,0.04)" } },
                         React.createElement("p", { className: "text-[17px] leading-relaxed text-violet-50", style: serif }, "\u201C" + item.statement + "\u201D")),
-                    React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-4 gap-2.5" }, LIKERT_LABELS.map((label, k) => (React.createElement("button", { key: k, onClick: () => rateChannel(k + 1), className: "rounded-2xl border border-violet-300/25 hover:border-amber-200/80 hover:bg-amber-100/10 px-3 py-4 transition-colors flex flex-col items-center gap-1.5" },
+                    React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-4 gap-2.5" }, LIKERT_LABELS.map((label, k) => (React.createElement("button", { key: k, onClick: () => rateTemperament(k + 1), className: "rounded-2xl border border-violet-300/25 hover:border-amber-200/80 hover:bg-amber-100/10 px-3 py-4 transition-colors flex flex-col items-center gap-1.5" },
                         React.createElement("span", { className: "text-2xl serif text-amber-200/90", style: serif }, k + 1),
                         React.createElement("span", { className: "text-[12px] leading-tight text-violet-200/80 text-center", style: sans }, label)))))));
             })(),
@@ -675,7 +675,7 @@ function TwelveWithin() {
                                     React.createElement("div", null, [4, 3, 2, 1, 0].map((s) => React.createElement("p", { key: s, className: "text-[9.5px]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: s === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,50%)`, fontWeight: s === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[s]))));
                             })),
                         TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-sm italic mb-4", style: serif },
-                            `Time signature: ${timeSig}` + (TIERS[tier].showEmbodiment ? ` \u00B7 Embodiment: ${channelLead.tied ? joinNames(channelLead.leaders.map((c) => c.name)) + " (co-led)" : channel.name}` : "")),
+                            `Time signature: ${timeSig}` + (TIERS[tier].showTemperament ? ` \u00B7 Temperament: ${temperamentLead.tied ? joinNames(temperamentLead.leaders.map((c) => c.name)) + " (co-led)" : temperament.name}` : "")),
                         TIERS[tier].showBlends && React.createElement("div", { className: "mb-4" },
                             React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, "YOUR BLENDS"),
                             [[0, 1], [0, 2], [1, 2]].map(([a, b]) => (React.createElement("p", { key: a + "-" + b, className: "text-sm mb-0.5", style: sans },
@@ -687,17 +687,17 @@ function TwelveWithin() {
                             growthIsTopVoice
                                 ? ` \u2014 also your ${GROWTH_ORD[growthIdx]} voice; growth means drawing on it more deliberately, not building it from nothing`
                                 : " \u2014 the fixed complement to your loudest voice"),
-                        TIERS[tier].showEmbodiment && React.createElement("div", { className: "mb-4" },
-                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, channelLead.tied ? "YOUR EMBODIMENT · CO-LED" : "YOUR EMBODIMENT"),
-                            channelLead.tied
+                        TIERS[tier].showTemperament && React.createElement("div", { className: "mb-4" },
+                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, temperamentLead.tied ? "YOUR TEMPERAMENT · CO-LED" : "YOUR TEMPERAMENT"),
+                            temperamentLead.tied
                                 ? React.createElement("p", { className: "text-sm", style: sans },
-                                    channelLead.all ? "You move fluidly across all four Embodiments — " : "You move fluidly between the ",
-                                    joinNames(channelLead.leaders.map((c) => c.name)),
-                                    channelLead.all ? " — none leads; you meet each moment through whichever it calls for. " : " — no single channel dominant. ",
-                                    "Your " + ranked[0].name + " reads as " + channelLead.leaders.map((c) => CHANNEL_EXPRESSIONS[ranked[0].key][c.key] + " (" + c.name + ")").join(", ") + ".")
+                                    temperamentLead.all ? "You move fluidly across all four Temperaments — " : "You move fluidly between the ",
+                                    joinNames(temperamentLead.leaders.map((c) => c.name)),
+                                    temperamentLead.all ? " — none leads; you meet each moment through whichever it calls for. " : " — no single temperament dominant. ",
+                                    "Your " + ranked[0].name + " reads as " + temperamentLead.leaders.map((c) => TEMPERAMENT_EXPRESSIONS[ranked[0].key][c.key] + " (" + c.name + ")").join(", ") + ".")
                                 : React.createElement("p", { className: "text-sm", style: sans },
-                                    "You embody through the ", channel.name, ". Your ", ranked[0].name, " in the ", channel.name, ": ",
-                                    CHANNEL_EXPRESSIONS[ranked[0].key][channel.key], ".")),
+                                    "You lead with the ", temperament.name, ". Your ", ranked[0].name, " in the ", temperament.name, ": ",
+                                    TEMPERAMENT_EXPRESSIONS[ranked[0].key][temperament.key], ".")),
                         React.createElement("div", { style: { marginTop: "auto" } },
                             React.createElement("p", { className: "text-center text-xs italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."))),
 
@@ -741,19 +741,19 @@ function TwelveWithin() {
                             "Across the wheel sits ",
                             React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
                             " \u2014 your growth edge. Deliberately developing it is how your loudest voice stops casting so long a shadow.")),
-                TIERS[tier].showEmbodiment && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-6 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR EMBODIMENT"),
-                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-5 max-w-xl", style: sans }, "Your dominant channels are what fire naturally \u2014 no effort required. Your quieter channels are learnable: think of them as muscles you haven't trained yet, not traits you don't have."),
-                    React.createElement(Radar, { scores: embodimentScores }),
-                    embodimentProfile(embodimentScores).integrated
+                TIERS[tier].showTemperament && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-6 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR TEMPERAMENT PROFILE"),
+                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-5 max-w-xl", style: sans }, "Temperament is your first natural impulse \u2014 the way you instinctively take in and make sense of the world before deliberate thought kicks in. It's Kahneman's System 1 before System 2 engages: automatic, pre-choice. Not a type, not a box \u2014 a lean. Like your dominant hand, you didn't choose it, but you can develop the others with intention."),
+                    React.createElement(Radar, { scores: radarScores }),
+                    temperamentProfile(radarScores).integrated
                         ? React.createElement("p", { className: "text-violet-200/85 text-sm leading-relaxed mt-5 max-w-xl mx-auto text-center", style: sans }, INTEGRATED_PROFILE_COPY)
-                        : React.createElement("p", { className: "text-violet-300/55 text-xs mt-4 text-center", style: sans }, "Outside the dashed ring, a channel runs loud; inside it, quieter \u2014 a growth edge.")),
-                TIERS[tier].showEmbodiment && (() => {
-                    // Per top-three archetype: how each loud channel shows up, and the
-                    // growth-edge reading for each quiet channel. Renders only the prose
+                        : React.createElement("p", { className: "text-violet-300/55 text-xs mt-4 text-center", style: sans }, "Outside the dashed ring, a temperament runs loud; inside it, quieter \u2014 a growth edge.")),
+                TIERS[tier].showTemperament && (() => {
+                    // Per top-three archetype: how each loud temperament shows up, and the
+                    // growth-edge reading for each quiet temperament. Renders only the prose
                     // that exists (Sage today); archetypes without launch copy are skipped.
-                    const prof = embodimentProfile(embodimentScores);
-                    const blocks = ranked.slice(0, 3).map((a) => ({ a: a, readout: embodimentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
+                    const prof = temperamentProfile(radarScores);
+                    const blocks = ranked.slice(0, 3).map((a) => ({ a: a, readout: temperamentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
                     if (!blocks.length) return null;
                     return React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
                         React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-3", style: sans }, "HOW YOUR TOP VOICES SHOW UP"),
@@ -763,30 +763,30 @@ function TwelveWithin() {
                             readout.growth.map((s, i) => React.createElement("p", { key: "g" + i, className: "text-sm text-violet-300/75 mb-1.5 leading-relaxed", style: sans },
                                 React.createElement("span", { className: "text-amber-200/80" }, "Growth edge \u2014 "), s)))));
                 })(),
-                TIERS[tier].showEmbodiment && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, channelLead.tied ? "YOUR EMBODIMENT \u00b7 CO-LED" : "YOUR EMBODIMENT"),
-                    channelLead.tied
+                TIERS[tier].showTemperament && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, temperamentLead.tied ? "YOUR TEMPERAMENT \u00b7 CO-LED" : "YOUR TEMPERAMENT"),
+                    temperamentLead.tied
                         ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
                             "You move fluidly ",
-                            channelLead.all ? "across all four Embodiments \u2014 " : "between the ",
-                            React.createElement("span", { className: "text-amber-200 font-semibold" }, joinNames(channelLead.leaders.map((c) => c.name))),
-                            channelLead.all ? " \u2014 none leads; you meet each moment through whichever it calls for. " : " \u2014 no single channel dominant. ",
+                            temperamentLead.all ? "across all four Temperaments \u2014 " : "between the ",
+                            React.createElement("span", { className: "text-amber-200 font-semibold" }, joinNames(temperamentLead.leaders.map((c) => c.name))),
+                            temperamentLead.all ? " \u2014 none leads; you meet each moment through whichever it calls for. " : " \u2014 no single temperament dominant. ",
                             "Your ", archLink(ranked[0]), " reads as ",
-                            React.createElement("span", { className: "font-semibold" }, channelLead.leaders.map((c) => CHANNEL_EXPRESSIONS[ranked[0].key][c.key] + " (" + c.name + ")").join(", ")),
+                            React.createElement("span", { className: "font-semibold" }, temperamentLead.leaders.map((c) => TEMPERAMENT_EXPRESSIONS[ranked[0].key][c.key] + " (" + c.name + ")").join(", ")),
                             ".")
                         : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                            "You embody through the ",
-                            React.createElement("span", { className: "text-amber-200 font-semibold" }, channel.name),
+                            "You lead with the ",
+                            React.createElement("span", { className: "text-amber-200 font-semibold" }, temperament.name),
                             " \u2014 not how you serve, but how you occupy a moment before you've decided to give anything at all. Your ",
                             archLink(ranked[0]),
                             " in the ",
-                            channel.name,
+                            temperament.name,
                             ": ",
-                            React.createElement("span", { className: "font-semibold", style: { color: `hsl(${HUE(ranked[0].i)},70%,72%)` } }, CHANNEL_EXPRESSIONS[ranked[0].key][channel.key]),
+                            React.createElement("span", { className: "font-semibold", style: { color: `hsl(${HUE(ranked[0].i)},70%,72%)` } }, TEMPERAMENT_EXPRESSIONS[ranked[0].key][temperament.key]),
                             ". At its best this becomes ",
-                            channel.gift,
+                            temperament.gift,
                             "; collapsed, it curdles into ",
-                            channel.corruption,
+                            temperament.corruption,
                             ".")),
                 TIERS[tier].showFullRanking && React.createElement(React.Fragment, null,
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "THE FULL RANKING"),
