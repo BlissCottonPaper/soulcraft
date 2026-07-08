@@ -582,7 +582,7 @@ function TwelveWithin() {
                             React.createElement("span", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},55%,38%)` } }, r.name),
                             React.createElement("span", { className: "text-xs italic", style: sans }, "  " + longsPhrase(r) + "  "),
                             React.createElement("span", { className: "text-xs", style: sans }, r.stages.join(" \u2192 ")))),
-                        React.createElement("p", { className: "text-center text-xs italic mt-6", style: serif }, "A mirror, not a fortune. Wherever you stand today, take one rung up.")))),
+                        React.createElement("p", { className: "text-center text-xs italic mt-6", style: serif }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))),
                 ranked.slice(0, TIERS[tier].topCount).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
                     React.createElement("div", { className: "flex items-baseline gap-3" },
@@ -695,7 +695,7 @@ function TwelveWithin() {
                         React.createElement("input", { type: "email", value: emailInput, onChange: (e) => setEmailInput(e.target.value), placeholder: "you@example.com", className: "flex-1 rounded-lg bg-black/20 border border-violet-300/25 px-3 py-2 text-sm text-violet-50 outline-none focus:border-amber-200/60", style: sans }),
                         React.createElement("button", { onClick: sendMyEmail, className: "rounded-lg px-4 py-2 text-sm bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100", style: sans }, "Send link"))),
                 !isSample && emailSent && React.createElement("p", { className: "mt-6 text-center text-sm text-amber-200/80", style: sans }, "Check your email \u2014 your link is on its way."),
-                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up.")))));
+                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))))));
 }
 
 function mountApp() {
