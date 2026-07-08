@@ -144,20 +144,20 @@ function pricingMain() {
       <p class="text-violet-200/80 text-lg max-w-xl mx-auto">No subscriptions. Start free; unlock more of your mirror whenever you're ready.</p>
     </section>
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4 pb-8">
-      <div class="card rounded-2xl px-6 py-7">
+      <div class="card rounded-2xl px-6 py-7 flex flex-col">
         <h2 class="serif text-2xl mb-1">Free</h2><p class="text-4xl mb-4">$0</p>
-        <p class="text-violet-300/75 text-sm mb-4">Your loudest voice — the single archetype speaking most loudly in you, on the wheel.</p>
-        <a href="/" class="block text-center rounded-xl px-5 py-3 border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Begin free</a>
+        <p class="text-violet-300/75 text-sm mb-6">Your loudest voice — the single archetype speaking most loudly in you, on the wheel.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Begin free</a>
       </div>
-      <div class="card rounded-2xl px-6 py-7" style="border-color: rgba(253,230,138,0.4);">
+      <div class="card rounded-2xl px-6 py-7 flex flex-col" style="border-color: rgba(253,230,138,0.4);">
         <h2 class="serif text-2xl mb-1">Triad</h2><p class="text-4xl mb-4">$9</p>
-        <p class="text-violet-300/75 text-sm mb-4">Your top three voices, their three Pairings, and your quietest voice — the fuller shape of your mandala.</p>
-        <a href="/" class="block text-center rounded-xl px-5 py-3 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Choose Triad</a>
+        <p class="text-violet-300/75 text-sm mb-6">Your top three voices, their three Pairings, and your quietest voice — the fuller shape of your mandala.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Choose Triad</a>
       </div>
-      <div class="card rounded-2xl px-6 py-7">
+      <div class="card rounded-2xl px-6 py-7 flex flex-col">
         <h2 class="serif text-2xl mb-1">Full Mirror</h2><p class="text-4xl mb-4">$19</p>
-        <p class="text-violet-300/75 text-sm mb-4">The complete 1–12 ranking, your Embodiment, and the full reading. Already have Triad? Upgrade for the $10 difference — not a fresh charge.</p>
-        <a href="/" class="block text-center rounded-xl px-5 py-3 border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Choose Full Mirror</a>
+        <p class="text-violet-300/75 text-sm mb-6">The complete 1–12 ranking, your Embodiment, and the full reading. Already have Triad? Upgrade for the $10 difference — not a fresh charge.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Choose Full Mirror</a>
       </div>
     </section>
     <section class="pb-16 text-center">
