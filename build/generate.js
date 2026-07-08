@@ -317,15 +317,17 @@ function archetypeMain(key) {
   const accent = `hsl(${hue},62%,72%)`;
 
   const sections = [
-    ["Motivations", c.motivations],
-    ["Core wound — " + c.coreWoundShort, c.coreWound],
-    ["Fears", c.fears],
-    ["Addictions & substitutes", c.addictions],
-    ["Traits", c.traits],
-    ["Blind spots", c.blindSpots],
-    ["Dreams & hopes", c.dreams]
-  ].map(([h, body]) =>
-    `        <div class="card rounded-2xl px-6 py-5"><h3 class="text-[11px] tracking-[0.2em] uppercase mb-2" style="color:${accent}">${h}</h3><p class="text-violet-200/80 text-sm leading-relaxed">${body}</p></div>`
+    ["Motivations", c.motivations, ""],
+    ["Core wound — " + c.coreWoundShort, c.coreWound, ""],
+    ["Fears", c.fears, ""],
+    ["Addictions & substitutes", c.addictions, ""],
+    ["Traits", c.traits, ""],
+    ["Blind spots", c.blindSpots, ""],
+    // Dreams & Hopes closes the grid full-width — the aspirational note that
+    // leads the reader into the Bandwidth growth ladder below.
+    ["Dreams & hopes", c.dreams, " md:col-span-2"]
+  ].map(([h, body, span]) =>
+    `        <div class="card rounded-2xl px-6 py-5${span}"><h3 class="text-[11px] tracking-[0.2em] uppercase mb-2" style="color:${accent}">${h}</h3><p class="text-violet-200/80 text-sm leading-relaxed">${body}</p></div>`
   ).join("\n");
 
   const ladder = DATA.STAGE_NAMES.map((sn, s) =>
