@@ -464,6 +464,30 @@ function write(rel, html) {
   console.log("wrote", rel, "(" + html.length + " bytes)");
 }
 
+// index.html is the hand-maintained assessment SPA — NOT generated wholesale.
+// But its nav, footer, and chrome CSS are stamped here from the single source,
+// between HTML-comment markers, so the assessment root carries REAL nav markup
+// (crawlable, and visible with zero JS) instead of relying on runtime injection,
+// and never drifts from the Explore pages. site-chrome.js still loads on that
+// page to wire the dropdown; it sees the baked #site-header and skips injecting.
+function stampIndex() {
+  const rel = "index.html";
+  const abs = path.join(ROOT, rel);
+  let html = fs.readFileSync(abs, "utf8");
+  const blocks = {
+    STYLE: `<style id="sc-styles">${CHROME.CSS}</style>`,
+    HEADER: CHROME.headerHtml("home"),
+    FOOTER: CHROME.footerHtml()
+  };
+  Object.keys(blocks).forEach((name) => {
+    const re = new RegExp("(<!--SC:" + name + "-->)[\\s\\S]*?(<!--/SC:" + name + "-->)");
+    if (!re.test(html)) throw new Error("index.html is missing the SC:" + name + " marker pair");
+    html = html.replace(re, "$1" + blocks[name] + "$2");
+  });
+  fs.writeFileSync(abs, html);
+  console.log("stamped", rel, "chrome (header + footer + styles)");
+}
+
 write("explore/index.html", page({
   title: "Explore the System — The Art of Soulcraft",
   description: "You are not one of twelve types — you are all twelve, some louder than others. Explore the twelve archetypes, the five Bandwidth stages, the four Embodiments, and the six Core Needs behind Your Mandala.",
@@ -523,5 +547,7 @@ Object.keys(CONTENT).forEach((key) => {
     main: archetypeMain(key)
   }));
 });
+
+stampIndex();
 
 console.log("done.");
