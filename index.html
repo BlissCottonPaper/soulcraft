@@ -16,6 +16,7 @@
 <style>
   body { margin: 0; background: #100c22; }
   @media screen { #root { zoom: 1.12; } }
+  .arch-link:hover { text-decoration: underline !important; }
 </style>
 <!-- Shared nav/footer/chrome CSS baked from /assets/site-chrome.js by
      /build/generate.js (stampIndex). Do not hand-edit between the SC markers —
@@ -42,7 +43,7 @@ var useState, useMemo, useEffect, useRef;
    exposing ARCHETYPES, STAGE_NAMES, STAGE_LIGHT, HUE, BLEND_NAMES,
    CHANNEL_EXPRESSIONS and CHANNELS as globals. The Explore content pages read
    the very same file, so there is a single source of truth. ── */
-const ALTITUDE_LABEL = "Altitude"; // the name for the five-stage dimension itself — how selfish/selfless an archetype's current expression is
+const BANDWIDTH_LABEL = "Bandwidth"; // the name for the five-stage dimension itself — how selfish/selfless an archetype's current expression is
 // Branded as "The Four Embodiments" in all user-facing copy — not a mode of service,
 // a default mode of BEING. You don't choose it; you occupy a moment through it.
 const CHANNEL_QUESTIONS = [
@@ -89,6 +90,10 @@ function hslToRgb(h, s, l) {
 }
 const rgbStr = (r) => `rgb(${r[0]},${r[1]},${r[2]})`;
 const longsPhrase = (a) => a.longingVerb ? `longs to ${a.longing}` : `longs for ${a.longing}`;
+// Archetype names in the results link to their Explore page. Inherits the
+// surrounding color/size so it still reads as styled text; underlines on hover.
+const archLink = (r, extraStyle) => React.createElement("a", { key: "al-" + r.key, href: `/explore/${r.key}/`, className: "arch-link", style: Object.assign({ color: "inherit", textDecoration: "none" }, extraStyle || {}) }, r.name);
+const archLinkByName = (name, extraStyle) => { const a = ARCHETYPES.find((x) => x.name === name); return a ? archLink(a, extraStyle) : name; };
 const mixHues = (h1, h2) => rgbStr(hslToRgb(h1, 60, 62).map((v, i) => Math.round((v + hslToRgb(h2, 60, 62)[i]) / 2)));
 const nodeXY = (i, R, c) => {
     const rad = ((i * 30 - 90) * Math.PI) / 180;
@@ -193,7 +198,7 @@ function Ladder({ arche }) {
     const i = ARCHETYPES.findIndex((a) => a.key === arche.key);
     const rows = [4, 3, 2, 1, 0]; // Transcendent → Devolved
     return (React.createElement("div", { className: "mt-3" },
-        React.createElement("p", { className: "text-[10px] tracking-[0.2em] text-violet-300/40 mb-1.5", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, ALTITUDE_LABEL.toUpperCase()),
+        React.createElement("p", { className: "text-[10px] tracking-[0.2em] text-violet-300/40 mb-1.5", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, BANDWIDTH_LABEL.toUpperCase()),
         React.createElement("div", { className: "space-y-1" }, rows.map((s) => (React.createElement("div", { key: s, className: "flex items-center gap-2.5" },
         React.createElement("span", { className: "w-2 h-2 rounded-full shrink-0", style: { background: `hsl(${HUE(i)},58%,${STAGE_LIGHT[s]}%)` } }),
         React.createElement("span", { className: "text-sm " + (s === 2 ? "text-amber-200" : s > 2 ? "text-violet-100" : "text-violet-300/70"), style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
@@ -524,7 +529,7 @@ function TwelveWithin() {
             screen === "results" && (React.createElement("div", null,
                 React.createElement("div", { className: "text-center mb-2" },
                     React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR MANDALA"),
-                    React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" \u00B7 ")),
+                    React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00B7 ", archLink(r)])),
                     TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-violet-300/75 text-sm mt-2", style: sans },
                         "Your time signature: ",
                         React.createElement("span", { className: "text-amber-200" }, timeSig),
@@ -586,28 +591,28 @@ function TwelveWithin() {
                 ranked.slice(0, TIERS[tier].topCount).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
                     React.createElement("div", { className: "flex items-baseline gap-3" },
-                        React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, r.name),
+                        React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
                         React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r))),
                     React.createElement(Ladder, { arche: r }),
                     n === 0 && React.createElement("p", { className: "text-sm text-violet-200/80 mt-3", style: sans },
                         "Across the wheel: ",
-                        React.createElement("span", { className: "text-amber-200" }, r.opposite),
+                        React.createElement("span", { className: "text-amber-200" }, archLinkByName(r.opposite)),
                         " \u2014 your growth edge.")))),
                 TIERS[tier].showBlends && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR BLENDS"),
                     [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                         const nm = blendName(ranked[a], ranked[b]);
                         return (React.createElement("p", { key: a + "-" + b, className: "text-[15px] text-violet-100 mb-1.5", style: sans },
-                            ranked[a].name,
+                            archLink(ranked[a]),
                             " \u00D7 ",
-                            ranked[b].name,
+                            archLink(ranked[b]),
                             " \u2192 ",
                             nm ? React.createElement("span", { className: "text-amber-200" }, nm) : React.createElement("span", { className: "text-violet-300/60 italic" }, "unnamed \u2014 an entry awaiting the 66-blend lexicon")));
                     })),
                 TIERS[tier].showQuietest && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "QUIETEST VOICE"),
                     React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, ranked[11].name),
+                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
                         " speaks softest in you \u2014 often the blind spot, sometimes the invitation.")),
                 TIERS[tier].showEmbodiment && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "YOUR EMBODIMENT"),
@@ -615,7 +620,7 @@ function TwelveWithin() {
                         "You embody through the ",
                         React.createElement("span", { className: "text-amber-200 font-semibold" }, channel.name),
                         " \u2014 not how you serve, but how you occupy a moment before you've decided to give anything at all. Your ",
-                        ranked[0].name,
+                        archLink(ranked[0]),
                         " in the ",
                         channel.name,
                         ": ",
@@ -628,7 +633,7 @@ function TwelveWithin() {
                 TIERS[tier].showFullRanking && React.createElement(React.Fragment, null,
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "THE FULL RANKING"),
                     React.createElement("div", { className: "space-y-2 mb-8" }, ranked.map((r) => (React.createElement("div", { key: r.key, className: "flex items-center gap-3" },
-                        React.createElement("span", { className: "w-20 text-right text-[13px] text-violet-200/85 shrink-0", style: sans }, r.name),
+                        React.createElement("span", { className: "w-20 text-right text-[13px] text-violet-200/85 shrink-0", style: sans }, archLink(r)),
                         React.createElement("div", { className: "flex-1 h-2.5 rounded-full bg-violet-300/10 overflow-hidden" },
                             React.createElement("div", { className: "h-full rounded-full", style: { width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},62%,56%)` } }))))))),
                 !TIERS[tier].showFullRanking && React.createElement("p", { className: "text-center text-violet-300/60 text-sm italic mb-8", style: serif }, `Unlock the complete 1\u201312 ranking with ${TIERS.full.label}.`),
