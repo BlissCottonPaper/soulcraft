@@ -17,6 +17,7 @@
     module.exports = data;                       // Node (build generator)
   } else {
     root.TEMPERAMENT_PROSE = data.TEMPERAMENT_PROSE;   // browser global
+    root.TEMPERAMENT_DESCRIPTORS = data.TEMPERAMENT_DESCRIPTORS;
   }
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
@@ -94,5 +95,82 @@
       soul: { loud: "You commune through stillness. The daily silence — same time, same chair, no agenda. You have learned that the mystery doesn't speak loudly and doesn't repeat itself. You show up consistently and you wait.", growth: "Keep a daily silence — same time, same chair, no agenda." }
     }
   };
-  return { TEMPERAMENT_PROSE: TEMPERAMENT_PROSE };
+  // Descriptor tags — 3–4 short recognition phrases per archetype × temperament,
+  // shown Netflix-genre-tag style beneath the Explore card header. Verbatim from
+  // "The 48 — Archetype × Temperament Prose Strings (v1)" → "Descriptor Tags — All 48".
+  var TEMPERAMENT_DESCRIPTORS = {
+    lover: {
+      heart: ["present", "emotionally attuned", "loves out loud", "feels everything first"],
+      mind: ["studious in love", "remembers everything", "intimacy through knowing"],
+      body: ["physical", "tactile", "shows up", "love in action"],
+      soul: ["depth-seeking", "devoted", "sees meaning in connection", "loves for keeps"]
+    },
+    caregiver: {
+      heart: ["absorbs others' pain", "sits with", "present before practical"],
+      mind: ["researches", "competent", "love as useful knowledge", "prepares"],
+      body: ["shows up with hands", "feeds", "fixes", "unannounced and ready"],
+      soul: ["holds people in mind", "prays", "carries others", "quietly devoted"]
+    },
+    everyman: {
+      heart: ["warm", "remembers your name", "pulls people in", "no one left out"],
+      mind: ["tracks people", "remembers details", "builds belonging through knowing"],
+      body: ["shows up", "physically present", "was actually there", "reliable"],
+      soul: ["tends rituals", "holds the group together", "names what we mean to each other"]
+    },
+    sage: {
+      heart: ["listens deeply", "learns from people", "truth through conversation"],
+      mind: ["analytical", "researches", "goes deep", "not done until it makes sense"],
+      body: ["learns by doing", "knows with hands", "apprentices", "truth through practice"],
+      soul: ["contemplative", "sits with questions", "comfortable with mystery", "unhurried"]
+    },
+    creator: {
+      heart: ["makes for people", "personal", "relational", "gifts only you could give"],
+      mind: ["designs before building", "rigorous", "intentional", "thinking is making"],
+      body: ["works with material", "thinks through hands", "resistance teaches", "most alive when making"],
+      soul: ["makes offerings not products", "asks does this matter", "meaning over utility"]
+    },
+    ruler: {
+      heart: ["knows the people", "leads through relationship", "order serves humans"],
+      mind: ["systematic", "sees the whole structure", "clarity as leadership"],
+      body: ["does the work", "leads from experience", "authority earned not assumed"],
+      soul: ["legacy-minded", "stewards what outlasts", "builds for the long arc"]
+    },
+    warrior: {
+      heart: ["protects people not positions", "loyal", "fierce when it counts", "defends the absent"],
+      mind: ["strategic", "studies before entering", "disciplined", "doesn't fight to lose"],
+      body: ["trained", "physical", "capable", "develops the instrument", "present when it matters"],
+      soul: ["oath-keeper", "fights for what's sacred", "cold and clear", "rooted in belief"]
+    },
+    explorer: {
+      heart: ["explores through people", "relational traveler", "best part is who you meet"],
+      mind: ["learns the place", "reads the history", "discovery as understanding"],
+      body: ["moves", "climbs", "walks", "most alive in physical terrain", "freedom through motion"],
+      soul: ["pilgrim", "every journey means something", "returns changed", "always seeking"]
+    },
+    rebel: {
+      heart: ["fights for people not principles", "loyal", "one name one case", "personal justice"],
+      mind: ["knows the other side", "has done the reading", "hard to dismiss", "harder to refute"],
+      body: ["shows up", "puts body where beliefs are", "presence as commitment"],
+      soul: ["refuses quietly", "conviction not performance", "settled", "needs no explanation"]
+    },
+    trickster: {
+      heart: ["warm humor", "teases only those loved", "affection underneath", "play as intimacy"],
+      mind: ["sharp wit", "constructs the joke", "satire", "makes people think while laughing"],
+      body: ["physically foolish", "improv", "willing to look ridiculous", "play needs a body"],
+      soul: ["punctures own pretensions", "philosophical edge", "the curtain drops", "sees the absurdity in everything"]
+    },
+    innocent: {
+      heart: ["believes in people specifically", "tells them so", "goodwill as first move"],
+      mind: ["evidence-based hope", "keeps a record", "argues for trust", "not passive"],
+      body: ["honest when no one's watching", "keeps small promises", "integrity as practice"],
+      soul: ["releases what can't be controlled", "trusts the arc", "hard-won", "quietly profound"]
+    },
+    mystic: {
+      heart: ["wordless presence", "no agenda", "connection through stillness", "open"],
+      mind: ["learns the symbols", "studies dreams", "wants to understand the architecture of the unseen"],
+      body: ["breathwork", "movement", "fasting", "body as doorway not obstacle"],
+      soul: ["daily silence", "same chair same time", "waits", "knows mystery doesn't repeat itself"]
+    }
+  };
+  return { TEMPERAMENT_PROSE: TEMPERAMENT_PROSE, TEMPERAMENT_DESCRIPTORS: TEMPERAMENT_DESCRIPTORS };
 });
