@@ -698,9 +698,9 @@ function TwelveWithin() {
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
-// ===== PRINT PAGE 1 - Your Mandala + Top Three =====
+// ===== PRINT PAGE 1 - Your Mandala =====
                     React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px", boxSizing: "border-box" } },
-                        React.createElement("div", { className: "flex justify-between items-baseline mb-2" },
+                        React.createElement("div", { className: "flex justify-between items-baseline mb-8" },
                             React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE MANDALA" : "YOUR MANDALA"),
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
                         React.createElement("h1", { className: "text-4xl text-center mb-1", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" · ")),
@@ -709,26 +709,25 @@ function TwelveWithin() {
                                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true }))),
                         React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "Until the unconscious becomes conscious, it will direct your life — and you'll call it fate.")),
 
-                    // ===== PRINT PAGE 2 - Your Blends + Your Edges =====
+                    // ===== PRINT PAGE 2 - Top Three + Blends + Edges =====
                     TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
-                        TIERS[tier].topCount >= 3 && React.createElement("div", { className: "mb-4", style: { pageBreakInside: "avoid" } },
+                        TIERS[tier].topCount >= 3 && React.createElement("div", { className: "mb-5", style: { pageBreakInside: "avoid" } },
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR TOP THREE, IN DEPTH"),
-                            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "9px" } },
+                            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" } },
                                 ranked.slice(0, 3).map((r, n) => {
                                     const hue = HUE(r.i);
-                                    return React.createElement("div", { key: r.key, style: { border: `1px solid hsl(${hue},55%,74%)`, borderTop: `4px solid hsl(${hue},60%,54%)`, borderRadius: "9px", padding: "8px 8px", background: `hsl(${hue},70%,97.5%)`, pageBreakInside: "avoid" } },
-                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "8px", letterSpacing: "0.14em", color: `hsl(${hue},50%,40%)` } }, ["LOUDEST", "SECOND", "THIRD"][n] + " VOICE"),
-                                        React.createElement("h3", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1rem", color: `hsl(${hue},55%,30%)`, marginBottom: "1px" } }, r.name),
-                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "8.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "4px" } }, longsPhrase(r)),
-                                        React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "8.5px", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "0.5px" } }, r.stages[st]))));
+                                    return React.createElement("div", { key: r.key, style: { border: `1px solid hsl(${hue},55%,74%)`, borderTop: `4px solid hsl(${hue},60%,54%)`, borderRadius: "9px", padding: "10px 10px", background: `hsl(${hue},70%,97.5%)`, pageBreakInside: "avoid" } },
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", color: `hsl(${hue},50%,40%)` } }, ["LOUDEST", "SECOND", "THIRD"][n] + " VOICE"),
+                                        React.createElement("h3", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.25rem", color: `hsl(${hue},55%,30%)`, marginBottom: "1px" } }, r.name),
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "10px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
+                                        React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "10.5px", lineHeight: "1.25", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
                                 }))),
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "YOUR COMBINATIONS"),
                         React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "Your Blends"),
-                        React.createElement("p", { className: "text-sm mb-4", style: { ...sans, color: "#5a5570" } }, "Where two of your primary voices meet, a third quality appears — the texture of how you actually move through the world."),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                             const nm = blendName(ranked[a], ranked[b]);
                             const tx = blendTexture(ranked[a], ranked[b]);
-                            return React.createElement("div", { key: a + "-" + b, className: "mb-3", style: { borderBottom: "1px solid #eee", paddingBottom: "9px", pageBreakInside: "avoid" } },
+                            return React.createElement("div", { key: a + "-" + b, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "7px", pageBreakInside: "avoid" } },
                                 React.createElement("p", { className: "text-lg", style: { ...serif, color: "#2a2340" } },
                                     ranked[a].name + " × " + ranked[b].name + " → ",
                                     React.createElement("span", { style: { color: nm ? "#9a7a1e" : "#8a86a0", fontStyle: nm ? "normal" : "italic" } }, nm || "unnamed")),
@@ -749,6 +748,11 @@ function TwelveWithin() {
                         const prof = temperamentProfile(radarScores);
                         const caseCopy = prof.allLoud ? ALL_LOUD_COPY : prof.allQuiet ? ALL_QUIET_COPY : null;
                         const blocks = ranked.slice(0, 3).map((a) => ({ a: a, readout: temperamentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
+                        const renderArch = ({ a, readout }) => React.createElement("div", { key: a.key, className: "mb-2", style: { borderTop: "1px solid #eee", paddingTop: "6px", pageBreakInside: "avoid" } },
+                            React.createElement("p", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(a.i)},55%,34%)` } }, a.name),
+                            readout.items.map((s, i) => React.createElement("p", { key: i, style: { ...sans, fontSize: "12px", lineHeight: "1.35", color: s.kind === "loud" ? "#4a4560" : "#8a6a2a", marginBottom: "2px" } }, (s.kind === "loud" ? "How this shows up · " : "An Intentional Practice · ") + s.temperament + " — " + s.text)));
+                        const first = blocks[0];
+                        const rest = blocks.slice(1);
                         return React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px 24px", boxSizing: "border-box" } },
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "HOW YOU'RE WIRED"),
                             React.createElement("h2", { className: "text-2xl mb-1", style: serif }, "Your Temperament Profile"),
@@ -758,32 +762,25 @@ function TwelveWithin() {
                                     React.createElement(Radar, { scores: radarScores, forPrint: true }))),
                             caseCopy && React.createElement("p", { className: "text-xs mb-2", style: { ...sans, color: "#4a4560" } }, caseCopy),
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "HOW YOUR TOP VOICES SHOW UP"),
-                            blocks.map(({ a, readout }) => React.createElement("div", { key: a.key, className: "mb-2", style: { borderTop: "1px solid #eee", paddingTop: "5px", pageBreakInside: "avoid" } },
-                                React.createElement("p", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(a.i)},55%,34%)` } }, a.name),
-                                // EVERY temperament: loud (3-4) as "How this shows up", quiet (1-2) as "An Intentional Practice".
-                                readout.items.map((s, i) => React.createElement("p", { key: i, style: { ...sans, fontSize: "10px", lineHeight: "1.3", color: s.kind === "loud" ? "#4a4560" : "#8a6a2a", marginBottom: "2px" } }, (s.kind === "loud" ? "How this shows up · " : "An Intentional Practice · ") + s.temperament + " — " + s.text)))));
+                            first && renderArch(first),
+                            rest.length > 0 && React.createElement("div", { style: { pageBreakInside: "avoid", breakInside: "avoid" } }, rest.map(renderArch)));
                     })(),
 
-                    // ===== PRINT PAGE 4 - The Remaining Nine =====
-                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
+                    // ===== PRINT PAGE 4 - The Remaining Nine + Full Ranking =====
+                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px 24px", boxSizing: "border-box" } },
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
-                        React.createElement("h2", { className: "text-2xl mb-4", style: serif }, "The Remaining Nine"),
-                        ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "6px", pageBreakInside: "avoid" } },
-                            React.createElement("span", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},55%,38%)` } }, r.name),
+                        React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "The Remaining Nine"),
+                        ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-1", style: { borderBottom: "1px solid #eee", paddingBottom: "4px", pageBreakInside: "avoid" } },
+                            React.createElement("span", { className: "text-xs font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},55%,38%)` } }, r.name),
                             React.createElement("span", { className: "text-xs italic", style: sans }, "  " + longsPhrase(r) + "  "),
                             React.createElement("span", { className: "text-xs", style: sans }, r.stages.join(" → ")))),
-                        React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "A map, not a fortune. Wherever you stand today, take one rung up.")),
-
-                    // ===== PRINT PAGE 5 - Full Ranking =====
-                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
-                        React.createElement("h2", { className: "text-2xl mb-4", style: serif }, "Full Ranking"),
-                        ranked.map((r, i) => React.createElement("div", { key: r.key, className: "mb-2", style: { display: "flex", alignItems: "center", gap: "8px", pageBreakInside: "avoid" } },
-                            React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "20px", textAlign: "right", fontSize: "11px", color: "#8a86a0", flexShrink: 0 } }, (i + 1) + "."),
-                            React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "96px", fontSize: "12px", color: "#3a3550", flexShrink: 0 } }, r.name),
+                        React.createElement("h2", { className: "text-2xl mt-6 mb-3", style: serif }, "Full Ranking"),
+                        ranked.map((r, i) => React.createElement("div", { key: r.key, className: "mb-1", style: { display: "flex", alignItems: "center", gap: "8px", pageBreakInside: "avoid" } },
+                            React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "18px", textAlign: "right", fontSize: "11px", color: "#8a86a0", flexShrink: 0 } }, (i + 1) + "."),
+                            React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "94px", fontSize: "12px", fontWeight: "600", color: `hsl(${HUE(r.i)},55%,40%)`, flexShrink: 0 } }, r.name),
                             React.createElement("div", { style: { flex: "1 1 0%", height: "9px", borderRadius: "5px", background: "#eee", overflow: "hidden" } },
-                                React.createElement("div", { style: { height: "100%", borderRadius: "5px", width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},55%,55%)` } })))),
-                        React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "The Art of Soulcraft · artofsoulcraft.com"))),
+                                React.createElement("div", { style: { height: "100%", borderRadius: "5px", width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},60%,52%)` } })))),
+                        React.createElement("p", { className: "text-center text-xs italic mt-6", style: { ...serif, color: "#8a86a0" } }, "Generated __PRINTDATE__ · artofsoulcraft.com"))),
                 // \u2550\u2550 SECTION \u2014 Your Pattern: your top three, in depth (altitude ladders) \u2550\u2550
                 sectionHeader("Your Pattern", "YOUR TOP THREE, IN DEPTH"),
                 ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
@@ -890,6 +887,10 @@ function TwelveWithin() {
                         const printCSS = `
                           @page { size: letter; margin: 0.5in; }
                           * { box-sizing: border-box; }
+                          /* print-color-adjust: exact forces the browser to actually print
+                             background colors (bar fills, card tints, radar fill) — without it
+                             they're dropped and bars/backgrounds come out blank. */
+                          html, body, * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
                           body { font-family: 'Source Sans 3', system-ui, sans-serif; color: #241d42; margin: 0; padding: 12px; }
                           h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; margin: 0; }
                           /* Each major section is its own .print-page and starts on a fresh sheet. */
@@ -924,7 +925,13 @@ function TwelveWithin() {
                           .pb-4 { padding-bottom: 0.62rem; }
                           .p-10 { padding: 1.6rem; }
                         `;
-                        doc.write("<!DOCTYPE html><html><head><title>The Art of Soulcraft</title><style>" + printCSS + " " + grayscaleRule + "</style></head><body>" + src.innerHTML + "</body></html>");
+                        // Blank title keeps the browser's default print header clean; our own
+                        // dated footer line lives on the last report page instead. (Fully
+                        // removing the browser's URL/date/page-number chrome is the print
+                        // dialog's "Headers and footers" toggle — not controllable from CSS.)
+                        const reportDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+                        const body = src.innerHTML.split("__PRINTDATE__").join(reportDate);
+                        doc.write("<!DOCTYPE html><html><head><title></title><style>" + printCSS + " " + grayscaleRule + "</style></head><body>" + body + "</body></html>");
                         doc.close();
                         iframe.onload = () => {
                             iframe.contentWindow.focus();
