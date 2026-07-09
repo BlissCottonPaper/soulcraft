@@ -95,6 +95,21 @@ function hslToRgb(h, s, l) {
 }
 const rgbStr = (r) => `rgb(${r[0]},${r[1]},${r[2]})`;
 const longsPhrase = (a) => a.longingVerb ? `longs to ${a.longing}` : `longs for ${a.longing}`;
+// Load Stripe.js on demand — only when someone actually opens the Shadow unlock
+// checkout — so it never touches initial page load. Resolves with window.Stripe.
+let _stripeJsPromise = null;
+function loadStripeJs() {
+    if (typeof window !== "undefined" && window.Stripe) return Promise.resolve(window.Stripe);
+    if (_stripeJsPromise) return _stripeJsPromise;
+    _stripeJsPromise = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://js.stripe.com/v3/";
+        s.onload = () => resolve(window.Stripe);
+        s.onerror = () => reject(new Error("Stripe.js failed to load"));
+        document.head.appendChild(s);
+    });
+    return _stripeJsPromise;
+}
 // Archetype names in the results link to their Explore page. Inherits the
 // surrounding color/size so it still reads as styled text; underlines on hover.
 const archLink = (r, extraStyle) => React.createElement("a", { key: "al-" + r.key, href: `/explore/${r.key}/`, className: "arch-link", style: Object.assign({ color: "inherit", textDecoration: "none" }, extraStyle || {}) }, r.name);
@@ -172,20 +187,24 @@ function Mandala({ ranked, topCount = 3, forPrint = false, shadow = false }) {
     const blendLabelFill = forPrint ? "rgba(40,38,45,0.9)" : "rgba(224,218,246,0.82)";
     const dotStroke = forPrint ? "#c4c4c4" : "rgba(255,255,255,0.5)";
     const labelFillTop = shadow
-        ? (forPrint ? "rgba(40,44,90,0.95)" : "rgba(214,220,255,0.95)")
+        ? (forPrint ? "rgba(40,44,90,0.95)" : "rgba(236,233,252,0.96)")
         : (forPrint ? "rgba(20,18,25,0.95)" : "rgba(244,240,255,0.95)");
     const labelFillOther = forPrint ? "rgba(60,55,68,0.75)" : "rgba(196,190,222,0.62)";
     const nodeStrokeTop = shadow
-        ? (forPrint ? "rgba(88,98,168,0.95)" : "rgba(199,210,254,0.95)")
+        ? (forPrint ? "rgba(88,98,168,0.95)" : "rgba(233,230,252,0.95)")
         : (forPrint ? "rgba(255,255,255,0.9)" : "rgba(255,252,240,0.95)");
     const nodeStrokeOther = forPrint ? "#c4c4c4" : "rgba(255,255,255,0.25)";
     const youFill = forPrint ? "rgba(60,50,20,0.85)" : "rgba(235,228,255,0.7)";
-    // The blend triangle color: gold for the light mandala, a cool deep indigo for
-    // the shadow — depth, not danger (never black, never red).
+    // The blend triangle color. Light mandala: gold. Shadow mandala: on the dark screen
+    // it must be a PALE lavender/silver-white to stay visible against the dark ground;
+    // in print (white paper) a deep indigo reads best. Depth, never danger — no black,
+    // no red.
     const triStroke = shadow
-        ? (forPrint ? "rgba(70,80,150,0.92)" : "rgba(129,140,248,0.9)")
+        ? (forPrint ? "rgba(70,80,150,0.95)" : "rgba(223,219,250,0.92)")
         : (forPrint ? "rgba(180,130,40,0.95)" : "rgba(233,196,124,0.9)");
-    const triFill = shadow ? "rgba(120,130,220,0.07)" : "rgba(255,250,235,0.06)";
+    const triFill = shadow
+        ? (forPrint ? "rgba(120,130,220,0.06)" : "rgba(214,210,246,0.08)")
+        : "rgba(255,250,235,0.06)";
     return (React.createElement("svg", { viewBox: "-30 -30 400 400", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
         React.createElement("defs", null,
             React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
@@ -338,12 +357,15 @@ function temperamentReadout(archetypeKey, profile) {
 // No Stripe wired yet: `tier` is just app state, chosen at the intro screen.
 // Swapping in real payment later means setting this from a verified purchase
 // instead of a button click — nothing else in the app needs to change.
+// Two products: a free single-archetype taste, and "Your Mandala" — the full
+// $19 reading (complete 66-item report). The Shadow Mandala is NOT a separate
+// tier: it's an unlock on top of Your Mandala (the `shadowUnlocked` flag),
+// bought as a $15 in-session upsell or as part of the $34 Full upfront. The
+// key stays "full" so the existing gating/render code is untouched; only the
+// label and the shadow gate changed.
 const TIERS = {
-    free:  { label: "Free",  topCount: 1,  showBlends: false, showTemperament: false, showFullRanking: false, showQuietest: false, showShadow: false, pairMode: "quick" },
-    triad: { label: "Triad", topCount: 3,  showBlends: true,  showTemperament: false, showFullRanking: false, showQuietest: true,  showShadow: false, pairMode: "quick" },
-    // Shadow Mandala only in the full "Light + Shadow" tier: naming the disowned
-    // bottom three reliably needs the complete 66-item ranking, not a partial one.
-    full:  { label: "Full",  topCount: 12, showBlends: true,  showTemperament: true,  showFullRanking: true,  showQuietest: true,  showShadow: true,  pairMode: "full"  },
+    free:  { label: "Free",         topCount: 1,  showBlends: false, showTemperament: false, showFullRanking: false, showQuietest: false, pairMode: "quick" },
+    full:  { label: "Your Mandala", topCount: 12, showBlends: true,  showTemperament: true,  showFullRanking: true,  showQuietest: true,  pairMode: "full"  },
 };
 
 /* ---------- main ---------- */
@@ -358,6 +380,11 @@ function TwelveWithin() {
     });
     const [mode, setMode] = useState("quick");
     const [tier, setTier] = useState("full"); // which product tier is active for this session
+    // Whether the Shadow Mandala has been unlocked — true when bought upfront as the
+    // $34 Full, when unlocked mid-session for $15, or when viewing the sample.
+    const [shadowUnlocked, setShadowUnlocked] = useState(false);
+    const [unlocking, setUnlocking] = useState(false);   // Stripe checkout in progress
+    const [unlockError, setUnlockError] = useState("");
     const [session, setSession] = useState(0);
     const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
     const [pairIdx, setPairIdx] = useState(0);
@@ -373,9 +400,13 @@ function TwelveWithin() {
     const [resendRequested, setResendRequested] = useState(false);
     const chips = useMemo(() => shuffle(ARCHETYPES.flatMap((a) => a.descriptors.map((d) => ({ word: d, key: a.key })))), [session]);
     const pairs = useMemo(() => buildPairs(TIERS[tier].pairMode), [tier, session]);
-    const start = (t) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setScreen("descriptors"); };
-    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); };
-    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("full"); setIsSample(true); setScreen("results"); };
+    // withShadow=true is the $34 "Full" upfront path: the shadow is already paid for,
+    // so it shows immediately with no unlock card.
+    const start = (t, withShadow) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setShadowUnlocked(!!withShadow); setUnlockError(""); setScreen("descriptors"); };
+    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); setShadowUnlocked(false); setUnlocking(false); setUnlockError(""); };
+    // The sample is the demo of the best version of the product — the full tier with
+    // BOTH mandalas already revealed.
+    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("full"); setIsSample(true); setShadowUnlocked(true); setScreen("results"); };
     const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
     const choosePairGraded = (leftIdx, rightIdx, position) => {
         // position 1..5: 1=strongly left, 3=truly between, 5=strongly right
@@ -450,6 +481,7 @@ function TwelveWithin() {
     // result, so re-renders don't trigger duplicate saves, but a genuine
     // new attempt (session changes) is allowed to save again.
     const savedForSession = useRef(null);
+    const checkoutRef = useRef(null); // holds the live Stripe embedded-checkout instance
     const [savedResultId, setSavedResultId] = useState(null);
     const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
     const [emailInput, setEmailInput] = useState("");
@@ -510,6 +542,64 @@ function TwelveWithin() {
             .then(() => setEmailSent(true))
             .catch(() => {});
     };
+
+    // --- Shadow unlock: the $15 in-session upsell. Opens Stripe embedded checkout in
+    // an on-page overlay; on a server-verified payment the shadow reveals immediately
+    // below the existing results — no reload, no new URL. Requires the Stripe env
+    // config (see functions/api/create-checkout.js). ---
+    const unlockShadow = async () => {
+        setUnlocking(true); setUnlockError("");
+        let data;
+        try {
+            const res = await fetch("/api/create-checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ product: "shadow", resultId: savedResultId || null }),
+            });
+            data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.clientSecret || !data.publishableKey) {
+                setUnlockError((data && data.error) || "Checkout isn't available just yet. Please try again in a moment.");
+                setUnlocking(false);
+                return;
+            }
+        } catch (e) {
+            setUnlockError("We couldn't start checkout — please check your connection and try again.");
+            setUnlocking(false);
+            return;
+        }
+        try {
+            const Stripe = await loadStripeJs();
+            const stripe = Stripe(data.publishableKey);
+            const checkout = await stripe.initEmbeddedCheckout({
+                clientSecret: data.clientSecret,
+                onComplete: async () => {
+                    // Never trust the client alone — confirm the session is paid server-side.
+                    let paid = false;
+                    try {
+                        const v = await fetch("/api/checkout-status?session_id=" + encodeURIComponent(data.sessionId));
+                        const vd = await v.json().catch(() => ({}));
+                        paid = !!vd.paid;
+                    } catch (e) {}
+                    try { checkout.destroy(); } catch (e) {}
+                    checkoutRef.current = null;
+                    setUnlocking(false);
+                    if (paid) {
+                        setShadowUnlocked(true);
+                        setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 60);
+                    } else {
+                        setUnlockError("Your payment didn't complete — nothing was charged. You can try again anytime.");
+                    }
+                },
+            });
+            checkoutRef.current = checkout;
+            // Mount once the overlay is in the DOM (it renders when `unlocking` is true).
+            setTimeout(() => { try { checkout.mount("#shadow-checkout-modal"); } catch (e) { setUnlockError("Checkout couldn't open. Please try again."); setUnlocking(false); } }, 0);
+        } catch (e) {
+            setUnlockError("Checkout couldn't open. Please try again.");
+            setUnlocking(false);
+        }
+    };
+    const cancelUnlock = () => { try { if (checkoutRef.current) checkoutRef.current.destroy(); } catch (e) {} checkoutRef.current = null; setUnlocking(false); };
 
     // --- Magic link: on first load, if the URL carries ?token=&result=, verify
     // it against the backend and jump straight to the restored result (silent
@@ -573,8 +663,13 @@ function TwelveWithin() {
         const t = (typeof BLEND_SHADOW_TEXTURES !== "undefined") && BLEND_SHADOW_TEXTURES[[a.key, b.key].sort().join("|")];
         return t || null;
     };
-    // The three lowest voices (quietest first) and whether the shadow layer is unlocked.
-    const showShadow = TIERS[tier].showShadow && ranked.length >= 12;
+    // The three lowest voices (quietest first). The shadow layer renders only on the
+    // full "Your Mandala" reading once it's been unlocked (paid $15 upsell, bought as
+    // the $34 Full, or the sample) — never for free or an un-unlocked Mandala.
+    const showShadow = tier === "full" && shadowUnlocked && ranked.length >= 12;
+    // The unlock CTA card: a full Mandala reading that hasn't unlocked shadow yet (and
+    // not the sample, which always shows both).
+    const showShadowCTA = tier === "full" && !shadowUnlocked && !isSample && ranked.length >= 12;
     const shadowThree = ranked.length >= 12 ? [ranked[11], ranked[10], ranked[9]] : [];
     const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
     const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
@@ -636,9 +731,9 @@ function TwelveWithin() {
                 React.createElement("p", { className: "text-[11px] tracking-[0.15em] text-violet-300/45 mb-6", style: sans }, "\u2014 after Jung"),
                 React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-8", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
                 React.createElement("div", { className: "grid gap-3" },
-                    React.createElement(Btn, { primary: true, onClick: () => start("free") }, "Free \u00B7 your loudest voice (~10 min)"),
-                    React.createElement(Btn, { onClick: () => start("triad") }, "Triad \u00B7 your top three (~10 min)"),
-                    React.createElement(Btn, { onClick: () => start("full") }, "Full Mirror \u00B7 the complete ranking (~18 min)"),
+                    React.createElement(Btn, { primary: true, onClick: () => start("full") }, "Your Mandala \u00B7 your full reading (~18 min)"),
+                    React.createElement(Btn, { onClick: () => start("full", true) }, "Full \u00B7 Your Mandala + Shadow Mandala"),
+                    React.createElement(Btn, { onClick: () => start("free") }, "Free \u00B7 your loudest voice (~10 min)"),
                     React.createElement("div", { className: "rounded-xl px-5 py-3.5 text-[15px] border border-violet-300/15 text-violet-300/40 flex items-center justify-between cursor-not-allowed", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
                         React.createElement("span", null, "Compatibility \u00B7 for two"),
                         React.createElement("span", { className: "text-[10px] tracking-[0.15em] uppercase" }, "Coming soon")),
@@ -708,7 +803,7 @@ function TwelveWithin() {
             })(),
             screen === "results" && (React.createElement("div", null,
                 React.createElement("div", { className: "text-center mb-2" },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR MANDALA"),
+                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR MANDALA — YOUR MOST EXPRESSIVE VOICES"),
                     React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00B7 ", archLink(r)])),
                     TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-violet-300/75 text-sm mt-2", style: sans },
                         "Your time signature: ",
@@ -720,9 +815,9 @@ function TwelveWithin() {
                 // Jump nav \u2014 only when there's a Shadow Mandala to jump to. Easy toggling
                 // between the two wheels, especially on mobile.
                 showShadow && React.createElement("div", { className: "flex justify-center gap-2 mb-4 print:hidden" },
-                    React.createElement("a", { href: "#light-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR LIGHT MANDALA"),
+                    React.createElement("a", { href: "#your-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR MANDALA"),
                     React.createElement("a", { href: "#shadow-mandala", className: "rounded-full border border-indigo-300/40 px-4 py-1.5 text-xs tracking-[0.15em] text-indigo-200/85 hover:border-indigo-300/80 hover:text-indigo-100 transition-colors", style: sans }, "YOUR SHADOW MANDALA")),
-                React.createElement("div", { id: "light-mandala", style: { scrollMarginTop: "1.5rem" } },
+                React.createElement("div", { id: "your-mandala", style: { scrollMarginTop: "1.5rem" } },
                     React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount })),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
@@ -772,8 +867,8 @@ function TwelveWithin() {
                                     ? ` — also your ${GROWTH_ORD[growthIdx]} voice; you already carry this energy, so growth means drawing on it more consciously and deliberately, not building it from scratch`
                                     : " — the fixed complement to your loudest voice"))),
 
-                    // ===== PRINT PAGE 3 - Shadow Mandala (full tier only) =====
-                    TIERS[tier].showShadow && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px 24px", boxSizing: "border-box" } },
+                    // ===== PRINT PAGE 3 - Shadow Mandala (only once unlocked) =====
+                    showShadow && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px 24px", boxSizing: "border-box" } },
                         React.createElement("div", { className: "flex justify-between items-baseline mb-2" },
                             React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE SHADOW MANDALA" : "YOUR SHADOW MANDALA"),
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
@@ -924,11 +1019,11 @@ function TwelveWithin() {
                 showShadow && React.createElement("div", { className: "text-center mt-16 mb-2 max-w-2xl mx-auto" },
                     React.createElement("div", { className: "mx-auto mb-5 h-px w-12", style: { background: "rgba(129,140,248,0.5)" } }),
                     React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-200/85", style: sans },
-                        "Your Light Mandala shows who you lead with. Your Shadow Mandala shows what you're carrying that you haven't yet claimed. Together they show the full wheel \u2014 because you are already all twelve. Some speak loudly. Some speak quietly. The work isn't to become someone different. It's to become more fully yourself.")),
+                        "You are already all twelve. These are the voices that speak loudest in you right now. Below is what's waiting to be claimed.")),
 
-                // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (full tier only) \u2550\u2550
+                // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (unlocked only) \u2550\u2550
                 showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "1.5rem" } },
-                    sectionHeader("Your Shadow Mandala", "YOUR SHADOW MANDALA"),
+                    sectionHeader("Your Shadow Mandala", "YOUR SHADOW MANDALA \u2014 YOUR QUIETER VOICES"),
                     // Shame-prevention intro \u2014 REQUIRED before the wheel or naming the bottom three.
                     React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-5 mb-6", style: { background: "rgba(80,90,180,0.06)" } },
                         React.createElement("p", { className: "text-[16px] leading-relaxed mb-3", style: { ...sans, color: "rgba(199,210,254,0.95)", fontWeight: 600 } }, "Your shadow isn't what's wrong with you. It's what you haven't claimed yet."),
@@ -964,12 +1059,19 @@ function TwelveWithin() {
                                     React.createElement("span", { className: "text-indigo-300/85 font-semibold" }, "As shadow material \u00b7 "), sh));
                         }))),
 
-                // \u2550\u2550 Triad teaser \u2014 no shadow content, an upgrade nudge instead (item 7) \u2550\u2550
-                tier === "triad" && React.createElement("div", { className: "mt-14" },
-                    sectionHeader("Your Shadow Mandala", "IN THE FULL MIRROR"),
-                    React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-7 text-center", style: { background: "rgba(80,90,180,0.06)" } },
-                        React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-100 mb-5 max-w-xl mx-auto", style: sans }, "Your Shadow Mandala is available in the Full Mirror \u2014 the three archetypes you've disowned and what integrating them makes possible."),
-                        React.createElement("a", { href: "/pricing/", className: "inline-block rounded-xl px-6 py-3 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors", style: sans }, "Upgrade to the Full Mirror \u2192"))),
+                // \u2550\u2550 Shadow unlock CTA \u2014 the $15 in-session upsell (item: the unlock mechanic) \u2550\u2550
+                // A quiet continuation of the reading, not an ad: two sentences (verbatim)
+                // and one button. No price on the card \u2014 that appears at Stripe checkout.
+                showShadowCTA && React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-6 py-8 mt-14 mb-2 text-center", style: { background: "rgba(80,90,180,0.06)" } },
+                    React.createElement("p", { className: "text-[17px] leading-relaxed text-violet-100 mb-6 max-w-md mx-auto", style: serif }, "Your shadow has always gone unnoticed. It is waiting for you to discover it."),
+                    React.createElement("button", { onClick: unlockShadow, disabled: unlocking, className: "inline-block rounded-xl px-7 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60", style: sans }, unlocking ? "Opening checkout\u2026" : "Unlock your Shadow Mandala"),
+                    unlockError && React.createElement("p", { className: "text-sm text-violet-300/70 mt-4 max-w-sm mx-auto", style: sans }, unlockError)),
+                // Embedded Stripe checkout mounts here (a centered overlay) while unlocking.
+                unlocking && React.createElement("div", { id: "shadow-checkout-overlay", className: "fixed inset-0 z-50 flex items-start justify-center overflow-auto py-10 px-4", style: { background: "rgba(8,6,20,0.75)" } },
+                    React.createElement("div", { className: "w-full max-w-xl" },
+                        React.createElement("div", { className: "flex justify-end mb-2" },
+                            React.createElement("button", { onClick: cancelUnlock, className: "text-violet-200/70 hover:text-violet-50 text-sm", style: sans }, "\u2715 Close")),
+                        React.createElement("div", { id: "shadow-checkout-modal", className: "rounded-xl bg-white p-1 min-h-[3rem]" }))),
 
                 React.createElement("div", { className: "grid gap-3" },
                     React.createElement(Btn, { primary: true, onClick: () => {
