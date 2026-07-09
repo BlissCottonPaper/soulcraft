@@ -95,6 +95,14 @@ function hslToRgb(h, s, l) {
 }
 const rgbStr = (r) => `rgb(${r[0]},${r[1]},${r[2]})`;
 const longsPhrase = (a) => a.longingVerb ? `longs to ${a.longing}` : `longs for ${a.longing}`;
+// Split a locked shadow-pairing line ("In shadow: … Integrated: …") into its two
+// halves so the labels can be styled. Falls back to the whole string if it doesn't
+// match the expected shape.
+const parseShadow = (s) => {
+    if (!s) return null;
+    const m = s.match(/^In shadow:\s*([\s\S]*?)\s*Integrated:\s*([\s\S]*)$/);
+    return m ? { shadow: m[1], integrated: m[2] } : { shadow: s, integrated: "" };
+};
 // Load Stripe.js on demand — only when someone actually opens the Shadow unlock
 // checkout — so it never touches initial page load. Resolves with window.Stripe.
 let _stripeJsPromise = null;
@@ -900,18 +908,21 @@ function TwelveWithin() {
                         React.createElement("div", { className: "flex justify-center mb-2", style: { width: "100%" } },
                             React.createElement("div", { style: { width: "4.6in", maxWidth: "100%" } },
                                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true, shadow: true }))),
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR SHADOW PAIRINGS · DRAFT COPY, IN REVIEW"),
+                        React.createElement("p", { className: "text-[11px] mb-2", style: { ...sans, color: "#6b6580", lineHeight: "1.4" } }, "These energies have been living outside your conscious awareness — showing up sideways in your reactions to others. “In shadow” is what that looks like; “Integrated” is what becomes possible when you bring them into awareness and do something with them. That movement is the work."),
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR SHADOW PAIRINGS"),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                             const nm = blendName(shadowThree[a], shadowThree[b]);
                             const tx = blendTexture(shadowThree[a], shadowThree[b]);
-                            const sh = blendShadowTexture(shadowThree[a], shadowThree[b]);
+                            const sh = parseShadow(blendShadowTexture(shadowThree[a], shadowThree[b]));
                             return React.createElement("div", { key: a + "-" + b, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "7px", pageBreakInside: "avoid" } },
                                 React.createElement("p", { className: "text-lg", style: { ...serif, color: "#2a2340" } },
                                     shadowThree[a].name + " × " + shadowThree[b].name + " → ",
                                     React.createElement("span", { style: { color: nm ? "#4b4a8a" : "#8a86a0", fontStyle: nm ? "normal" : "italic" } }, nm || "unnamed")),
                                 tx && React.createElement("p", { className: "text-sm italic", style: { ...serif, color: "#6b6580" } }, tx),
                                 sh && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#4a4560", marginTop: "2px", lineHeight: "1.35" } },
-                                    React.createElement("span", { style: { fontWeight: 600, color: "#4b4a8a" } }, "As shadow material · "), sh));
+                                    React.createElement("span", { style: { fontWeight: 600, color: "#4b4a8a" } }, "In shadow: "), sh.shadow),
+                                sh && sh.integrated && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#3f3a58", marginTop: "1px", lineHeight: "1.35" } },
+                                    React.createElement("span", { style: { fontWeight: 600, color: "#8a6a2a" } }, "Integrated: "), sh.integrated));
                         })),
 
                     // ===== PRINT PAGE 4 - Temperament Profile (radar) + How Your Top Voices Show Up =====
@@ -1063,22 +1074,24 @@ function TwelveWithin() {
                             React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
                             React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r))),
                         React.createElement(Ladder, { arche: r }))),
-                    // Shadow Pairings \u2014 the three blends among the bottom three, with DRAFT shadow copy.
+                    // One-time definition paragraph before the pairings (locked copy).
+                    React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 max-w-2xl mx-auto mb-5", style: sans }, "These energies have been living outside your conscious awareness \u2014 operating in your life without your knowledge, showing up sideways in your reactions to others. \u201cIn shadow\u201d describes what that looks like. \u201cIntegrated\u201d describes what becomes possible when you bring them into conscious awareness and do something with them. That movement \u2014 from shadow into integration \u2014 is the work."),
+                    // Shadow Pairings \u2014 the three blends among the bottom three.
                     React.createElement("div", { className: "rounded-2xl border border-indigo-300/18 px-5 py-5 mb-4", style: { background: "rgba(80,90,180,0.05)" } },
-                        React.createElement("div", { className: "flex items-center justify-between mb-3 flex-wrap gap-2" },
-                            React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-indigo-200/75", style: sans }, "YOUR SHADOW PAIRINGS"),
-                            React.createElement("span", { className: "text-[9px] tracking-[0.18em] rounded-full border border-indigo-300/35 px-2 py-0.5 text-indigo-200/65", style: sans }, "DRAFT COPY \u00b7 IN REVIEW")),
+                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-indigo-200/75 mb-3", style: sans }, "YOUR SHADOW PAIRINGS"),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                             const nm = blendName(shadowThree[a], shadowThree[b]);
                             const tx = blendTexture(shadowThree[a], shadowThree[b]);
-                            const sh = blendShadowTexture(shadowThree[a], shadowThree[b]);
-                            return React.createElement("div", { key: a + "-" + b, className: "mb-3.5 last:mb-0" },
+                            const sh = parseShadow(blendShadowTexture(shadowThree[a], shadowThree[b]));
+                            return React.createElement("div", { key: a + "-" + b, className: "mb-4 last:mb-0" },
                                 React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
                                     archLink(shadowThree[a]), " \u00d7 ", archLink(shadowThree[b]), " \u2192 ",
                                     nm ? React.createElement("span", { className: "text-indigo-200" }, nm) : React.createElement("span", { className: "text-violet-300/60 italic" }, "unnamed \u2014 an entry awaiting the 66-blend lexicon")),
                                 tx && React.createElement("p", { className: "text-[13px] text-violet-300/65 italic mt-0.5", style: serif }, tx),
-                                sh && React.createElement("p", { className: "text-[13.5px] text-indigo-100/80 mt-1 leading-relaxed", style: sans },
-                                    React.createElement("span", { className: "text-indigo-300/85 font-semibold" }, "As shadow material \u00b7 "), sh));
+                                sh && React.createElement("p", { className: "text-[13.5px] text-indigo-100/80 mt-1.5 leading-relaxed", style: sans },
+                                    React.createElement("span", { className: "text-indigo-300/90 font-semibold" }, "In shadow: "), sh.shadow),
+                                sh && sh.integrated && React.createElement("p", { className: "text-[13.5px] text-violet-100/85 mt-1 leading-relaxed", style: sans },
+                                    React.createElement("span", { className: "text-amber-200/85 font-semibold" }, "Integrated: "), sh.integrated));
                         }))),
 
                 // \u2550\u2550 Shadow unlock CTA \u2014 the $15 in-session upsell (item: the unlock mechanic) \u2550\u2550
