@@ -21,6 +21,7 @@
     root.STAGE_LIGHT = data.STAGE_LIGHT;
     root.HUE = data.HUE;
     root.BLEND_NAMES = data.BLEND_NAMES;
+    root.BLEND_TEXTURES = data.BLEND_TEXTURES;
     root.TEMPERAMENT_EXPRESSIONS = data.TEMPERAMENT_EXPRESSIONS;
     root.TEMPERAMENTS = data.TEMPERAMENTS;
   }
@@ -71,6 +72,42 @@
     "innocent|mystic": "The Holy Innocent"
   };
 
+  // One-line "texture" of each pairing, verbatim from The 66 — Blend Lexicon.
+  // Only pairings with a real description in Notion are listed; the rest are
+  // intentionally absent so the results show nothing rather than a filler line.
+  var BLEND_TEXTURES = {
+    "everyman|lover": "warmth as hospitality",
+    "lover|warrior": "devotion under arms",
+    "creator|lover": "feeling given voice",
+    "lover|sage": "feeling that understands, understanding that feels",
+    "explorer|lover": "in love with the world",
+    "lover|rebel": "love untamed by convention",
+    "lover|trickster": "play and desire",
+    "lover|mystic": "love aimed at the infinite",
+    "caregiver|warrior": "fierce tending",
+    "caregiver|sage": "diagnosis and tending",
+    "caregiver|explorer": "tends while roaming the hills",
+    "everyman|rebel": "of the people, against the crown",
+    "creator|ruler": "builds the realm",
+    "ruler|sage": "order weighed by truth",
+    "ruler|trickster": "rules the game while playing it",
+    "mystic|ruler": "orders a community around genuine inner sight",
+    "innocent|warrior": "strength that stays kind",
+    "creator|rebel": "creates by breaking forms",
+    "creator|mystic": "pulls the unseen into form",
+    "explorer|sage": "truth sought by expedition",
+    "rebel|sage": "chooses their own truth",
+    "innocent|sage": "beginner's mind",
+    "mystic|sage": "direct communion carried back as living truth",
+    "explorer|rebel": "refuses the herd's brand",
+    "explorer|trickster": "gets where they're not supposed to be",
+    "explorer|mystic": "journeys for visions",
+    "rebel|trickster": "mockery as resistance",
+    "mystic|rebel": "defies the throne in the name of the unseen",
+    "innocent|trickster": "mischief without malice",
+    "mystic|trickster": "trickery of the unseen"
+  };
+
   var TEMPERAMENT_EXPRESSIONS = {
     lover: { heart: "The Sweetheart", mind: "The Admirer", body: "The Embracer", soul: "The Adorer" },
     caregiver: { heart: "The Comforter", mind: "The Coordinator", body: "The Provider", soul: "The Tender" },
@@ -102,6 +139,7 @@
     STAGE_LIGHT: STAGE_LIGHT,
     HUE: HUE,
     BLEND_NAMES: BLEND_NAMES,
+    BLEND_TEXTURES: BLEND_TEXTURES,
     TEMPERAMENT_EXPRESSIONS: TEMPERAMENT_EXPRESSIONS,
     TEMPERAMENTS: TEMPERAMENTS,
     pairingName: pairingName
