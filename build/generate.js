@@ -468,8 +468,10 @@ function archetypeMain(key) {
   const pairs = DATA.ARCHETYPES.filter((x) => x.key !== key).map((x) => {
     const nm = DATA.pairingName(key, x.key);
     const phue = DATA.HUE(DATA.ARCHETYPES.indexOf(x));
-    const desc = c.pairings[x.key] || "";
-    return `        <a href="/explore/${x.key}/" class="card card-hover rounded-xl px-5 py-3.5 flex items-baseline gap-3 transition-colors"><span class="w-2.5 h-2.5 rounded-full shrink-0 self-center" style="background:hsl(${phue},62%,56%)"></span><span class="text-violet-300/80 text-sm w-24 shrink-0">${x.name}</span><span class="text-sm"><span class="text-amber-100">${nm}</span>${desc ? ' <span class="text-violet-300/60">— ' + desc + "</span>" : ""}</span></a>`;
+    // Every pairing card shows a description. Prefer the archetype's own content line;
+    // fall back to the canonical one-line texture from The 66 so no card is ever blank.
+    const desc = c.pairings[x.key] || DATA.BLEND_TEXTURES[[key, x.key].sort().join("|")] || "";
+    return `        <a href="/explore/${x.key}/" class="card card-hover rounded-xl px-5 py-3.5 flex items-baseline gap-3 transition-colors"><span class="w-2.5 h-2.5 rounded-full shrink-0 self-center" style="background:hsl(${phue},62%,56%)"></span><span class="text-violet-300/80 text-sm w-24 shrink-0">${x.name}</span><span class="text-sm"><span class="text-amber-100">${nm}</span>${desc ? ' <span class="text-violet-300/60 italic">— ' + desc + "</span>" : ""}</span></a>`;
   }).join("\n");
 
   return `    <section class="pt-14 pb-8 md:pt-20">

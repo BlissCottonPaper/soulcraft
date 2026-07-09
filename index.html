@@ -877,7 +877,7 @@ function TwelveWithin() {
                                         React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "11.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
                                         React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "12.5px", lineHeight: "1.3", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
                                 }))),
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-3", style: sans }, "YOUR BLENDS"),
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-3", style: sans }, "YOUR PAIRINGS"),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                             const nm = blendName(ranked[a], ranked[b]);
                             const tx = blendTexture(ranked[a], ranked[b]);
@@ -898,34 +898,54 @@ function TwelveWithin() {
                                     : " — the fixed complement to your loudest voice"))),
 
                     // ===== PRINT PAGE 3 - Shadow Mandala (only once unlocked) =====
-                    showShadow && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px 24px", boxSizing: "border-box" } },
-                        React.createElement("div", { className: "flex justify-between items-baseline mb-2" },
+                    // Title page mirrors the primary mandala page 1 exactly: same header
+                    // spacing (mb-8), same 4xl serif three-name title, same wheel size.
+                    showShadow && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px", boxSizing: "border-box" } },
+                        React.createElement("div", { className: "flex justify-between items-baseline mb-8" },
                             React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE SHADOW MANDALA" : "YOUR SHADOW MANDALA"),
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
-                        React.createElement("h2", { className: "text-2xl text-center mb-1", style: serif }, shadowThree.map((r) => r.name).join(" · ")),
+                        React.createElement("h1", { className: "text-4xl text-center mb-1", style: serif }, shadowThree.map((r) => r.name).join(" · ")),
                         // Condensed shame-prevention framing — two sentences for print.
-                        React.createElement("p", { className: "text-center text-xs mb-2", style: { ...sans, color: "#6b6580", maxWidth: "5.5in", margin: "0 auto 8px" } }, "Your shadow isn't what's wrong with you — it's what you haven't claimed yet. You didn't choose your shadow; integrating it doesn't diminish you, it completes you."),
-                        React.createElement("div", { className: "flex justify-center mb-2", style: { width: "100%" } },
-                            React.createElement("div", { style: { width: "4.6in", maxWidth: "100%" } },
-                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true, shadow: true }))),
-                        React.createElement("p", { className: "text-[11px] mb-2", style: { ...sans, color: "#6b6580", lineHeight: "1.4" } }, "These energies have been living outside your conscious awareness — showing up sideways in your reactions to others. “In shadow” is what that looks like; “Integrated” is what becomes possible when you bring them into awareness and do something with them. That movement is the work."),
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR SHADOW PAIRINGS"),
-                        [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
-                            const nm = blendName(shadowThree[a], shadowThree[b]);
-                            const tx = blendTexture(shadowThree[a], shadowThree[b]);
-                            const sh = parseShadow(blendShadowTexture(shadowThree[a], shadowThree[b]));
-                            return React.createElement("div", { key: a + "-" + b, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "7px", pageBreakInside: "avoid" } },
-                                React.createElement("p", { className: "text-lg", style: { ...serif, color: "#2a2340" } },
-                                    shadowThree[a].name + " × " + shadowThree[b].name + " → ",
-                                    React.createElement("span", { style: { color: nm ? "#4b4a8a" : "#8a86a0", fontStyle: nm ? "normal" : "italic" } }, nm || "unnamed")),
-                                tx && React.createElement("p", { className: "text-sm italic", style: { ...serif, color: "#6b6580" } }, tx),
-                                sh && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#4a4560", marginTop: "2px", lineHeight: "1.35" } },
-                                    React.createElement("span", { style: { fontWeight: 600, color: "#4b4a8a" } }, "In shadow: "), sh.shadow),
-                                sh && sh.integrated && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#3f3a58", marginTop: "1px", lineHeight: "1.35" } },
-                                    React.createElement("span", { style: { fontWeight: 600, color: "#8a6a2a" } }, "Integrated: "), sh.integrated));
-                        })),
+                        React.createElement("p", { className: "text-center text-xs mb-2", style: { ...sans, color: "#6b6580", maxWidth: "5.5in", margin: "0 auto 10px" } }, "Your shadow isn't what's wrong with you — it's what you haven't claimed yet. You didn't choose your shadow; integrating it doesn't diminish you, it completes you."),
+                        React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
+                            React.createElement("div", { style: { width: "5.6in", maxWidth: "100%" } },
+                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true, shadow: true })))),
 
-                    // ===== PRINT PAGE 4 - Temperament Profile (radar) + How Your Top Voices Show Up =====
+                    // ===== PRINT PAGE 4 - Your Three Quietest Voices, In Depth + Shadow Pairings =====
+                    // Mirrors the primary "Top Three, In Depth" page: same card, same altitude
+                    // ladder, same colour coding — labelled QUIETEST / SECOND QUIETEST / THIRD.
+                    showShadow && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
+                        React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "28px" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR THREE QUIETEST VOICES, IN DEPTH"),
+                            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" } },
+                                shadowThree.map((r, n) => {
+                                    const hue = HUE(r.i);
+                                    return React.createElement("div", { key: r.key, style: { border: `1px solid hsl(${hue},55%,74%)`, borderTop: `4px solid hsl(${hue},60%,54%)`, borderRadius: "9px", padding: "10px 10px", background: `hsl(${hue},70%,97.5%)`, pageBreakInside: "avoid" } },
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", color: `hsl(${hue},50%,40%)` } }, ["QUIETEST VOICE", "SECOND QUIETEST", "THIRD QUIETEST"][n]),
+                                        React.createElement("h3", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.4rem", color: `hsl(${hue},55%,30%)`, marginBottom: "1px" } }, r.name),
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "11.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
+                                        React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "12.5px", lineHeight: "1.3", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
+                                }))),
+                        // Keep all three pairings together — never orphan one on its own sheet.
+                        React.createElement("div", { style: { pageBreakInside: "avoid" } },
+                            React.createElement("p", { className: "text-[11px] mb-2", style: { ...sans, color: "#6b6580", lineHeight: "1.4" } }, "These energies have been living outside your conscious awareness — showing up sideways in your reactions to others. “In shadow” is what that looks like; “Integrated” is what becomes possible when you bring them into awareness and do something with them. That movement is the work."),
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR SHADOW PAIRINGS"),
+                            [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
+                                const nm = blendName(shadowThree[a], shadowThree[b]);
+                                const tx = blendTexture(shadowThree[a], shadowThree[b]);
+                                const sh = parseShadow(blendShadowTexture(shadowThree[a], shadowThree[b]));
+                                return React.createElement("div", { key: a + "-" + b, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "7px", pageBreakInside: "avoid" } },
+                                    React.createElement("p", { className: "text-lg", style: { ...serif, color: "#2a2340" } },
+                                        shadowThree[a].name + " × " + shadowThree[b].name + " → ",
+                                        React.createElement("span", { style: { color: nm ? "#4b4a8a" : "#8a86a0", fontStyle: nm ? "normal" : "italic" } }, nm || "unnamed")),
+                                    tx && React.createElement("p", { className: "text-sm italic", style: { ...serif, color: "#6b6580" } }, tx),
+                                    sh && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#4a4560", marginTop: "2px", lineHeight: "1.35" } },
+                                        React.createElement("span", { style: { fontWeight: 600, color: "#4b4a8a" } }, "In shadow: "), sh.shadow),
+                                    sh && sh.integrated && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#3f3a58", marginTop: "1px", lineHeight: "1.35" } },
+                                        React.createElement("span", { style: { fontWeight: 600, color: "#8a6a2a" } }, "Integrated: "), sh.integrated));
+                            }))),
+
+                    // ===== PRINT PAGE 5 - Temperament Profile (radar) + How Your Top Voices Show Up =====
                     TIERS[tier].showTemperament && (() => {
                         const prof = temperamentProfile(radarScores);
                         const caseCopy = prof.allLoud ? ALL_LOUD_COPY : prof.allQuiet ? ALL_QUIET_COPY : null;
@@ -948,7 +968,7 @@ function TwelveWithin() {
                             rest.length > 0 && React.createElement("div", { style: { pageBreakInside: "avoid", breakInside: "avoid" } }, rest.map(renderArch)));
                     })(),
 
-                    // ===== PRINT PAGE 5-6 - The Remaining Nine + Full Ranking =====
+                    // ===== PRINT PAGE 6-7 - The Remaining Nine + Full Ranking =====
                     TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "44px 24px 24px", boxSizing: "border-box" } },
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
                         React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "The Remaining Nine"),
