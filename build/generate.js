@@ -246,6 +246,90 @@ function myResultsMain() {
     })();
     </script>`;
 }
+// ---- Legal pages: written plainly, in the site's voice — not legalese. ------
+function privacyMain() {
+  return `    <section class="text-center pt-16 pb-8 md:pt-24">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">PRIVACY</p>
+      <h1 class="serif text-4xl md:text-6xl mb-4">Your privacy, plainly</h1>
+      <p class="text-violet-200/80 text-lg max-w-xl mx-auto">This is a tool for looking honestly at yourself. That only works if you trust it. So here is exactly what we collect, what we do with it, and what we never do — in plain language.</p>
+      <p class="text-violet-300/45 text-xs mt-4">Last updated July 2026</p>
+    </section>
+    <section class="max-w-2xl mx-auto pb-20 leading-relaxed text-violet-100/85 space-y-10">
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">What we collect</h2>
+        <p class="mb-3">Almost nothing, and only what the tool needs to do its job:</p>
+        <ul class="list-disc pl-6 space-y-2 text-violet-200/80">
+          <li><span class="text-violet-50">Your email — but only if you choose to save your results.</span> Take the assessment without saving and we never ask for it. There's no account to create.</li>
+          <li><span class="text-violet-50">Your assessment responses</span>, stored on their own so we can show you your reading and let you return to it. On their own they're just a set of scores — not tied to your name or anything about you unless you've saved with an email.</li>
+          <li><span class="text-violet-50">Basic, aggregate analytics</span> — roughly how many people visit and which pages they read. This is counting, not tracking; it isn't tied to who you are.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">What we do with it</h2>
+        <p class="mb-3">If you give us your email, we use it for two things and two things only:</p>
+        <ul class="list-disc pl-6 space-y-2 text-violet-200/80">
+          <li>To send you a link back to your saved results.</li>
+          <li>To send you occasional updates about the project — <span class="text-violet-50">only if you've opted in</span>, and you can stop those anytime.</li>
+        </ul>
+        <p class="mt-4">That's the whole list. <span class="text-violet-50">We never sell your data. We never share it with third parties</span> for advertising, profiling, or any other purpose. Your reflections are yours.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Where it's stored</h2>
+        <p>Your results and email live on Cloudflare's infrastructure, which hosts this site and its database. We keep the footprint small on purpose — the less we hold, the less there is to worry about.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Deleting your data</h2>
+        <p>Changed your mind? Email us at <a href="mailto:hello@artofsoulcraft.com" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">hello@artofsoulcraft.com</a> and ask us to delete what we have. We'll remove your email and saved results within 30 days — no questions, no friction.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Cookies</h2>
+        <p>Minimal, and only what's needed to make the assessment work while you're using it — session-level, not the kind that follow you around the web. We don't run advertising cookies or sell a profile of your browsing.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Questions</h2>
+        <p>If anything here is unclear, or you want to know exactly what we hold about you, write to <a href="mailto:hello@artofsoulcraft.com" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">hello@artofsoulcraft.com</a>. A real person will answer.</p>
+      </div>
+    </section>`;
+}
+function termsMain() {
+  return `    <section class="text-center pt-16 pb-8 md:pt-24">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">TERMS</p>
+      <h1 class="serif text-4xl md:text-6xl mb-4">The understanding between us</h1>
+      <p class="text-violet-200/80 text-lg max-w-xl mx-auto">A few honest terms for using The Art of Soulcraft. No fine print you need a lawyer to decode — just what this is, what it isn't, and what you can expect.</p>
+      <p class="text-violet-300/45 text-xs mt-4">Last updated July 2026</p>
+    </section>
+    <section class="max-w-2xl mx-auto pb-20 leading-relaxed text-violet-100/85 space-y-10">
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">What this is for</h2>
+        <p>The Art of Soulcraft is a tool for personal reflection and growth. It's meant to help you look at yourself with more honesty and more compassion — nothing more, and nothing less.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">What this is not</h2>
+        <p class="mb-3">This is <span class="text-violet-50">not clinical, and not a substitute for professional mental health support</span>. It doesn't diagnose, treat, or assess any condition. If you're struggling, please reach out to a qualified professional — a therapist, counselor, or physician. This tool can sit alongside that work, but it can never replace it.</p>
+        <p>Your results are <span class="text-violet-50">a map, not a diagnosis</span>. A map shows you terrain and possible paths; it doesn't tell you who you are or predict where you'll end up. Hold your reading lightly, as a mirror to think with — not a verdict.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Changes to the system</h2>
+        <p>This is a living project. We reserve the right to update the assessment, the writing, the features, and the pricing as it grows. We'll try to do so thoughtfully, but the system you use today may look different tomorrow.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Payments and refunds</h2>
+        <p>The paid tiers are digital products delivered instantly. Because of that, <span class="text-violet-50">we don't offer refunds once a reading has been accessed</span> — there's no way to un-see it. If something genuinely went wrong on our end, write to us and we'll make it right.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Age</h2>
+        <p>You must be at least 13 years old to use The Art of Soulcraft.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Whose work this is</h2>
+        <p>The assessment, the writing, the archetype system, and the design are the intellectual property of BridgeTender Studio. You're welcome to share your own results and talk about your experience; please don't copy or reproduce the underlying system as your own.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Questions</h2>
+        <p>Anything you'd like clarified? Write to <a href="mailto:hello@artofsoulcraft.com" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">hello@artofsoulcraft.com</a> — we're glad to talk.</p>
+      </div>
+    </section>`;
+}
 function pricingMain() {
   return `    <section class="text-center pt-16 pb-10 md:pt-24">
       <h1 class="serif text-4xl md:text-6xl mb-4">Pay once for the depth you want</h1>
@@ -672,6 +756,22 @@ write("my-results/index.html", page({
   canonical: "https://artofsoulcraft.com/my-results/",
   active: "results",
   main: myResultsMain()
+}));
+
+write("privacy/index.html", page({
+  title: "Privacy — The Art of Soulcraft",
+  description: "What we collect, what we do with it, and what we never do. Plain language, no legalese.",
+  canonical: "https://artofsoulcraft.com/privacy/",
+  active: "legal",
+  main: privacyMain()
+}));
+
+write("terms/index.html", page({
+  title: "Terms — The Art of Soulcraft",
+  description: "A tool for reflection, not a clinical diagnosis. The honest terms of using The Art of Soulcraft.",
+  canonical: "https://artofsoulcraft.com/terms/",
+  active: "legal",
+  main: termsMain()
 }));
 
 // Deep archetype pages — only those whose chapter prose exists in /content/archetypes.js.
