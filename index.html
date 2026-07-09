@@ -718,9 +718,9 @@ function TwelveWithin() {
                                     const hue = HUE(r.i);
                                     return React.createElement("div", { key: r.key, style: { border: `1px solid hsl(${hue},55%,74%)`, borderTop: `4px solid hsl(${hue},60%,54%)`, borderRadius: "9px", padding: "10px 10px", background: `hsl(${hue},70%,97.5%)`, pageBreakInside: "avoid" } },
                                         React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", color: `hsl(${hue},50%,40%)` } }, ["LOUDEST", "SECOND", "THIRD"][n] + " VOICE"),
-                                        React.createElement("h3", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.25rem", color: `hsl(${hue},55%,30%)`, marginBottom: "1px" } }, r.name),
-                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "10px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
-                                        React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "10.5px", lineHeight: "1.25", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
+                                        React.createElement("h3", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.4rem", color: `hsl(${hue},55%,30%)`, marginBottom: "1px" } }, r.name),
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "11.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
+                                        React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "12.5px", lineHeight: "1.3", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
                                 }))),
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "YOUR COMBINATIONS"),
                         React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "Your Blends"),
@@ -774,7 +774,7 @@ function TwelveWithin() {
                             React.createElement("span", { className: "text-xs font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},55%,38%)` } }, r.name),
                             React.createElement("span", { className: "text-xs italic", style: sans }, "  " + longsPhrase(r) + "  "),
                             React.createElement("span", { className: "text-xs", style: sans }, r.stages.join(" → ")))),
-                        React.createElement("h2", { className: "text-2xl mt-6 mb-3", style: serif }, "Full Ranking"),
+                        React.createElement("h2", { className: "text-2xl mb-3", style: { ...serif, marginTop: "36px" } }, "Full Ranking"),
                         ranked.map((r, i) => React.createElement("div", { key: r.key, className: "mb-1", style: { display: "flex", alignItems: "center", gap: "8px", pageBreakInside: "avoid" } },
                             React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "18px", textAlign: "right", fontSize: "11px", color: "#8a86a0", flexShrink: 0 } }, (i + 1) + "."),
                             React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "94px", fontSize: "12px", fontWeight: "600", color: `hsl(${HUE(r.i)},55%,40%)`, flexShrink: 0 } }, r.name),
@@ -929,7 +929,7 @@ function TwelveWithin() {
                         // dated footer line lives on the last report page instead. (Fully
                         // removing the browser's URL/date/page-number chrome is the print
                         // dialog's "Headers and footers" toggle — not controllable from CSS.)
-                        const reportDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+                        const reportDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long" });
                         const body = src.innerHTML.split("__PRINTDATE__").join(reportDate);
                         doc.write("<!DOCTYPE html><html><head><title></title><style>" + printCSS + " " + grayscaleRule + "</style></head><body>" + body + "</body></html>");
                         doc.close();
@@ -940,6 +940,7 @@ function TwelveWithin() {
                         };
                     } }, "Print your mandala"),
                     React.createElement(Btn, { onClick: restart }, "Start over")),
+                React.createElement("p", { className: "text-center text-violet-300/45 text-xs mt-3", style: sans }, "Tip: to hide your browser's own date and web address on the printout, turn off “Headers and footers” in the print dialog (More settings)."),
                 !isSample && saveStatus === "saved" && !emailSent && React.createElement("div", { className: "mt-6 rounded-2xl border border-violet-300/18 px-5 py-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-sm text-violet-200/85 mb-3", style: sans }, "Want a link to find this again? Enter your email (optional) \u2014 no account, no newsletter, just a way back."),
                     React.createElement("div", { className: "flex gap-2" },
