@@ -12,7 +12,7 @@
 // ============================================================
 
 const RECIPIENT = "marcgsimmons@gmail.com";            // temporary; can move to a branded inbox later
-const FROM = "The Art of Soulcraft <contact@artofsoulcraft.com>"; // must be a Resend-verified sender
+const FROM = "The Art of Soulcraft <hello@artofsoulcraft.com>"; // must be a Resend-verified sender
 
 function esc(s) {
   return String(s == null ? "" : s).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
