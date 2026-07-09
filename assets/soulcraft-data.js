@@ -73,8 +73,7 @@
   };
 
   // One-line "texture" of each pairing, verbatim from The 66 — Blend Lexicon (July 2026).
-  // 65 of 66 have a description; The Faithful (Lover+Innocent) has none in Notion yet,
-  // so it is intentionally absent and renders blank.
+  // All 66 pairings now have a description.
   var BLEND_TEXTURES = {
     "caregiver|lover": "Love that tends.",
     "everyman|lover": "Warmth as welcome.",
@@ -86,6 +85,7 @@
     "lover|rebel": "Love untamed by convention.",
     "lover|trickster": "Play meets desire.",
     "lover|mystic": "Love aimed at the infinite.",
+    "innocent|lover": "Love that doesn't keep score.",
     "caregiver|everyman": "Shows up because that's what neighbors do.",
     "caregiver|ruler": "Authority exercised through tending.",
     "caregiver|warrior": "Fierce in care.",
