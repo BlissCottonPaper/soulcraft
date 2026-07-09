@@ -158,12 +158,14 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
     const secPts = showBlends ? pairs.map(([i, j], k) => ({ xy: midXY(i, j, R, c, top3[2 - k]), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") })) : [];
     // Colors tuned for a dark background don't work on white paper — every
     // color below has a print-mode alternative, chosen for legibility on white.
-    const wheelStroke = forPrint ? "rgba(80,80,90,0.35)" : "rgba(210,200,240,0.14)";
+    // Print: hardcode an explicit soft gray on the ring AND every spoke so black
+    // never appears regardless of the print engine's defaults or grayscale filter.
+    const wheelStroke = forPrint ? "rgba(150,150,150,0.4)" : "rgba(210,200,240,0.14)";
     // Spokes and the inner blend triangle carry no meaning of their own — match them
-    // to the ring's muted gray so ONLY the gold top-three triangle (and its blend
+    // to the ring's soft gray so ONLY the gold top-three triangle (and its blend
     // points) stand out, instead of competing dark lines fanning out from center.
-    const spokeStroke = wheelStroke;
-    const secPolyStroke = wheelStroke;
+    const spokeStroke = forPrint ? "rgba(150,150,150,0.3)" : "rgba(210,200,240,0.07)";
+    const secPolyStroke = spokeStroke;
     const blendLabelFill = forPrint ? "rgba(40,38,45,0.9)" : "rgba(224,218,246,0.82)";
     const dotStroke = forPrint ? "rgba(60,55,65,0.5)" : "rgba(255,255,255,0.5)";
     const labelFillTop = forPrint ? "rgba(20,18,25,0.95)" : "rgba(244,240,255,0.95)";
@@ -698,44 +700,43 @@ function TwelveWithin() {
                 React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
 // ===== PRINT PAGE 1 - Your Mandala + Top Three =====
-                    React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "34px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
-                        React.createElement("div", { className: "flex justify-between items-baseline mb-3" },
+                    React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px", boxSizing: "border-box" } },
+                        React.createElement("div", { className: "flex justify-between items-baseline mb-2" },
                             React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE MANDALA" : "YOUR MANDALA"),
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
-                        React.createElement("h1", { className: "text-4xl text-center mb-2", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" · ")),
-                        React.createElement("div", { className: "flex justify-center mb-4", style: { width: "100%" } },
-                            React.createElement("div", { style: { width: "4.4in", maxWidth: "100%" } },
+                        React.createElement("h1", { className: "text-4xl text-center mb-1", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" · ")),
+                        React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
+                            React.createElement("div", { style: { width: "5.6in", maxWidth: "100%" } },
                                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true }))),
                         TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR TOP THREE, IN DEPTH"),
-                        TIERS[tier].topCount >= 3 && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" } },
+                        TIERS[tier].topCount >= 3 && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", pageBreakInside: "avoid" } },
                             ranked.slice(0, 3).map((r, n) => {
                                 const hue = HUE(r.i);
-                                return React.createElement("div", { key: r.key, style: { border: `1.5px solid hsl(${hue},55%,72%)`, borderTop: `5px solid hsl(${hue},60%,52%)`, borderRadius: "10px", padding: "12px 10px", background: `hsl(${hue},70%,97%)`, pageBreakInside: "avoid" } },
+                                return React.createElement("div", { key: r.key, style: { border: `1.5px solid hsl(${hue},55%,72%)`, borderTop: `5px solid hsl(${hue},60%,52%)`, borderRadius: "10px", padding: "10px 9px", background: `hsl(${hue},70%,97%)`, pageBreakInside: "avoid" } },
                                     React.createElement("p", { className: "text-[8.5px] tracking-[0.16em]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},50%,38%)` } }, ["LOUDEST", "SECOND", "THIRD"][n] + " VOICE"),
                                     React.createElement("h3", { className: "text-lg mb-0.5", style: { fontFamily: "'Cormorant Garamond', Georgia, serif", color: `hsl(${hue},55%,30%)` } }, r.name),
-                                    React.createElement("p", { className: "text-[9px] italic mb-1.5", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},35%,45%)` } }, longsPhrase(r)),
+                                    React.createElement("p", { className: "text-[9px] italic mb-1", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},35%,45%)` } }, longsPhrase(r)),
                                     React.createElement("div", null, [4, 3, 2, 1, 0].map((s) => React.createElement("p", { key: s, className: "text-[9.5px]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: s === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,50%)`, fontWeight: s === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[s]))));
                             })),
-                        React.createElement("div", { style: { marginTop: "auto" } },
-                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life — and you'll call it fate."))),
+                        React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "Until the unconscious becomes conscious, it will direct your life — and you'll call it fate.")),
 
                     // ===== PRINT PAGE 2 - Your Blends + Your Edges =====
-                    TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "40px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                    TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "YOUR COMBINATIONS"),
-                        React.createElement("h2", { className: "text-2xl mb-4", style: serif }, "Your Blends"),
-                        React.createElement("p", { className: "text-sm mb-6", style: { ...sans, color: "#5a5570" } }, "Where two of your primary voices meet, a third quality appears — the texture of how you actually move through the world."),
+                        React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "Your Blends"),
+                        React.createElement("p", { className: "text-sm mb-4", style: { ...sans, color: "#5a5570" } }, "Where two of your primary voices meet, a third quality appears — the texture of how you actually move through the world."),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                             const nm = blendName(ranked[a], ranked[b]);
                             const tx = blendTexture(ranked[a], ranked[b]);
-                            return React.createElement("div", { key: a + "-" + b, className: "mb-4", style: { borderBottom: "1px solid #eee", paddingBottom: "12px", pageBreakInside: "avoid" } },
+                            return React.createElement("div", { key: a + "-" + b, className: "mb-3", style: { borderBottom: "1px solid #eee", paddingBottom: "9px", pageBreakInside: "avoid" } },
                                 React.createElement("p", { className: "text-lg", style: { ...serif, color: "#2a2340" } },
                                     ranked[a].name + " × " + ranked[b].name + " → ",
                                     React.createElement("span", { style: { color: nm ? "#9a7a1e" : "#8a86a0", fontStyle: nm ? "normal" : "italic" } }, nm || "unnamed")),
                                 tx && React.createElement("p", { className: "text-sm italic", style: { ...serif, color: "#6b6580" } }, tx));
                         }),
-                        React.createElement("div", { style: { marginTop: "auto" } },
-                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-3", style: sans }, "YOUR EDGES"),
-                            TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-2", style: sans },
+                        React.createElement("div", { className: "mt-4", style: { pageBreakInside: "avoid" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR EDGES"),
+                            TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-1", style: sans },
                                 React.createElement("strong", null, "Quietest voice: "), ranked[11].name, " — your lowest-scoring voice"),
                             React.createElement("p", { className: "text-sm", style: sans },
                                 React.createElement("strong", null, "An Intentional Practice: "), growthName,
@@ -748,7 +749,7 @@ function TwelveWithin() {
                         const prof = temperamentProfile(radarScores);
                         const caseCopy = prof.allLoud ? ALL_LOUD_COPY : prof.allQuiet ? ALL_QUIET_COPY : null;
                         const blocks = ranked.slice(0, 3).map((a) => ({ a: a, readout: temperamentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
-                        return React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "30px 34px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                        return React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px 24px", boxSizing: "border-box" } },
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "HOW YOU'RE WIRED"),
                             React.createElement("h2", { className: "text-2xl mb-1", style: serif }, "Your Temperament Profile"),
                             React.createElement("p", { className: "text-xs mb-1", style: { ...sans, color: "#6b6580" } }, "Temperament is your first natural impulse — Kahneman's System 1 before System 2. Like your dominant hand, you didn't choose it, but you can develop the others with intention."),
@@ -758,34 +759,35 @@ function TwelveWithin() {
                             caseCopy && React.createElement("p", { className: "text-xs mb-2", style: { ...sans, color: "#4a4560" } }, caseCopy),
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "HOW YOUR TOP VOICES SHOW UP"),
                             blocks.map(({ a, readout }) => {
-                                const s = readout.items[0];   // print shows one line — the loudest temperament only
+                                const loudItem = readout.items.find((x) => x.kind === "loud");            // loudest temperament prose
+                                const practiceItem = readout.items.slice().reverse().find((x) => x.kind === "practice");  // quietest temperament practice
                                 return React.createElement("div", { key: a.key, className: "mb-2", style: { borderTop: "1px solid #eee", paddingTop: "5px", pageBreakInside: "avoid" } },
                                     React.createElement("p", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(a.i)},55%,34%)` } }, a.name),
-                                    s && React.createElement("p", { style: { ...sans, fontSize: "10.5px", lineHeight: "1.35", color: s.kind === "loud" ? "#4a4560" : "#8a6a2a", marginBottom: "2px" } }, (s.kind === "loud" ? "How this shows up · " : "An Intentional Practice · ") + s.temperament + " — " + s.text));
+                                    loudItem && React.createElement("p", { style: { ...sans, fontSize: "10.5px", lineHeight: "1.3", color: "#4a4560", marginBottom: "2px" } }, "How this shows up · " + loudItem.temperament + " — " + loudItem.text),
+                                    practiceItem && React.createElement("p", { style: { ...sans, fontSize: "10.5px", lineHeight: "1.3", color: "#8a6a2a", marginBottom: "2px" } }, "An Intentional Practice · " + practiceItem.temperament + " — " + practiceItem.text));
                             }));
                     })(),
 
-                                        // ===== PRINT PAGE 4 - The Remaining Nine =====
-                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "36px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                    // ===== PRINT PAGE 4 - The Remaining Nine =====
+                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
-                        React.createElement("h2", { className: "text-2xl mb-5", style: serif }, "The Remaining Nine"),
+                        React.createElement("h2", { className: "text-2xl mb-4", style: serif }, "The Remaining Nine"),
                         ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "6px", pageBreakInside: "avoid" } },
                             React.createElement("span", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},55%,38%)` } }, r.name),
                             React.createElement("span", { className: "text-xs italic", style: sans }, "  " + longsPhrase(r) + "  "),
                             React.createElement("span", { className: "text-xs", style: sans }, r.stages.join(" → ")))),
-                        React.createElement("div", { style: { marginTop: "auto" } },
-                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "A map, not a fortune. Wherever you stand today, take one rung up."))),
+                        React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "A map, not a fortune. Wherever you stand today, take one rung up.")),
 
                     // ===== PRINT PAGE 5 - Full Ranking =====
-                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "36px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
-                        React.createElement("h2", { className: "text-2xl mb-5", style: serif }, "Full Ranking"),
-                        ranked.map((r) => React.createElement("div", { key: r.key, className: "mb-2", style: { display: "flex", alignItems: "center", gap: "10px" } },
-                            React.createElement("span", { style: { ...sans, width: "92px", textAlign: "right", fontSize: "12px", color: "#4a4560", flexShrink: 0 } }, r.name),
-                            React.createElement("div", { style: { flex: 1, height: "9px", borderRadius: "5px", background: "#eee", overflow: "hidden" } },
+                        React.createElement("h2", { className: "text-2xl mb-4", style: serif }, "Full Ranking"),
+                        ranked.map((r, i) => React.createElement("div", { key: r.key, className: "mb-2", style: { display: "flex", alignItems: "center", gap: "8px", pageBreakInside: "avoid" } },
+                            React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "20px", textAlign: "right", fontSize: "11px", color: "#8a86a0", flexShrink: 0 } }, (i + 1) + "."),
+                            React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "96px", fontSize: "12px", color: "#3a3550", flexShrink: 0 } }, r.name),
+                            React.createElement("div", { style: { flex: "1 1 0%", height: "9px", borderRadius: "5px", background: "#eee", overflow: "hidden" } },
                                 React.createElement("div", { style: { height: "100%", borderRadius: "5px", width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},55%,55%)` } })))),
-                        React.createElement("div", { style: { marginTop: "auto" } },
-                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "The Art of Soulcraft · artofsoulcraft.com")))),
+                        React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "The Art of Soulcraft · artofsoulcraft.com"))),
                 // \u2550\u2550 SECTION \u2014 Your Pattern: your top three, in depth (altitude ladders) \u2550\u2550
                 sectionHeader("Your Pattern", "YOUR TOP THREE, IN DEPTH"),
                 ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
@@ -892,31 +894,39 @@ function TwelveWithin() {
                         const printCSS = `
                           @page { size: letter; margin: 0.5in; }
                           * { box-sizing: border-box; }
-                          body { font-family: 'Source Sans 3', system-ui, sans-serif; color: #241d42; margin: 0; padding: 20px; }
-                          h1, h3 { font-family: 'Cormorant Garamond', Georgia, serif; margin: 0; }
-                          .print-page { page-break-after: always; }
-                          .print-page:last-child { page-break-after: auto; }
+                          body { font-family: 'Source Sans 3', system-ui, sans-serif; color: #241d42; margin: 0; padding: 12px; }
+                          h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; margin: 0; }
+                          /* Each major section is its own .print-page and starts on a fresh sheet. */
+                          .print-page { page-break-before: always; break-before: page; page-break-inside: auto; }
+                          .print-page:first-child { page-break-before: avoid; break-before: avoid; }
                           .flex { display: flex; width: 100%; }
                           .justify-between { justify-content: space-between; }
                           .justify-center { justify-content: center; }
                           .items-baseline { align-items: baseline; }
+                          .items-center { align-items: center; }
                           .text-center { text-align: center; }
-                          .text-4xl { font-size: 2.25rem; line-height: 1.2; }
-                          .text-2xl { font-size: 1.5rem; }
-                          .text-sm { font-size: 0.875rem; }
-                          .text-xs { font-size: 0.75rem; }
+                          .text-4xl { font-size: 2.1rem; line-height: 1.15; }
+                          .text-2xl { font-size: 1.4rem; }
+                          .text-lg { font-size: 1.05rem; }
+                          .text-sm { font-size: 0.85rem; }
+                          .text-xs { font-size: 0.72rem; }
                           .italic { font-style: italic; }
                           .font-normal { font-weight: 400; }
-                          .mb-1 { margin-bottom: 0.25rem; }
-                          .mb-2 { margin-bottom: 0.5rem; }
-                          .mb-4 { margin-bottom: 1rem; }
-                          .mb-6 { margin-bottom: 1.5rem; }
-                          .mb-8 { margin-bottom: 2rem; }
-                          .mb-10 { margin-bottom: 2.5rem; }
-                          .mt-6 { margin-top: 1.5rem; }
-                          .mt-10 { margin-top: 2.5rem; }
-                          .pb-4 { padding-bottom: 1rem; }
-                          .p-10 { padding: 2.5rem; }
+                          .font-semibold { font-weight: 600; }
+                          /* Margins reduced ~35% vs screen so sections don't spill onto extra pages. */
+                          .mb-1 { margin-bottom: 0.18rem; }
+                          .mb-2 { margin-bottom: 0.32rem; }
+                          .mb-3 { margin-bottom: 0.5rem; }
+                          .mb-4 { margin-bottom: 0.62rem; }
+                          .mb-5 { margin-bottom: 0.78rem; }
+                          .mb-6 { margin-bottom: 0.95rem; }
+                          .mb-8 { margin-bottom: 1.25rem; }
+                          .mb-10 { margin-bottom: 1.6rem; }
+                          .mt-4 { margin-top: 0.62rem; }
+                          .mt-6 { margin-top: 0.95rem; }
+                          .mt-10 { margin-top: 1.6rem; }
+                          .pb-4 { padding-bottom: 0.62rem; }
+                          .p-10 { padding: 1.6rem; }
                         `;
                         doc.write("<!DOCTYPE html><html><head><title>The Art of Soulcraft</title><style>" + printCSS + " " + grayscaleRule + "</style></head><body>" + src.innerHTML + "</body></html>");
                         doc.close();
