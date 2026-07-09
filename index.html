@@ -142,9 +142,11 @@ const midXY = (i, j, R, c, thirdIdx) => {
     const radius = R / 2;
     return [c + ux * radius, c + uy * radius];
 };
-// Sample profile — a realistic Sage · Lover · Rebel reading (Trickster quietest),
+// Sample profile — a realistic Sage · Creator · Mystic reading (Ruler quietest),
 // paired with a Mind=4 · Soul=3 · Heart=2 · Body=1 temperament (kite toward Mind/Soul).
-const SAMPLE_WINS = { sage: 21, lover: 18, rebel: 16, explorer: 14, creator: 13, mystic: 12, ruler: 11, caregiver: 9, warrior: 8, everyman: 7, innocent: 5, trickster: 3 };
+// Sage's fixed growth edge is Lover, kept OUTSIDE the top three so the sample does
+// not demonstrate the "growth edge is also a top voice" overlap case.
+const SAMPLE_WINS = { sage: 21, creator: 18, mystic: 16, explorer: 14, warrior: 13, rebel: 12, everyman: 11, caregiver: 9, innocent: 8, trickster: 7, lover: 6, ruler: 3 };
 /* ---------- components ---------- */
 function Mandala({ ranked, topCount = 3, forPrint = false }) {
     const c = 170, R = 128;
@@ -745,7 +747,7 @@ function TwelveWithin() {
                         React.createElement("p", { className: "text-sm mb-6", style: sans },
                             React.createElement("strong", null, "Growth edge: "), growthName,
                             growthIsTopVoice
-                                ? ` — also your ${GROWTH_ORD[growthIdx]} voice; growth means drawing on it more deliberately, not building it from nothing`
+                                ? ` — also your ${GROWTH_ORD[growthIdx]} voice; you already carry this energy, so growth means drawing on it more consciously and deliberately, not building it from scratch`
                                 : " — the fixed complement to your loudest voice"),
                         TIERS[tier].showFullRanking && React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-3", style: sans }, "THE REMAINING NINE"),
                         TIERS[tier].showFullRanking && ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "6px" } },
@@ -848,7 +850,7 @@ function TwelveWithin() {
                     growthIsTopVoice
                         ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
                             React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
-                            ` is both your ${GROWTH_ORD[growthIdx]} voice and your growth edge \u2014 you already carry real ${growthName} energy, so growth here means drawing on it more deliberately, not building it from nothing.`)
+                            ` is both your ${GROWTH_ORD[growthIdx]} voice and your growth edge \u2014 you already carry real ${growthName} energy, so growth here means drawing on it more consciously and deliberately, not building it from scratch.`)
                         : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
                             "Across the wheel sits ",
                             React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
