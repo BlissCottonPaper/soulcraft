@@ -22,6 +22,7 @@
     root.HUE = data.HUE;
     root.BLEND_NAMES = data.BLEND_NAMES;
     root.BLEND_TEXTURES = data.BLEND_TEXTURES;
+    root.BLEND_SHADOW_TEXTURES = data.BLEND_SHADOW_TEXTURES;
     root.TEMPERAMENT_EXPRESSIONS = data.TEMPERAMENT_EXPRESSIONS;
     root.TEMPERAMENTS = data.TEMPERAMENTS;
   }
@@ -143,6 +144,80 @@
     "innocent|mystic": "Blameless before mystery."
   };
 
+  // ⚠️ DRAFT COPY — NOT FINAL. One "as shadow material" line per pairing, for the
+  // Shadow Mandala (the disowned bottom-three). Each says what the pairing looks
+  // like when disowned and what integrating it makes possible. Generated from the
+  // light texture as a first pass; every line is flagged in the UI as a draft for
+  // Marc to review and rewrite before launch. Keyed identically to BLEND_TEXTURES.
+  var BLEND_SHADOW_TEXTURES = {
+    "caregiver|lover": "Disowned, care and desire split — you either smother or withhold; claimed, you can love someone and tend to them without losing yourself in either.",
+    "everyman|lover": "Disowned, the wish to belong curdles into performing a warmth you don't feel; claimed, you can open to people without needing them to make you feel chosen.",
+    "lover|ruler": "Disowned, the longing for closeness hides inside control of the household; claimed, you can build a home that holds intimacy rather than replacing it.",
+    "lover|warrior": "Disowned, passion shows up only as jealousy or the fight to keep what you love; claimed, you can defend what you cherish without possessing it.",
+    "creator|lover": "Disowned, strong feeling stays mute or leaks out as drama; claimed, you can turn what moves you into something made.",
+    "lover|sage": "Disowned, you retreat into analysis to avoid being touched; claimed, you can let understanding and feeling inform each other.",
+    "explorer|lover": "Disowned, restlessness keeps you from ever fully arriving with anyone; claimed, you can be devoted and still free.",
+    "lover|rebel": "Disowned, desire only surfaces as breaking rules or people; claimed, you can love on your own terms without burning it down.",
+    "lover|trickster": "Disowned, flirtation deflects real closeness; claimed, you can bring lightness to intimacy instead of hiding behind it.",
+    "lover|mystic": "Disowned, you spiritualize longing to avoid an actual human bond; claimed, you can let the sacred deepen a real relationship.",
+    "innocent|lover": "Disowned, you either give without limit or armor against being hurt; claimed, you can love openly and still keep faith with yourself.",
+    "caregiver|everyman": "Disowned, you resent the helping you can't stop doing; claimed, you can show up for others by choice rather than compulsion.",
+    "caregiver|ruler": "Disowned, care becomes control dressed as concern; claimed, you can carry responsibility for others without running their lives.",
+    "caregiver|warrior": "Disowned, protectiveness turns into fighting battles no one asked you to fight; claimed, you can stand up for people without taking away their agency.",
+    "caregiver|creator": "Disowned, you tend everyone else's growth and neglect your own making; claimed, you can nurture others and still create for yourself.",
+    "caregiver|sage": "Disowned, you analyze others' pain to keep from feeling your own; claimed, you can bring insight and care to the same wound.",
+    "caregiver|explorer": "Disowned, you flee whenever caring gets heavy; claimed, you can stay present to others without feeling trapped.",
+    "caregiver|rebel": "Disowned, compassion only appears as outrage at injustice; claimed, you can let care, not just anger, move you to act.",
+    "caregiver|trickster": "Disowned, you joke to avoid tending anything real; claimed, you can use humor to lighten care rather than dodge it.",
+    "caregiver|innocent": "Disowned, tenderness feels dangerous, so you harden; claimed, you can stay soft without being naive.",
+    "caregiver|mystic": "Disowned, you avoid the depths where care is most needed; claimed, you can accompany others through the hardest passages.",
+    "everyman|ruler": "Disowned, the wish to belong keeps you from ever stepping up; claimed, you can lead without losing your place among people.",
+    "everyman|warrior": "Disowned, you shrink from any fight that would single you out; claimed, you can defend the common good without needing to stay invisible.",
+    "creator|everyman": "Disowned, you dismiss your own originality to fit in; claimed, you can make something distinct and still belong.",
+    "everyman|sage": "Disowned, you hide what you know to avoid standing apart; claimed, you can share understanding without needing permission.",
+    "everyman|explorer": "Disowned, you drift to avoid the risk of really belonging; claimed, you can move freely and still put down roots.",
+    "everyman|rebel": "Disowned, you go along to get along and swallow the dissent; claimed, you can belong and still say what's wrong.",
+    "everyman|trickster": "Disowned, your wit turns into passive undermining; claimed, you can use cleverness openly rather than from the shadows.",
+    "everyman|innocent": "Disowned, you make yourself so agreeable you disappear; claimed, you can be dependable without erasing yourself.",
+    "everyman|mystic": "Disowned, you keep your inner life hidden to seem normal; claimed, you can let depth show inside an ordinary life.",
+    "ruler|warrior": "Disowned, the will to organize only surfaces as domination; claimed, you can hold order and strength without becoming a tyrant.",
+    "creator|ruler": "Disowned, you either refuse structure or impose it rigidly; claimed, you can build systems that free rather than confine.",
+    "ruler|sage": "Disowned, you avoid authority so you never have to be wrong; claimed, you can decide and stay accountable to truth.",
+    "explorer|ruler": "Disowned, you resist committing to anything you'd have to maintain; claimed, you can found something and stay to tend it.",
+    "rebel|ruler": "Disowned, you tear down without building anything back; claimed, you can challenge power and then take responsibility for it.",
+    "ruler|trickster": "Disowned, control and mischief split into rigidity or chaos; claimed, you can hold authority lightly enough to keep it honest.",
+    "innocent|ruler": "Disowned, you refuse power because it feels corrupting; claimed, you can hold authority without losing your good faith.",
+    "mystic|ruler": "Disowned, vision stays private and guides no one; claimed, you can bring inner sight into real leadership.",
+    "creator|warrior": "Disowned, drive turns destructive or stalls in perfectionism; claimed, you can put force behind what you make.",
+    "sage|warrior": "Disowned, you think instead of act, or act without thought; claimed, you can pair clear judgment with the will to follow through.",
+    "explorer|warrior": "Disowned, you pick fights to keep yourself moving; claimed, you can be bold without needing an enemy.",
+    "rebel|warrior": "Disowned, the fight for justice curdles into rage; claimed, you can channel anger into disciplined action.",
+    "trickster|warrior": "Disowned, you avoid every direct confrontation; claimed, you can pick your battles with cunning rather than fear.",
+    "innocent|warrior": "Disowned, you suppress your strength to stay nice; claimed, you can be forceful without becoming hard.",
+    "mystic|warrior": "Disowned, you either fight for nothing higher or dream without discipline; claimed, you can put real rigor behind what you hold sacred.",
+    "creator|sage": "Disowned, ideas stay abstract or never get made; claimed, you can turn understanding into something built.",
+    "creator|explorer": "Disowned, curiosity scatters and finishes nothing; claimed, you can wander widely and still bring back a map.",
+    "creator|rebel": "Disowned, you break things without making anything new; claimed, you can dismantle old forms in service of a better one.",
+    "creator|trickster": "Disowned, cleverness hides that you're not saying anything real; claimed, you can use wit to reveal rather than deflect.",
+    "creator|innocent": "Disowned, you distrust your own imagination as naive; claimed, you can create from wonder without shame.",
+    "creator|mystic": "Disowned, vision stays formless and unshared; claimed, you can give shape to what you intuit.",
+    "explorer|sage": "Disowned, you keep seeking so you never have to conclude; claimed, you can let real inquiry reach real ground.",
+    "rebel|sage": "Disowned, contrarianism stands in for genuine understanding; claimed, you can question orthodoxy in the name of truth, not just defiance.",
+    "sage|trickster": "Disowned, you undercut everyone's certainty, including your own footing; claimed, you can puncture false certainty and still stand for something.",
+    "innocent|sage": "Disowned, you feign not-knowing to dodge responsibility for what you do know; claimed, you can stay curious without playing dumb.",
+    "mystic|sage": "Disowned, you keep insight private or doubt it entirely; claimed, you can trust inner knowing enough to live it.",
+    "explorer|rebel": "Disowned, independence hardens into reflexive opposition; claimed, you can go your own way without defining yourself against everyone.",
+    "explorer|trickster": "Disowned, you slip past every boundary to avoid commitment; claimed, you can cross lines with purpose rather than just to escape.",
+    "explorer|innocent": "Disowned, you either fear the new or chase it blindly; claimed, you can meet the unknown with open, clear eyes.",
+    "explorer|mystic": "Disowned, seeking becomes endless spiritual tourism; claimed, you can let the outer journey serve an inner one.",
+    "rebel|trickster": "Disowned, everything becomes cynicism that risks nothing; claimed, you can use humor to resist without hiding behind it.",
+    "innocent|rebel": "Disowned, you stay silent to keep the peace; claimed, you can speak the plain truth without needing to be right.",
+    "mystic|rebel": "Disowned, defiance loses its grounding and becomes noise; claimed, you can challenge power from a place of real conviction.",
+    "innocent|trickster": "Disowned, playfulness gets buried under seriousness or turns sharp; claimed, you can be mischievous in a way that heals rather than wounds.",
+    "mystic|trickster": "Disowned, you shapeshift so much that no one, including you, finds the center; claimed, you can move fluidly and still stay whole.",
+    "innocent|mystic": "Disowned, you avoid the depths to keep your innocence intact; claimed, you can face mystery without losing your trust."
+  };
+
   var TEMPERAMENT_EXPRESSIONS = {
     lover: { heart: "The Sweetheart", mind: "The Admirer", body: "The Embracer", soul: "The Adorer" },
     caregiver: { heart: "The Comforter", mind: "The Coordinator", body: "The Provider", soul: "The Tender" },
@@ -175,6 +250,7 @@
     HUE: HUE,
     BLEND_NAMES: BLEND_NAMES,
     BLEND_TEXTURES: BLEND_TEXTURES,
+    BLEND_SHADOW_TEXTURES: BLEND_SHADOW_TEXTURES,
     TEMPERAMENT_EXPRESSIONS: TEMPERAMENT_EXPRESSIONS,
     TEMPERAMENTS: TEMPERAMENTS,
     pairingName: pairingName

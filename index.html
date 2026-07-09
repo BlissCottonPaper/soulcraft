@@ -148,11 +148,15 @@ const midXY = (i, j, R, c, thirdIdx) => {
 // not demonstrate the "growth edge is also a top voice" overlap case.
 const SAMPLE_WINS = { sage: 21, creator: 18, mystic: 16, explorer: 14, warrior: 13, rebel: 12, everyman: 11, caregiver: 9, innocent: 8, trickster: 7, lover: 6, ruler: 3 };
 /* ---------- components ---------- */
-function Mandala({ ranked, topCount = 3, forPrint = false }) {
+function Mandala({ ranked, topCount = 3, forPrint = false, shadow = false }) {
     const c = 170, R = 128;
     const idx = (key) => ARCHETYPES.findIndex((a) => a.key === key);
-    const showBlends = topCount >= 3;
-    const top3 = ranked.slice(0, Math.min(3, topCount)).map((r) => idx(r.key));
+    // Shadow mandala: same wheel, same geometry — but the THREE highlighted nodes
+    // and their blend triangle are the bottom three (the disowned), drawn in a
+    // cooler, deeper color that reads as depth rather than negativity.
+    const showBlends = shadow ? ranked.length >= 3 : topCount >= 3;
+    const three = shadow ? ranked.slice(-3) : ranked.slice(0, Math.min(3, topCount));
+    const top3 = three.map((r) => idx(r.key));
     const triPts = showBlends ? top3.map((i) => nodeXY(i, R, c)) : [];
     const pairs = showBlends ? [[top3[0], top3[1]], [top3[0], top3[2]], [top3[1], top3[2]]] : [];
     const secPts = showBlends ? pairs.map(([i, j], k) => ({ xy: midXY(i, j, R, c, top3[2 - k]), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") })) : [];
@@ -167,12 +171,21 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
     const secPolyStroke = forPrint ? "#d5d5d5" : "rgba(210,200,240,0.07)";
     const blendLabelFill = forPrint ? "rgba(40,38,45,0.9)" : "rgba(224,218,246,0.82)";
     const dotStroke = forPrint ? "#c4c4c4" : "rgba(255,255,255,0.5)";
-    const labelFillTop = forPrint ? "rgba(20,18,25,0.95)" : "rgba(244,240,255,0.95)";
+    const labelFillTop = shadow
+        ? (forPrint ? "rgba(40,44,90,0.95)" : "rgba(214,220,255,0.95)")
+        : (forPrint ? "rgba(20,18,25,0.95)" : "rgba(244,240,255,0.95)");
     const labelFillOther = forPrint ? "rgba(60,55,68,0.75)" : "rgba(196,190,222,0.62)";
-    const nodeStrokeTop = forPrint ? "rgba(255,255,255,0.9)" : "rgba(255,252,240,0.95)";
+    const nodeStrokeTop = shadow
+        ? (forPrint ? "rgba(88,98,168,0.95)" : "rgba(199,210,254,0.95)")
+        : (forPrint ? "rgba(255,255,255,0.9)" : "rgba(255,252,240,0.95)");
     const nodeStrokeOther = forPrint ? "#c4c4c4" : "rgba(255,255,255,0.25)";
     const youFill = forPrint ? "rgba(60,50,20,0.85)" : "rgba(235,228,255,0.7)";
-    const triStroke = forPrint ? "rgba(180,130,40,0.95)" : "rgba(233,196,124,0.9)";
+    // The blend triangle color: gold for the light mandala, a cool deep indigo for
+    // the shadow — depth, not danger (never black, never red).
+    const triStroke = shadow
+        ? (forPrint ? "rgba(70,80,150,0.92)" : "rgba(129,140,248,0.9)")
+        : (forPrint ? "rgba(180,130,40,0.95)" : "rgba(233,196,124,0.9)");
+    const triFill = shadow ? "rgba(120,130,220,0.07)" : "rgba(255,250,235,0.06)";
     return (React.createElement("svg", { viewBox: "-30 -30 400 400", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
         React.createElement("defs", null,
             React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
@@ -184,7 +197,7 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
             const [x, y] = nodeXY(i, R, c);
             return React.createElement("line", { key: "sp" + i, x1: c, y1: c, x2: x, y2: y, stroke: spokeStroke, strokeWidth: "1" });
         }),
-        showBlends && React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: "rgba(255,250,235,0.06)", stroke: triStroke, strokeWidth: "1.5", strokeLinejoin: "round" }),
+        showBlends && React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: triFill, stroke: triStroke, strokeWidth: "1.5", strokeLinejoin: "round" }),
         showBlends && React.createElement("polygon", { points: secPts.map((p) => p.xy.join(",")).join(" "), fill: "none", stroke: secPolyStroke, strokeWidth: "1", strokeLinejoin: "round" }),
         showBlends && secPts.map((p, k) => {
             // Push each blend's label radially outward from center (c,c),
@@ -326,9 +339,11 @@ function temperamentReadout(archetypeKey, profile) {
 // Swapping in real payment later means setting this from a verified purchase
 // instead of a button click — nothing else in the app needs to change.
 const TIERS = {
-    free:  { label: "Free",  topCount: 1,  showBlends: false, showTemperament: false, showFullRanking: false, showQuietest: false, pairMode: "quick" },
-    triad: { label: "Triad", topCount: 3,  showBlends: true,  showTemperament: false, showFullRanking: false, showQuietest: true,  pairMode: "quick" },
-    full:  { label: "Full",  topCount: 12, showBlends: true,  showTemperament: true,  showFullRanking: true,  showQuietest: true,  pairMode: "full"  },
+    free:  { label: "Free",  topCount: 1,  showBlends: false, showTemperament: false, showFullRanking: false, showQuietest: false, showShadow: false, pairMode: "quick" },
+    triad: { label: "Triad", topCount: 3,  showBlends: true,  showTemperament: false, showFullRanking: false, showQuietest: true,  showShadow: false, pairMode: "quick" },
+    // Shadow Mandala only in the full "Light + Shadow" tier: naming the disowned
+    // bottom three reliably needs the complete 66-item ranking, not a partial one.
+    full:  { label: "Full",  topCount: 12, showBlends: true,  showTemperament: true,  showFullRanking: true,  showQuietest: true,  showShadow: true,  pairMode: "full"  },
 };
 
 /* ---------- main ---------- */
@@ -552,6 +567,15 @@ function TwelveWithin() {
         const t = (typeof BLEND_TEXTURES !== "undefined") && BLEND_TEXTURES[[a.key, b.key].sort().join("|")];
         return t || null;   // verbatim from The 66 Lexicon (already a finished sentence)
     };
+    // The "as shadow material" line for a pairing — DRAFT copy (BLEND_SHADOW_TEXTURES),
+    // flagged in the UI as awaiting Marc's review before launch.
+    const blendShadowTexture = (a, b) => {
+        const t = (typeof BLEND_SHADOW_TEXTURES !== "undefined") && BLEND_SHADOW_TEXTURES[[a.key, b.key].sort().join("|")];
+        return t || null;
+    };
+    // The three lowest voices (quietest first) and whether the shadow layer is unlocked.
+    const showShadow = TIERS[tier].showShadow && ranked.length >= 12;
+    const shadowThree = ranked.length >= 12 ? [ranked[11], ranked[10], ranked[9]] : [];
     const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
     const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
     const sans = { fontFamily: "'Source Sans 3', system-ui, sans-serif" };
@@ -693,7 +717,13 @@ function TwelveWithin() {
                         React.createElement("span", { className: "text-violet-300/50" }, "\u00B7 hour is your loudest voice, minutes your second"))),
                 topTie && React.createElement("p", { className: "text-center text-amber-200/80 text-sm mt-1 mb-1", style: sans },
                     joinNames(topTie.map((r) => r.name)), " are tied for your loudest voice \u2014 the order shown is only by wheel position, not by strength."),
-                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount }),
+                // Jump nav \u2014 only when there's a Shadow Mandala to jump to. Easy toggling
+                // between the two wheels, especially on mobile.
+                showShadow && React.createElement("div", { className: "flex justify-center gap-2 mb-4 print:hidden" },
+                    React.createElement("a", { href: "#light-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR LIGHT MANDALA"),
+                    React.createElement("a", { href: "#shadow-mandala", className: "rounded-full border border-indigo-300/40 px-4 py-1.5 text-xs tracking-[0.15em] text-indigo-200/85 hover:border-indigo-300/80 hover:text-indigo-100 transition-colors", style: sans }, "YOUR SHADOW MANDALA")),
+                React.createElement("div", { id: "light-mandala", style: { scrollMarginTop: "1.5rem" } },
+                    React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount })),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
@@ -742,7 +772,32 @@ function TwelveWithin() {
                                     ? ` — also your ${GROWTH_ORD[growthIdx]} voice; you already carry this energy, so growth means drawing on it more consciously and deliberately, not building it from scratch`
                                     : " — the fixed complement to your loudest voice"))),
 
-                    // ===== PRINT PAGE 3 - Temperament Profile (radar) + How Your Top Voices Show Up =====
+                    // ===== PRINT PAGE 3 - Shadow Mandala (full tier only) =====
+                    TIERS[tier].showShadow && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px 24px", boxSizing: "border-box" } },
+                        React.createElement("div", { className: "flex justify-between items-baseline mb-2" },
+                            React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE SHADOW MANDALA" : "YOUR SHADOW MANDALA"),
+                            React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
+                        React.createElement("h2", { className: "text-2xl text-center mb-1", style: serif }, shadowThree.map((r) => r.name).join(" · ")),
+                        // Condensed shame-prevention framing — two sentences for print.
+                        React.createElement("p", { className: "text-center text-xs mb-2", style: { ...sans, color: "#6b6580", maxWidth: "5.5in", margin: "0 auto 8px" } }, "Your shadow isn't what's wrong with you — it's what you haven't claimed yet. You didn't choose your shadow; integrating it doesn't diminish you, it completes you."),
+                        React.createElement("div", { className: "flex justify-center mb-2", style: { width: "100%" } },
+                            React.createElement("div", { style: { width: "4.6in", maxWidth: "100%" } },
+                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true, shadow: true }))),
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR SHADOW PAIRINGS · DRAFT COPY, IN REVIEW"),
+                        [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
+                            const nm = blendName(shadowThree[a], shadowThree[b]);
+                            const tx = blendTexture(shadowThree[a], shadowThree[b]);
+                            const sh = blendShadowTexture(shadowThree[a], shadowThree[b]);
+                            return React.createElement("div", { key: a + "-" + b, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "7px", pageBreakInside: "avoid" } },
+                                React.createElement("p", { className: "text-lg", style: { ...serif, color: "#2a2340" } },
+                                    shadowThree[a].name + " × " + shadowThree[b].name + " → ",
+                                    React.createElement("span", { style: { color: nm ? "#4b4a8a" : "#8a86a0", fontStyle: nm ? "normal" : "italic" } }, nm || "unnamed")),
+                                tx && React.createElement("p", { className: "text-sm italic", style: { ...serif, color: "#6b6580" } }, tx),
+                                sh && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#4a4560", marginTop: "2px", lineHeight: "1.35" } },
+                                    React.createElement("span", { style: { fontWeight: 600, color: "#4b4a8a" } }, "As shadow material · "), sh));
+                        })),
+
+                    // ===== PRINT PAGE 4 - Temperament Profile (radar) + How Your Top Voices Show Up =====
                     TIERS[tier].showTemperament && (() => {
                         const prof = temperamentProfile(radarScores);
                         const caseCopy = prof.allLoud ? ALL_LOUD_COPY : prof.allQuiet ? ALL_QUIET_COPY : null;
@@ -765,7 +820,7 @@ function TwelveWithin() {
                             rest.length > 0 && React.createElement("div", { style: { pageBreakInside: "avoid", breakInside: "avoid" } }, rest.map(renderArch)));
                     })(),
 
-                    // ===== PRINT PAGE 4 - The Remaining Nine + Full Ranking =====
+                    // ===== PRINT PAGE 5-6 - The Remaining Nine + Full Ranking =====
                     TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "44px 24px 24px", boxSizing: "border-box" } },
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
                         React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "The Remaining Nine"),
@@ -864,6 +919,58 @@ function TwelveWithin() {
                         React.createElement("div", { className: "flex-1 h-2.5 rounded-full bg-violet-300/10 overflow-hidden" },
                             React.createElement("div", { className: "h-full rounded-full", style: { width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},62%,56%)` } }))))))),
                 !TIERS[tier].showFullRanking && React.createElement("p", { className: "text-center text-violet-300/60 text-sm italic mb-8", style: serif }, `Unlock the complete 1\u201312 ranking with ${TIERS.full.label}.`),
+
+                // \u2550\u2550 Light \u2194 Shadow bridge \u2014 clean prose, not a card \u2550\u2550
+                showShadow && React.createElement("div", { className: "text-center mt-16 mb-2 max-w-2xl mx-auto" },
+                    React.createElement("div", { className: "mx-auto mb-5 h-px w-12", style: { background: "rgba(129,140,248,0.5)" } }),
+                    React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-200/85", style: sans },
+                        "Your Light Mandala shows who you lead with. Your Shadow Mandala shows what you're carrying that you haven't yet claimed. Together they show the full wheel \u2014 because you are already all twelve. Some speak loudly. Some speak quietly. The work isn't to become someone different. It's to become more fully yourself.")),
+
+                // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (full tier only) \u2550\u2550
+                showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "1.5rem" } },
+                    sectionHeader("Your Shadow Mandala", "YOUR SHADOW MANDALA"),
+                    // Shame-prevention intro \u2014 REQUIRED before the wheel or naming the bottom three.
+                    React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-5 mb-6", style: { background: "rgba(80,90,180,0.06)" } },
+                        React.createElement("p", { className: "text-[16px] leading-relaxed mb-3", style: { ...sans, color: "rgba(199,210,254,0.95)", fontWeight: 600 } }, "Your shadow isn't what's wrong with you. It's what you haven't claimed yet."),
+                        React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 mb-3", style: sans }, "The archetypes at the bottom of your ranking aren't failures or weaknesses \u2014 they're the energies that weren't safe to express in the environment where you formed. You didn't choose your shadow. Your shadow chose you."),
+                        React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 mb-3", style: sans }, "What's disowned doesn't disappear. It shows up sideways \u2014 in your strongest reactions to other people, in the patterns you can't quite explain, in the gap between who you want to be and how you actually show up under pressure."),
+                        React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85", style: sans }, "This is your hidden capacity, not your hidden flaw. Integration doesn't diminish you. It completes you.")),
+                    // The wheel \u2014 bottom three highlighted, cool blend lines.
+                    React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, shadow: true }),
+                    React.createElement("p", { className: "text-center text-indigo-200/70 text-sm -mt-1 mb-8 italic", style: serif }, "The three quietest voices, and the blends between them \u2014 the shape of what you haven't yet claimed."),
+                    // Bottom three, in depth \u2014 same altitude-ladder card as the top three, quietest first.
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-indigo-200/75 mb-3 text-center", style: sans }, "YOUR THREE QUIETEST VOICES, IN DEPTH"),
+                    shadowThree.map((r, n) => React.createElement("div", { key: r.key, className: "rounded-2xl border border-indigo-300/18 px-5 py-5 mb-4", style: { background: "rgba(80,90,180,0.05)" } },
+                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-indigo-200/75 mb-1", style: sans }, ["QUIETEST VOICE", "SECOND QUIETEST", "THIRD QUIETEST"][n]),
+                        React.createElement("div", { className: "flex items-baseline gap-3" },
+                            React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
+                            React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r))),
+                        React.createElement(Ladder, { arche: r }))),
+                    // Shadow Pairings \u2014 the three blends among the bottom three, with DRAFT shadow copy.
+                    React.createElement("div", { className: "rounded-2xl border border-indigo-300/18 px-5 py-5 mb-4", style: { background: "rgba(80,90,180,0.05)" } },
+                        React.createElement("div", { className: "flex items-center justify-between mb-3 flex-wrap gap-2" },
+                            React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-indigo-200/75", style: sans }, "YOUR SHADOW PAIRINGS"),
+                            React.createElement("span", { className: "text-[9px] tracking-[0.18em] rounded-full border border-indigo-300/35 px-2 py-0.5 text-indigo-200/65", style: sans }, "DRAFT COPY \u00b7 IN REVIEW")),
+                        [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
+                            const nm = blendName(shadowThree[a], shadowThree[b]);
+                            const tx = blendTexture(shadowThree[a], shadowThree[b]);
+                            const sh = blendShadowTexture(shadowThree[a], shadowThree[b]);
+                            return React.createElement("div", { key: a + "-" + b, className: "mb-3.5 last:mb-0" },
+                                React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                                    archLink(shadowThree[a]), " \u00d7 ", archLink(shadowThree[b]), " \u2192 ",
+                                    nm ? React.createElement("span", { className: "text-indigo-200" }, nm) : React.createElement("span", { className: "text-violet-300/60 italic" }, "unnamed \u2014 an entry awaiting the 66-blend lexicon")),
+                                tx && React.createElement("p", { className: "text-[13px] text-violet-300/65 italic mt-0.5", style: serif }, tx),
+                                sh && React.createElement("p", { className: "text-[13.5px] text-indigo-100/80 mt-1 leading-relaxed", style: sans },
+                                    React.createElement("span", { className: "text-indigo-300/85 font-semibold" }, "As shadow material \u00b7 "), sh));
+                        }))),
+
+                // \u2550\u2550 Triad teaser \u2014 no shadow content, an upgrade nudge instead (item 7) \u2550\u2550
+                tier === "triad" && React.createElement("div", { className: "mt-14" },
+                    sectionHeader("Your Shadow Mandala", "IN THE FULL MIRROR"),
+                    React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-7 text-center", style: { background: "rgba(80,90,180,0.06)" } },
+                        React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-100 mb-5 max-w-xl mx-auto", style: sans }, "Your Shadow Mandala is available in the Full Mirror \u2014 the three archetypes you've disowned and what integrating them makes possible."),
+                        React.createElement("a", { href: "/pricing/", className: "inline-block rounded-xl px-6 py-3 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors", style: sans }, "Upgrade to the Full Mirror \u2192"))),
+
                 React.createElement("div", { className: "grid gap-3" },
                     React.createElement(Btn, { primary: true, onClick: () => {
                         // Print via an isolated iframe rather than window.print() + CSS media
