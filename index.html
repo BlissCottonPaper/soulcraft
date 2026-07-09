@@ -56,7 +56,7 @@ const TEMPERAMENT_LIKERT = [
     { key: "body", statement: "When something happens, I move — I reach for action, a task, something concrete to do before I've fully put it into words." },
     { key: "soul", statement: "When something happens, I find myself asking what it means — significance and deeper context are what I orient toward before urgency or emotion." },
 ];
-const LIKERT_LABELS = ["Not like me", "Somewhat like me", "Like me", "Very much like me"]; // index 0..3 → score 1..4
+const LIKERT_LABELS = ["Not at all like me", "Somewhat like me", "Like me", "Very much like me"]; // index 0..3 → score 1..4 (floor of 1, never 0)
 /* ---------- helpers ---------- */
 function shuffle(arr) {
     const a = [...arr];
@@ -142,7 +142,9 @@ const midXY = (i, j, R, c, thirdIdx) => {
     const radius = R / 2;
     return [c + ux * radius, c + uy * radius];
 };
-const SAMPLE_WINS = { sage: 21, creator: 19, mystic: 16, trickster: 14, ruler: 12, explorer: 10, lover: 9, warrior: 8, everyman: 7, rebel: 6, caregiver: 5, innocent: 3 };
+// Sample profile — a realistic Sage · Lover · Rebel reading (Trickster quietest),
+// paired with a Mind=4 · Soul=3 · Heart=2 · Body=1 temperament (kite toward Mind/Soul).
+const SAMPLE_WINS = { sage: 21, lover: 18, rebel: 16, explorer: 14, creator: 13, mystic: 12, ruler: 11, caregiver: 9, warrior: 8, everyman: 7, innocent: 5, trickster: 3 };
 /* ---------- components ---------- */
 function Mandala({ ranked, topCount = 3, forPrint = false }) {
     const c = 170, R = 128;
@@ -223,11 +225,16 @@ function Ladder({ arche }) {
 // it = a loud/active voice, inside it = a quieter voice / growth edge. The gift
 // word on each axis is the Build Spec's label (warmth/clarity/presence/meaning),
 // distinct from TEMPERAMENTS[].gift used in the prose elsewhere.
+// Axes rotated 45° so they sit in the quadrants, not on compass points — this
+// removes the implied up/down/left/right hierarchy. SVG angle convention (0° =
+// east, positive = clockwise/down): Heart upper-left (-135°), Mind upper-right
+// (-45°), Body lower-right (45°), Soul lower-left (135°). Corner-anchored labels
+// (see Radar) keep the text in the bounding-square corners, clear of the spokes.
 const RADAR_AXES = [
-    { key: "heart", name: "Heart", gift: "warmth", angle: -90 },
-    { key: "mind", name: "Mind", gift: "clarity", angle: 0 },
-    { key: "body", name: "Body", gift: "presence", angle: 90 },
-    { key: "soul", name: "Soul", gift: "meaning", angle: 180 },
+    { key: "heart", name: "Heart", gift: "warmth", angle: -135 },
+    { key: "mind", name: "Mind", gift: "clarity", angle: -45 },
+    { key: "body", name: "Body", gift: "presence", angle: 45 },
+    { key: "soul", name: "Soul", gift: "meaning", angle: 135 },
 ];
 function temperamentProfile(scores) {
     scores = scores || {};
@@ -245,29 +252,39 @@ function temperamentProfile(scores) {
     const quietest = axes.filter((a) => a.raw === minRaw);   // quietest temperament(s)
     return { axes: axes, integrated: integrated, loud: loud, quiet: quiet, dominant: dominant, quietest: quietest };
 }
-function Radar({ scores, size }) {
+function Radar({ scores, size, forPrint }) {
     size = size || 300;
     const prof = temperamentProfile(scores);
     const c = size / 2;
-    const Rmax = size * 0.30;
+    const Rmax = size * 0.28;               // a touch smaller so corner labels stay inside the viewBox
     const toXY = (angle, r) => { const rad = (angle * Math.PI) / 180; return [c + r * Math.cos(rad), c + r * Math.sin(rad)]; };
     const rOf = (v) => ((Math.max(-1.5, Math.min(1.5, v)) + 1.5) / 3) * Rmax;
     const pts = prof.axes.map((a) => toXY(a.angle, rOf(a.v)));
     const polyPoints = pts.map((p) => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+    // Dark-ink palette for the printed (white-paper) PDF; luminous palette on screen.
+    const col = forPrint
+        ? { ring: "rgba(80,80,90,0.40)", dash: "rgba(180,130,40,0.55)", spoke: "rgba(80,80,90,0.28)", name: "#241d42", gift: "rgba(60,55,68,0.75)", fill: "rgba(180,140,60,0.22)", line: "#b8863a", dot: "#b8863a", hub: "rgba(80,75,90,0.5)" }
+        : { ring: "rgba(196,181,253,0.18)", dash: "rgba(253,230,138,0.30)", spoke: "rgba(196,181,253,0.15)", name: "#ece7ff", gift: "rgba(196,181,253,0.6)", fill: "rgba(233,196,124,0.22)", line: "#e9c47c", dot: "#fde68a", hub: "rgba(196,181,253,0.4)" };
     return React.createElement("svg", { viewBox: "0 0 " + size + " " + size, className: "w-full max-w-xs mx-auto block", role: "img", "aria-label": "Your Temperament radar" },
-        React.createElement("circle", { cx: c, cy: c, r: Rmax, fill: "none", stroke: "rgba(196,181,253,0.18)", strokeWidth: 1 }),
-        React.createElement("circle", { cx: c, cy: c, r: Rmax / 2, fill: "none", stroke: "rgba(253,230,138,0.30)", strokeWidth: 1, strokeDasharray: "3 3" }),
+        React.createElement("circle", { cx: c, cy: c, r: Rmax, fill: "none", stroke: col.ring, strokeWidth: 1 }),
+        React.createElement("circle", { cx: c, cy: c, r: Rmax / 2, fill: "none", stroke: col.dash, strokeWidth: 1, strokeDasharray: "3 3" }),
         prof.axes.map((a) => {
             const e = toXY(a.angle, Rmax);
-            const l = toXY(a.angle, Rmax + 24);
+            const l = toXY(a.angle, Rmax + 20);
+            // Tuck each two-line label into its corner: right-side axes anchor at the
+            // start, left-side at the end, so the text opens away from the chart lines.
+            const cos = Math.cos((a.angle * Math.PI) / 180);
+            const anchor = cos > 0.2 ? "start" : cos < -0.2 ? "end" : "middle";
+            const sin = Math.sin((a.angle * Math.PI) / 180);
+            const nameDy = sin < 0 ? -3 : 9;   // lift labels above the tip on the top axes, drop below on the bottom
             return React.createElement("g", { key: a.key },
-                React.createElement("line", { x1: c, y1: c, x2: e[0], y2: e[1], stroke: "rgba(196,181,253,0.15)", strokeWidth: 1 }),
-                React.createElement("text", { x: l[0], y: l[1] - 1, textAnchor: "middle", fontSize: "13", fontWeight: "600", fill: "#ece7ff", style: { fontFamily: "'Cormorant Garamond', Georgia, serif" } }, a.name),
-                React.createElement("text", { x: l[0], y: l[1] + 11, textAnchor: "middle", fontSize: "9", fill: "rgba(196,181,253,0.6)", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.08em" } }, a.gift));
+                React.createElement("line", { x1: c, y1: c, x2: e[0], y2: e[1], stroke: col.spoke, strokeWidth: 1 }),
+                React.createElement("text", { x: l[0], y: l[1] + nameDy, textAnchor: anchor, fontSize: "13", fontWeight: "600", fill: col.name, style: { fontFamily: "'Cormorant Garamond', Georgia, serif" } }, a.name),
+                React.createElement("text", { x: l[0], y: l[1] + nameDy + 12, textAnchor: anchor, fontSize: "9", fill: col.gift, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.08em" } }, a.gift));
         }),
-        React.createElement("polygon", { points: polyPoints, fill: "rgba(233,196,124,0.22)", stroke: "#e9c47c", strokeWidth: 2, strokeLinejoin: "round" }),
-        pts.map((p, i) => React.createElement("circle", { key: i, cx: p[0], cy: p[1], r: 3.5, fill: "#fde68a" })),
-        React.createElement("circle", { cx: c, cy: c, r: 2, fill: "rgba(196,181,253,0.4)" }));
+        React.createElement("polygon", { points: polyPoints, fill: col.fill, stroke: col.line, strokeWidth: 2, strokeLinejoin: "round" }),
+        pts.map((p, i) => React.createElement("circle", { key: i, cx: p[0], cy: p[1], r: 3.5, fill: col.dot })),
+        React.createElement("circle", { cx: c, cy: c, r: 2, fill: col.hub }));
 }
 const INTEGRATED_PROFILE_COPY = "You move fluidly between all four temperaments. Integration, not dominance, is your signature — you adapt how you show up to what the moment actually needs. Your growth edge is different: developing the discipline to choose intentionally rather than flow automatically.";
 // The archetype × temperament prose (The 48 + Crossing Practices) lives in
@@ -277,8 +294,17 @@ const INTEGRATED_PROFILE_COPY = "You move fluidly between all four temperaments.
 // practice(s) for their QUIETEST temperament(s).
 function temperamentReadout(archetypeKey, profile) {
     const table = (typeof TEMPERAMENT_PROSE !== "undefined" && TEMPERAMENT_PROSE[archetypeKey]) || {};
-    const loud = profile.dominant.map((a) => table[a.key] && table[a.key].loud).filter(Boolean);
-    const growth = profile.quietest.map((a) => table[a.key] && table[a.key].growth).filter(Boolean);
+    // LOUD: one prose string per temperament scoring above the 2.5 midpoint (raw 3 or 4),
+    // ordered loudest first. If Mind=4 and Soul=3, BOTH strings show, Mind before Soul.
+    const loud = profile.loud
+        .slice()
+        .sort((a, b) => b.raw - a.raw)
+        .map((a) => table[a.key] && ({ temperament: a.name, text: table[a.key].loud }))
+        .filter((x) => x && x.text);
+    // GROWTH: exactly one — the crossing practice for the single LOWEST temperament.
+    const lowest = profile.quietest[0];
+    const gStr = lowest && table[lowest.key] && table[lowest.key].growth;
+    const growth = gStr ? [{ temperament: lowest.name, text: gStr }] : [];
     return { loud: loud, growth: growth, hasAny: loud.length > 0 || growth.length > 0 };
 }
 // TIER CONFIG — single source of truth for what each paid tier unlocks.
@@ -320,7 +346,7 @@ function TwelveWithin() {
     const pairs = useMemo(() => buildPairs(TIERS[tier].pairMode), [tier, session]);
     const start = (t) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setScreen("descriptors"); };
     const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); };
-    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("triad"); setIsSample(true); setScreen("results"); };
+    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("full"); setIsSample(true); setScreen("results"); };
     const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
     const choosePairGraded = (leftIdx, rightIdx, position) => {
         // position 1..5: 1=strongly left, 3=truly between, 5=strongly right
@@ -509,6 +535,12 @@ function TwelveWithin() {
     const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
     const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
     const sans = { fontFamily: "'Source Sans 3', system-ui, sans-serif" };
+    // Named section header — gives the results the feel of a narrative arc rather
+    // than a stack of cards. A short gold rule, an eyebrow kicker, and a serif title.
+    const sectionHeader = (title, kicker) => React.createElement("div", { key: "sec-" + title, className: "text-center mt-14 mb-6" },
+        React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
+        kicker && React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, kicker),
+        React.createElement("h3", { className: "text-2xl", style: { ...serif, color: "#efe9ff" } }, title));
     return (React.createElement("div", { className: "min-h-screen w-full text-violet-50", style: { background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" } },
         React.createElement("div", { className: "max-w-md md:max-w-3xl mx-auto px-5 md:px-12 pb-16 pt-10 print:max-w-full print:px-0" },
             React.createElement("style", null, `
@@ -646,20 +678,17 @@ function TwelveWithin() {
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
-                    // ---------- PAGE 1: masthead, headline, larger mandala ----------
-                    React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "40px", height: "9.5in", boxSizing: "border-box" } },
-                        React.createElement("div", { className: "flex justify-between items-baseline mb-8" },
+// ===== PRINT PAGE 1 - Your Mandala + Top Three =====
+                    React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "34px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                        React.createElement("div", { className: "flex justify-between items-baseline mb-3" },
                             React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE MANDALA" : "YOUR MANDALA"),
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
-                        React.createElement("h1", { className: "text-4xl text-center mb-6", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" \u00B7 ")),
-                        React.createElement("div", { className: "flex justify-center mb-2", style: { width: "100%" } },
-                            React.createElement("div", { style: { width: "6.6in", maxWidth: "100%" } },
-                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true })))),
-
-                    // ---------- PAGE 2: top 3, fully developed ----------
-                    TIERS[tier].topCount >= 3 && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "36px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-4", style: sans }, "YOUR TOP THREE, IN DEPTH"),
-                        React.createElement("div", { className: "mb-6", style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" } },
+                        React.createElement("h1", { className: "text-4xl text-center mb-2", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" · ")),
+                        React.createElement("div", { className: "flex justify-center mb-4", style: { width: "100%" } },
+                            React.createElement("div", { style: { width: "4.4in", maxWidth: "100%" } },
+                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true }))),
+                        TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR TOP THREE, IN DEPTH"),
+                        TIERS[tier].topCount >= 3 && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" } },
                             ranked.slice(0, 3).map((r, n) => {
                                 const hue = HUE(r.i);
                                 return React.createElement("div", { key: r.key, style: { border: `1.5px solid hsl(${hue},55%,72%)`, borderTop: `5px solid hsl(${hue},60%,52%)`, borderRadius: "10px", padding: "12px 10px", background: `hsl(${hue},70%,97%)` } },
@@ -668,47 +697,85 @@ function TwelveWithin() {
                                     React.createElement("p", { className: "text-[9px] italic mb-1.5", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},35%,45%)` } }, longsPhrase(r)),
                                     React.createElement("div", null, [4, 3, 2, 1, 0].map((s) => React.createElement("p", { key: s, className: "text-[9.5px]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: s === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,50%)`, fontWeight: s === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[s]))));
                             })),
-                        TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-sm italic mb-4", style: serif },
-                            `Time signature: ${timeSig}` + (TIERS[tier].showTemperament ? ` \u00B7 Temperament: ${temperamentLead.tied ? joinNames(temperamentLead.leaders.map((c) => c.name)) + " (co-led)" : temperament.name}` : "")),
-                        TIERS[tier].showBlends && React.createElement("div", { className: "mb-4" },
-                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, "YOUR BLENDS"),
-                            [[0, 1], [0, 2], [1, 2]].map(([a, b]) => (React.createElement("p", { key: a + "-" + b, className: "text-sm mb-0.5", style: sans },
-                                ranked[a].name, " \u00D7 ", ranked[b].name, " \u2192 ", blendName(ranked[a], ranked[b]) || "unnamed")))),
-                        TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-1", style: sans },
-                            React.createElement("strong", null, "Quietest voice: "), ranked[11].name, " \u2014 your lowest-scoring voice"),
-                        React.createElement("p", { className: "text-sm mb-4", style: sans },
+                        React.createElement("div", { style: { marginTop: "auto" } },
+                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life — and you'll call it fate."))),
+
+                    // ===== PRINT PAGE 2 - Your Blends =====
+                    TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "40px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "YOUR COMBINATIONS"),
+                        React.createElement("h2", { className: "text-2xl mb-5", style: serif }, "Your Blends"),
+                        React.createElement("p", { className: "text-sm mb-6", style: { ...sans, color: "#5a5570" } }, "Where two of your primary voices meet, a third quality appears — the texture of how you actually move through the world."),
+                        [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
+                            const nm = blendName(ranked[a], ranked[b]);
+                            return React.createElement("div", { key: a + "-" + b, className: "mb-4", style: { borderBottom: "1px solid #eee", paddingBottom: "12px" } },
+                                React.createElement("p", { className: "text-lg", style: { ...serif, color: "#2a2340" } }, ranked[a].name + " × " + ranked[b].name),
+                                React.createElement("p", { className: "text-sm", style: { ...sans, color: "#6b6580" } }, nm ? "→ " + nm : "→ unnamed — an entry awaiting the 66-blend lexicon"));
+                        }),
+                        React.createElement("p", { className: "text-sm italic mt-4", style: serif }, "Time signature: " + timeSig),
+                        React.createElement("div", { style: { marginTop: "auto" } },
+                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "Three primaries, three blends — and you at the center, the seventh point."))),
+
+                    // ===== PRINT PAGE 3 - Temperament Profile (radar) + How Your Top Voices Show Up =====
+                    TIERS[tier].showTemperament && (() => {
+                        const prof = temperamentProfile(radarScores);
+                        const blocks = prof.integrated ? [] : ranked.slice(0, 3).map((a) => ({ a: a, readout: temperamentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
+                        return React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "34px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "HOW YOU'RE WIRED"),
+                            React.createElement("h2", { className: "text-2xl mb-2", style: serif }, "Your Temperament Profile"),
+                            React.createElement("p", { className: "text-xs mb-3", style: { ...sans, color: "#6b6580" } }, "Temperament is your first natural impulse — Kahneman's System 1 before System 2. Like your dominant hand, you didn't choose it, but you can develop the others with intention."),
+                            React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
+                                React.createElement("div", { style: { width: "2.9in", maxWidth: "100%" } },
+                                    React.createElement(Radar, { scores: radarScores, forPrint: true }))),
+                            prof.integrated
+                                ? React.createElement("p", { className: "text-sm", style: { ...sans, color: "#4a4560" } }, INTEGRATED_PROFILE_COPY)
+                                : React.createElement("div", null,
+                                    React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "HOW YOUR TOP VOICES SHOW UP"),
+                                    blocks.map(({ a, readout }) => React.createElement("div", { key: a.key, className: "mb-2", style: { borderTop: "1px solid #eee", paddingTop: "6px" } },
+                                        React.createElement("p", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(a.i)},55%,34%)` } }, a.name),
+                                        readout.loud.map((s, i) => React.createElement("p", { key: "l" + i, style: { ...sans, fontSize: "10.5px", lineHeight: "1.35", color: "#4a4560", marginBottom: "2px" } }, "In the " + s.temperament + " — " + s.text)),
+                                        readout.growth.map((s, i) => React.createElement("p", { key: "g" + i, style: { ...sans, fontSize: "10.5px", lineHeight: "1.35", color: "#8a6a2a", marginBottom: "2px" } }, "Growth edge · " + s.temperament + " — " + s.text))))));
+                    })(),
+
+                    // ===== PRINT PAGE 4 - Quietest Voice + Growth Edge + The Remaining Nine =====
+                    (TIERS[tier].showQuietest || TIERS[tier].showFullRanking) && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "36px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "YOUR EDGES"),
+                        React.createElement("h2", { className: "text-2xl mb-4", style: serif }, "Quietest Voice & Growth Edge"),
+                        TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-2", style: sans },
+                            React.createElement("strong", null, "Quietest voice: "), ranked[11].name, " — your lowest-scoring voice"),
+                        React.createElement("p", { className: "text-sm mb-6", style: sans },
                             React.createElement("strong", null, "Growth edge: "), growthName,
                             growthIsTopVoice
-                                ? ` \u2014 also your ${GROWTH_ORD[growthIdx]} voice; growth means drawing on it more deliberately, not building it from nothing`
-                                : " \u2014 the fixed complement to your loudest voice"),
-                        TIERS[tier].showTemperament && React.createElement("div", { className: "mb-4" },
-                            React.createElement("p", { className: "text-xs tracking-[0.2em] mb-1", style: sans }, temperamentLead.tied ? "YOUR TEMPERAMENT · CO-LED" : "YOUR TEMPERAMENT"),
-                            temperamentLead.tied
-                                ? React.createElement("p", { className: "text-sm", style: sans },
-                                    temperamentLead.all ? "You move fluidly across all four Temperaments — " : "You move fluidly between the ",
-                                    joinNames(temperamentLead.leaders.map((c) => c.name)),
-                                    temperamentLead.all ? " — none leads; you meet each moment through whichever it calls for. " : " — no single temperament dominant. ",
-                                    "Your " + ranked[0].name + " reads as " + temperamentLead.leaders.map((c) => TEMPERAMENT_EXPRESSIONS[ranked[0].key][c.key] + " (" + c.name + ")").join(", ") + ".")
-                                : React.createElement("p", { className: "text-sm", style: sans },
-                                    "You lead with the ", temperament.name, ". Your ", ranked[0].name, " in the ", temperament.name, ": ",
-                                    TEMPERAMENT_EXPRESSIONS[ranked[0].key][temperament.key], ".")),
-                        React.createElement("div", { style: { marginTop: "auto" } },
-                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."))),
-
-                    // ---------- PAGE 3: the remaining 9, compact single-line format ----------
-                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "36px", height: "9.5in", boxSizing: "border-box" } },
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-4", style: sans }, "THE REMAINING NINE"),
-                        ranked.slice(3, 12).map((r, n) => React.createElement("div", { key: r.key, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "6px" } },
+                                ? ` — also your ${GROWTH_ORD[growthIdx]} voice; growth means drawing on it more deliberately, not building it from nothing`
+                                : " — the fixed complement to your loudest voice"),
+                        TIERS[tier].showFullRanking && React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-3", style: sans }, "THE REMAINING NINE"),
+                        TIERS[tier].showFullRanking && ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "6px" } },
                             React.createElement("span", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},55%,38%)` } }, r.name),
                             React.createElement("span", { className: "text-xs italic", style: sans }, "  " + longsPhrase(r) + "  "),
-                            React.createElement("span", { className: "text-xs", style: sans }, r.stages.join(" \u2192 ")))),
-                        React.createElement("p", { className: "text-center text-xs italic mt-6", style: serif }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))),
-                ranked.slice(0, TIERS[tier].topCount).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                            React.createElement("span", { className: "text-xs", style: sans }, r.stages.join(" → ")))),
+                        React.createElement("div", { style: { marginTop: "auto" } },
+                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))),
+
+                    // ===== PRINT PAGE 5 - Full Ranking =====
+                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "36px", height: "9.5in", boxSizing: "border-box", display: "flex", flexDirection: "column" } },
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
+                        React.createElement("h2", { className: "text-2xl mb-5", style: serif }, "Full Ranking"),
+                        ranked.map((r) => React.createElement("div", { key: r.key, className: "mb-2", style: { display: "flex", alignItems: "center", gap: "10px" } },
+                            React.createElement("span", { style: { ...sans, width: "92px", textAlign: "right", fontSize: "12px", color: "#4a4560", flexShrink: 0 } }, r.name),
+                            React.createElement("div", { style: { flex: 1, height: "9px", borderRadius: "5px", background: "#eee", overflow: "hidden" } },
+                                React.createElement("div", { style: { height: "100%", borderRadius: "5px", width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},55%,55%)` } })))),
+                        React.createElement("div", { style: { marginTop: "auto" } },
+                            React.createElement("p", { className: "text-center text-xs italic", style: serif }, "The Art of Soulcraft · artofsoulcraft.com")))),
+                // \u2550\u2550 SECTION \u2014 Your Pattern: your top three, in depth (altitude ladders) \u2550\u2550
+                sectionHeader("Your Pattern", "YOUR TOP THREE, IN DEPTH"),
+                ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
                     React.createElement("div", { className: "flex items-baseline gap-3" },
                         React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
                         React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r))),
                     React.createElement(Ladder, { arche: r })))),
+
+                // \u2550\u2550 SECTION \u2014 Your Combinations: the three blends \u2550\u2550
+                TIERS[tier].showBlends && sectionHeader("Your Combinations", "YOUR BLENDS"),
                 TIERS[tier].showBlends && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR BLENDS"),
                     [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
@@ -720,6 +787,57 @@ function TwelveWithin() {
                             " \u2192 ",
                             nm ? React.createElement("span", { className: "text-amber-200" }, nm) : React.createElement("span", { className: "text-violet-300/60 italic" }, "unnamed \u2014 an entry awaiting the 66-blend lexicon")));
                     })),
+
+                // \u2550\u2550 SECTION \u2014 How You're Wired: temperament radar, prose, summary \u2550\u2550
+                TIERS[tier].showTemperament && sectionHeader("How You're Wired", "YOUR TEMPERAMENT"),
+                TIERS[tier].showTemperament && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-6 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR TEMPERAMENT PROFILE"),
+                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-5 max-w-xl", style: sans }, "Temperament is your first natural impulse \u2014 the way you instinctively take in and make sense of the world before deliberate thought kicks in. It's Kahneman's System 1 before System 2 engages: automatic, pre-choice. Not a type, not a box \u2014 a lean. Like your dominant hand, you didn't choose it, but you can develop the others with intention."),
+                    React.createElement(Radar, { scores: radarScores }),
+                    temperamentProfile(radarScores).integrated
+                        ? React.createElement("p", { className: "text-violet-200/85 text-sm leading-relaxed mt-5 max-w-xl mx-auto text-center", style: sans }, INTEGRATED_PROFILE_COPY)
+                        : React.createElement("p", { className: "text-violet-300/55 text-xs mt-4 text-center", style: sans }, "Outside the dashed ring, a temperament runs loud; inside it, quieter \u2014 a growth edge.")),
+                TIERS[tier].showTemperament && (() => {
+                    // Per top-three archetype: how EACH loud temperament shows up (The 48, loudest
+                    // first), plus one growth-edge crossing practice for the quietest temperament.
+                    const prof = temperamentProfile(radarScores);
+                    // When the profile is flat the Integrated copy above covers it \u2014 skip the split.
+                    if (prof.integrated) return null;
+                    const blocks = ranked.slice(0, 3).map((a) => ({ a: a, readout: temperamentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
+                    if (!blocks.length) return null;
+                    return React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-3", style: sans }, "HOW YOUR TOP VOICES SHOW UP"),
+                        blocks.map(({ a, readout }) => React.createElement("div", { key: a.key, className: "mb-5 last:mb-0" },
+                            React.createElement("h4", { className: "text-xl mb-1.5", style: { ...serif, color: `hsl(${HUE(a.i)},70%,72%)` } }, archLink(a)),
+                            readout.loud.map((s, i) => React.createElement("p", { key: "l" + i, className: "text-sm text-violet-200/85 mb-2 leading-relaxed", style: sans },
+                                React.createElement("span", { className: "text-amber-200/70 font-semibold" }, "In the " + s.temperament + " \u2014 "), s.text)),
+                            readout.growth.map((s, i) => React.createElement("p", { key: "g" + i, className: "text-sm text-violet-300/75 mb-1 leading-relaxed", style: sans },
+                                React.createElement("span", { className: "text-amber-200/80 font-semibold" }, "Growth edge \u00b7 " + s.temperament + " \u2014 "), s.text)))));
+                })(),
+                TIERS[tier].showTemperament && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, temperamentLead.tied ? "YOUR TEMPERAMENT \u00b7 CO-LED" : "YOUR TEMPERAMENT"),
+                    temperamentLead.tied
+                        ? React.createElement("p", { className: "text-[15px] text-violet-100 leading-relaxed", style: sans },
+                            "You move fluidly ",
+                            temperamentLead.all ? "across all four Temperaments \u2014 " : "between the ",
+                            React.createElement("span", { className: "text-amber-200 font-semibold" }, joinNames(temperamentLead.leaders.map((c) => c.name))),
+                            temperamentLead.all ? " \u2014 none leads; you meet each moment through whichever it calls for. " : " \u2014 no single temperament dominant. ",
+                            "Your ", archLink(ranked[0]), " meets each moment through whichever it calls for \u2014 the prose above shows how each voice speaks.")
+                        : (() => {
+                            const p = (typeof TEMPERAMENT_PROSE !== "undefined" && TEMPERAMENT_PROSE[ranked[0].key] && TEMPERAMENT_PROSE[ranked[0].key][temperament.key]);
+                            return React.createElement("p", { className: "text-[15px] text-violet-100 leading-relaxed", style: sans },
+                                "You lead with the ",
+                                React.createElement("span", { className: "text-amber-200 font-semibold" }, temperament.name),
+                                " \u2014 not how you serve, but how you occupy a moment before you've decided to give anything at all. Your ",
+                                archLink(ranked[0]),
+                                " in the ",
+                                temperament.name,
+                                " \u2014 ",
+                                React.createElement("span", { className: "text-violet-100" }, p && p.loud ? p.loud : (ranked[0].name + " through " + temperament.name + ".")));
+                        })()),
+
+                // \u2550\u2550 SECTION \u2014 Your Edges: quietest voice + growth edge \u2550\u2550
+                sectionHeader("Your Edges", "QUIETEST VOICE & GROWTH EDGE"),
                 TIERS[tier].showQuietest && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "QUIETEST VOICE"),
                     React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
@@ -735,55 +853,15 @@ function TwelveWithin() {
                             "Across the wheel sits ",
                             React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
                             " \u2014 your growth edge. Deliberately developing it is how your loudest voice stops casting so long a shadow.")),
-                TIERS[tier].showTemperament && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-6 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR TEMPERAMENT PROFILE"),
-                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-5 max-w-xl", style: sans }, "Temperament is your first natural impulse \u2014 the way you instinctively take in and make sense of the world before deliberate thought kicks in. It's Kahneman's System 1 before System 2 engages: automatic, pre-choice. Not a type, not a box \u2014 a lean. Like your dominant hand, you didn't choose it, but you can develop the others with intention."),
-                    React.createElement(Radar, { scores: radarScores }),
-                    temperamentProfile(radarScores).integrated
-                        ? React.createElement("p", { className: "text-violet-200/85 text-sm leading-relaxed mt-5 max-w-xl mx-auto text-center", style: sans }, INTEGRATED_PROFILE_COPY)
-                        : React.createElement("p", { className: "text-violet-300/55 text-xs mt-4 text-center", style: sans }, "Outside the dashed ring, a temperament runs loud; inside it, quieter \u2014 a growth edge.")),
-                TIERS[tier].showTemperament && (() => {
-                    // Per top-three archetype: how the dominant temperament(s) show up (The 48),
-                    // and the growth-edge crossing practice for the quietest temperament(s).
-                    const prof = temperamentProfile(radarScores);
-                    // When the profile is flat, dominant === quietest === all four; the
-                    // Integrated Profile copy above covers it, so skip the per-archetype split.
-                    if (prof.integrated) return null;
-                    const blocks = ranked.slice(0, 3).map((a) => ({ a: a, readout: temperamentReadout(a.key, prof) })).filter((x) => x.readout.hasAny);
-                    if (!blocks.length) return null;
-                    return React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
-                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-3", style: sans }, "HOW YOUR TOP VOICES SHOW UP"),
-                        blocks.map(({ a, readout }) => React.createElement("div", { key: a.key, className: "mb-4 last:mb-0" },
-                            React.createElement("h4", { className: "serif text-xl mb-1", style: { color: `hsl(${HUE(a.i)},70%,72%)` } }, archLink(a)),
-                            readout.loud.map((s, i) => React.createElement("p", { key: "l" + i, className: "text-sm text-violet-200/85 mb-1.5 leading-relaxed", style: sans }, s)),
-                            readout.growth.map((s, i) => React.createElement("p", { key: "g" + i, className: "text-sm text-violet-300/75 mb-1.5 leading-relaxed", style: sans },
-                                React.createElement("span", { className: "text-amber-200/80" }, "Growth edge \u2014 "), s)))));
-                })(),
-                TIERS[tier].showTemperament && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-6", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, temperamentLead.tied ? "YOUR TEMPERAMENT \u00b7 CO-LED" : "YOUR TEMPERAMENT"),
-                    temperamentLead.tied
-                        ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                            "You move fluidly ",
-                            temperamentLead.all ? "across all four Temperaments \u2014 " : "between the ",
-                            React.createElement("span", { className: "text-amber-200 font-semibold" }, joinNames(temperamentLead.leaders.map((c) => c.name))),
-                            temperamentLead.all ? " \u2014 none leads; you meet each moment through whichever it calls for. " : " \u2014 no single temperament dominant. ",
-                            "Your ", archLink(ranked[0]), " reads as ",
-                            React.createElement("span", { className: "font-semibold" }, temperamentLead.leaders.map((c) => TEMPERAMENT_EXPRESSIONS[ranked[0].key][c.key] + " (" + c.name + ")").join(", ")),
-                            ".")
-                        : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                            "You lead with the ",
-                            React.createElement("span", { className: "text-amber-200 font-semibold" }, temperament.name),
-                            " \u2014 not how you serve, but how you occupy a moment before you've decided to give anything at all. Your ",
-                            archLink(ranked[0]),
-                            " in the ",
-                            temperament.name,
-                            ": ",
-                            React.createElement("span", { className: "font-semibold", style: { color: `hsl(${HUE(ranked[0].i)},70%,72%)` } }, TEMPERAMENT_EXPRESSIONS[ranked[0].key][temperament.key]),
-                            ". At its best this becomes ",
-                            temperament.gift,
-                            "; collapsed, it curdles into ",
-                            temperament.corruption,
-                            ".")),
+
+                // \u2550\u2550 SECTION \u2014 The Full Picture: the remaining nine + full ranking \u2550\u2550
+                TIERS[tier].showFullRanking && sectionHeader("The Full Picture", "THE REMAINING NINE"),
+                TIERS[tier].showFullRanking && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-3", style: sans }, "THE REMAINING NINE"),
+                    ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-2 pb-2", style: { borderBottom: "1px solid rgba(196,181,253,0.10)" } },
+                        React.createElement("span", { className: "text-[15px] font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
+                        React.createElement("span", { className: "text-violet-300/60 text-xs italic ml-2", style: serif }, longsPhrase(r)),
+                        React.createElement("span", { className: "text-violet-300/45 text-[11px] ml-2", style: sans }, r.stages.join(" \u2192 "))))),
                 TIERS[tier].showFullRanking && React.createElement(React.Fragment, null,
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "THE FULL RANKING"),
                     React.createElement("div", { className: "space-y-2 mb-8" }, ranked.map((r) => (React.createElement("div", { key: r.key, className: "flex items-center gap-3" },

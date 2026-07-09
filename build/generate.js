@@ -15,6 +15,7 @@ const DATA = require("../assets/soulcraft-data.js");
 const CHROME = require("../assets/site-chrome.js");
 const CONTENT = require("../content/archetypes.js");   // archetype chapter prose (from Notion)
 const PROSE = require("../assets/temperament-prose.js").TEMPERAMENT_PROSE;   // archetype × temperament (The 48)
+const DESCRIPTORS = require("../assets/temperament-prose.js").TEMPERAMENT_DESCRIPTORS;   // Netflix-style recognition tags
 
 const ROOT = path.join(__dirname, "..");
 
@@ -404,8 +405,11 @@ function archetypeMain(key) {
         </div>`
   ).join("\n");
 
+  // Header "[Archetype] · [Temperament] · [Gift]" (e.g. "Lover · Heart · Warmth"),
+  // 3–4 muted descriptor tags (recognition invitations, not labels), then the prose.
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const emb = DATA.TEMPERAMENTS.map((ch) =>
-    `        <div class="card rounded-2xl px-5 py-5"><p class="text-[11px] tracking-[0.18em] uppercase text-amber-200/70 mb-1">${ch.name} · ${GIFTS[ch.key]}</p><p class="serif text-lg mb-1.5">${DATA.TEMPERAMENT_EXPRESSIONS[key][ch.key]}</p><p class="text-violet-200/80 text-sm leading-relaxed">${PROSE[key][ch.key].loud}</p></div>`
+    `        <div class="card rounded-2xl px-5 py-5"><p class="text-[11px] tracking-[0.18em] uppercase text-amber-200/70 mb-2">${a.name} · ${ch.name} · ${cap(GIFTS[ch.key])}</p><p class="text-[12px] text-violet-300/55 mb-2.5 leading-relaxed">${DESCRIPTORS[key][ch.key].join(" · ")}</p><p class="text-violet-200/80 text-sm leading-relaxed">${PROSE[key][ch.key].loud}</p></div>`
   ).join("\n");
 
   const pairs = DATA.ARCHETYPES.filter((x) => x.key !== key).map((x) => {
