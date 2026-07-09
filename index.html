@@ -550,7 +550,7 @@ function TwelveWithin() {
     // a real description). Returned as a finished sentence; null → show nothing.
     const blendTexture = (a, b) => {
         const t = (typeof BLEND_TEXTURES !== "undefined") && BLEND_TEXTURES[[a.key, b.key].sort().join("|")];
-        return t ? t.charAt(0).toUpperCase() + t.slice(1) + "." : null;
+        return t || null;   // verbatim from The 66 Lexicon (already a finished sentence)
     };
     const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
     const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
@@ -949,7 +949,7 @@ function TwelveWithin() {
                 // Save is best-effort and fully independent of the reading above: if it
                 // fails we say so quietly and never touch the result render.
                 !isSample && saveStatus === "error" && React.createElement("p", { className: "mt-6 text-center text-violet-300/55 text-sm", style: sans }, "Your reading below is complete. (We couldn't save a copy to return to later \u2014 no problem; you can retake anytime.)"),
-                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))))));
+                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A map, not a fortune. Wherever you stand today, take one rung up."))))));
 }
 
 function mountApp() {
