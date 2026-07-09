@@ -157,11 +157,17 @@ function contactMain() {
         <button type="submit" id="contact-submit" class="rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Send message</button>
         <p id="contact-status" class="text-sm text-center min-h-[1.25rem]" role="status" aria-live="polite"></p>
       </form>
+      <div id="contact-done" class="card rounded-2xl px-8 py-12 text-center" hidden>
+        <div class="text-4xl mb-4" aria-hidden="true">✓</div>
+        <h2 class="serif text-3xl mb-3">Thank you — we'll be in touch soon.</h2>
+        <p class="text-violet-200/80">Your message is on its way. We read every note and will reply to the email you gave us.</p>
+      </div>
     </section>
     <script>
     (function(){
       var f=document.getElementById('contact-form'); if(!f) return;
       var btn=document.getElementById('contact-submit'), s=document.getElementById('contact-status');
+      var done=document.getElementById('contact-done');
       f.addEventListener('submit', function(e){
         e.preventDefault();
         var d={ name:f.name.value.trim(), email:f.email.value.trim(), message:f.message.value.trim() };
@@ -170,11 +176,20 @@ function contactMain() {
         fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
           .then(function(r){ return r.json().catch(function(){return {};}).then(function(j){ return {ok:r.ok, j:j}; }); })
           .then(function(res){
-            if(res.ok){ f.reset(); s.style.color='#fde68a'; s.textContent='Thank you — your message is on its way.'; }
-            else { s.style.color='#fca5a5'; s.textContent=(res.j&&res.j.error)||'Something went wrong. Please try again.'; }
+            if(res.ok){
+              // Swap the whole form for a clear, visible confirmation.
+              f.hidden=true; done.hidden=false;
+              done.setAttribute('tabindex','-1'); done.focus();
+              done.scrollIntoView({behavior:'smooth', block:'center'});
+            } else {
+              s.style.color='#fca5a5'; s.textContent=(res.j&&res.j.error)||'Something went wrong. Please try again.';
+              btn.disabled=false; btn.textContent=old;
+            }
           })
-          .catch(function(){ s.style.color='#fca5a5'; s.textContent='Network error — please try again.'; })
-          .then(function(){ btn.disabled=false; btn.textContent=old; });
+          .catch(function(){
+            s.style.color='#fca5a5'; s.textContent='Network error — please try again.';
+            btn.disabled=false; btn.textContent=old;
+          });
       });
     })();
     </script>`;
