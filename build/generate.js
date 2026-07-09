@@ -447,11 +447,21 @@ function archetypeMain(key) {
         </div>`
   ).join("\n");
 
-  // Header "[Archetype] · [Temperament] · [Gift]" (e.g. "Lover · Heart · Warmth"),
-  // 3–4 muted descriptor tags (recognition invitations, not labels), then the prose.
-  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  // Header "[Archetype] through [Temperament]: [gift, italic]" (e.g. "Ruler through
+  // Heart: warmth" — the italic gift reads as a descriptor, not a peer), then 3–4 muted
+  // descriptor tags, then two stacked, always-present sections: "How this shows up"
+  // (the recognition prose) and "An Intentional Practice" (the crossing practice for
+  // developing that archetype × temperament). Both unconditional — for pre-assessment
+  // browsing: "that sounds like me" or "that's where I could grow."
   const emb = DATA.TEMPERAMENTS.map((ch) =>
-    `        <div class="card rounded-2xl px-5 py-5"><p class="text-[11px] tracking-[0.18em] uppercase text-amber-200/70 mb-2">${a.name} · ${ch.name} · ${cap(GIFTS[ch.key])}</p><p class="text-[12px] text-violet-300/55 mb-2.5 leading-relaxed">${DESCRIPTORS[key][ch.key].join(" · ")}</p><p class="text-violet-200/80 text-sm leading-relaxed">${PROSE[key][ch.key].loud}</p></div>`
+    `        <div class="card rounded-2xl px-5 py-6">
+          <p class="serif text-xl mb-2.5">${a.name} through ${ch.name}: <em class="text-amber-200/90">${GIFTS[ch.key]}</em></p>
+          <p class="text-[12px] text-violet-300/55 mb-4 leading-relaxed">${DESCRIPTORS[key][ch.key].join(" · ")}</p>
+          <p class="text-[10px] tracking-[0.2em] uppercase text-amber-200/60 mb-1.5">How this shows up</p>
+          <p class="text-violet-200/80 text-sm leading-relaxed mb-5">${PROSE[key][ch.key].loud}</p>
+          <p class="text-[10px] tracking-[0.2em] uppercase text-amber-200/60 mb-1.5 border-t border-violet-300/10 pt-4">An Intentional Practice</p>
+          <p class="text-violet-200/80 text-sm leading-relaxed">${PROSE[key][ch.key].growth}</p>
+        </div>`
   ).join("\n");
 
   const pairs = DATA.ARCHETYPES.filter((x) => x.key !== key).map((x) => {
@@ -486,8 +496,8 @@ ${ladder}
 
     <section class="py-10 border-t border-violet-300/10">
       <h2 class="serif text-3xl mb-2">The four Temperaments</h2>
-      <p class="text-violet-300/70 text-sm mb-6 max-w-2xl">What the ${a.name} looks like through each temperament — the same archetype, met through Heart, Mind, Body, or Soul. Most people recognize themselves in one or two. <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">What Temperaments mean →</a></p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <p class="text-violet-300/70 text-sm mb-6 max-w-2xl">What the ${a.name} looks like through each temperament — the same archetype, met through Heart, Mind, Body, or Soul. Most people recognize themselves in one or two. Each shows how the temperament expresses, and an intentional practice for developing it. <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">What Temperaments mean →</a></p>
+      <div class="grid grid-cols-1 gap-4 max-w-3xl">
 ${emb}
       </div>
     </section>
