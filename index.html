@@ -840,10 +840,13 @@ function TwelveWithin() {
                     joinNames(topTie.map((r) => r.name)), " are tied for your loudest voice \u2014 the order shown is only by wheel position, not by strength."),
                 // Jump nav \u2014 only when there's a Shadow Mandala to jump to. Easy toggling
                 // between the two wheels, especially on mobile.
-                showShadow && React.createElement("div", { className: "flex justify-center gap-2 mb-4 py-2 print:hidden", style: { position: "sticky", top: 0, zIndex: 20, background: "rgba(16,12,34,0.82)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" } },
+                // Sticks just under the injected site nav (#site-header is sticky top:0,
+                // 4rem tall, z-30) so the toggle stays visible through the whole scroll
+                // without hiding behind the nav.
+                showShadow && React.createElement("div", { className: "flex justify-center gap-2 mb-4 py-2 print:hidden", style: { position: "sticky", top: "4rem", zIndex: 25, background: "rgba(16,12,34,0.82)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" } },
                     React.createElement("a", { href: "#your-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR MANDALA"),
                     React.createElement("a", { href: "#shadow-mandala", className: "rounded-full border border-indigo-300/40 px-4 py-1.5 text-xs tracking-[0.15em] text-indigo-200/85 hover:border-indigo-300/80 hover:text-indigo-100 transition-colors", style: sans }, "YOUR SHADOW MANDALA")),
-                React.createElement("div", { id: "your-mandala", style: { scrollMarginTop: "1.5rem" } },
+                React.createElement("div", { id: "your-mandala", style: { scrollMarginTop: "7rem" } },
                     React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount })),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
@@ -873,7 +876,8 @@ function TwelveWithin() {
                                         React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "11.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
                                         React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "12.5px", lineHeight: "1.3", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
                                 }))),
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-3", style: sans }, "YOUR PAIRINGS"),
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em]", style: sans }, "YOUR BLENDS"),
+                        React.createElement("h3", { className: "text-xl mb-3", style: { ...serif, color: "#2a2340" } }, "Your Archetypal Pairings"),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                             const nm = blendName(ranked[a], ranked[b]);
                             const tx = blendTexture(ranked[a], ranked[b]);
@@ -989,9 +993,8 @@ function TwelveWithin() {
                     React.createElement(Ladder, { arche: r })))),
 
                 // \u2550\u2550 SECTION \u2014 Your Pairings: the three pairings \u2550\u2550
-                TIERS[tier].showBlends && sectionHeader("Your Pairings", "YOUR PAIRINGS"),
+                TIERS[tier].showBlends && sectionHeader("Your Archetypal Pairings", "YOUR BLENDS"),
                 TIERS[tier].showBlends && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR PAIRINGS"),
                     [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                         const nm = blendName(ranked[a], ranked[b]);
                         const tx = blendTexture(ranked[a], ranked[b]);
@@ -1075,7 +1078,7 @@ function TwelveWithin() {
                         "You are already all twelve. These are the voices that speak loudest in you right now. Below is what's waiting to be claimed.")),
 
                 // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (unlocked only) \u2550\u2550
-                showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "1.5rem" } },
+                showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "7rem" } },
                     sectionHeader("Your Shadow Mandala", "YOUR SHADOW MANDALA \u2014 YOUR QUIETEST VOICES"),
                     // Shame-prevention intro \u2014 REQUIRED before the wheel or naming the bottom three.
                     React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-5 mb-6", style: { background: "rgba(80,90,180,0.06)" } },
@@ -1083,6 +1086,9 @@ function TwelveWithin() {
                         React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 mb-3", style: sans }, "The archetypes at the bottom of your ranking aren't failures or weaknesses \u2014 they're the energies that weren't safe to express in the environment where you formed. You didn't choose your shadow. Your shadow chose you."),
                         React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 mb-3", style: sans }, "What's disowned doesn't disappear. It shows up sideways \u2014 in your strongest reactions to other people, in the patterns you can't quite explain, in the gap between who you want to be and how you actually show up under pressure."),
                         React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85", style: sans }, "This is your hidden capacity, not your hidden flaw. Integration doesn't diminish you. It completes you.")),
+                    // Gold eyebrow directly above the wheel \u2014 orients the reader on scroll,
+                    // mirroring the light mandala's header treatment.
+                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2 text-center", style: sans }, "YOUR SHADOW MANDALA"),
                     // The wheel \u2014 bottom three highlighted, cool blend lines.
                     React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, shadow: true }),
                     React.createElement("p", { className: "text-center text-indigo-200/70 text-sm -mt-1 mb-8 italic", style: serif }, "The three quietest voices, and the blends between them \u2014 the shape of what you haven't yet claimed."),
