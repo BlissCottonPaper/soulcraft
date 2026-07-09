@@ -707,6 +707,11 @@ function TwelveWithin() {
         React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
         kicker && React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, kicker),
         React.createElement("h3", { className: "text-2xl", style: { ...serif, color: "#efe9ff" } }, title));
+    // A simple in-page toggle pair (one placed above each wheel) — plain anchor
+    // links that jump between the two mandala sections. No sticky/fixed/z-index.
+    const mandalaToggle = (key) => React.createElement("div", { key: key, className: "flex justify-center gap-2 mb-4 print:hidden" },
+        React.createElement("a", { href: "#your-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR MANDALA"),
+        React.createElement("a", { href: "#shadow-mandala", className: "rounded-full border border-indigo-300/40 px-4 py-1.5 text-xs tracking-[0.15em] text-indigo-200/85 hover:border-indigo-300/80 hover:text-indigo-100 transition-colors", style: sans }, "YOUR SHADOW MANDALA"));
     return (React.createElement("div", { className: "min-h-screen w-full text-violet-50", style: { background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" } },
         React.createElement("div", { className: "max-w-md md:max-w-3xl mx-auto px-5 md:px-12 pb-16 pt-10 print:max-w-full print:px-0" },
             React.createElement("style", null, `
@@ -838,15 +843,9 @@ function TwelveWithin() {
                 // Time signature retained in data (timeSig) but no longer displayed.
                 topTie && React.createElement("p", { className: "text-center text-amber-200/80 text-sm mt-1 mb-1", style: sans },
                     joinNames(topTie.map((r) => r.name)), " are tied for your loudest voice \u2014 the order shown is only by wheel position, not by strength."),
-                // Jump nav \u2014 only when there's a Shadow Mandala to jump to. Easy toggling
-                // between the two wheels, especially on mobile.
-                // Sticks just under the injected site nav (#site-header is sticky top:0,
-                // 4rem tall, z-30) so the toggle stays visible through the whole scroll
-                // without hiding behind the nav.
-                showShadow && React.createElement("div", { className: "flex justify-center gap-2 mb-4 py-2 print:hidden", style: { position: "sticky", top: "4rem", zIndex: 25, background: "rgba(16,12,34,0.82)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" } },
-                    React.createElement("a", { href: "#your-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR MANDALA"),
-                    React.createElement("a", { href: "#shadow-mandala", className: "rounded-full border border-indigo-300/40 px-4 py-1.5 text-xs tracking-[0.15em] text-indigo-200/85 hover:border-indigo-300/80 hover:text-indigo-100 transition-colors", style: sans }, "YOUR SHADOW MANDALA")),
-                React.createElement("div", { id: "your-mandala", style: { scrollMarginTop: "7rem" } },
+                // Toggle pair just above the light wheel (mirrored above the shadow wheel).
+                showShadow && mandalaToggle("toggle-light"),
+                React.createElement("div", { id: "your-mandala", style: { scrollMarginTop: "5rem" } },
                     React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount })),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
@@ -1078,7 +1077,7 @@ function TwelveWithin() {
                         "You are already all twelve. These are the voices that speak loudest in you right now. Below is what's waiting to be claimed.")),
 
                 // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (unlocked only) \u2550\u2550
-                showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "7rem" } },
+                showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "5rem" } },
                     sectionHeader("Your Shadow Mandala", "YOUR SHADOW MANDALA \u2014 YOUR QUIETEST VOICES"),
                     // Shame-prevention intro \u2014 REQUIRED before the wheel or naming the bottom three.
                     React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-5 mb-6", style: { background: "rgba(80,90,180,0.06)" } },
@@ -1089,6 +1088,8 @@ function TwelveWithin() {
                     // Gold eyebrow directly above the wheel \u2014 orients the reader on scroll,
                     // mirroring the light mandala's header treatment.
                     React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2 text-center", style: sans }, "YOUR SHADOW MANDALA"),
+                    // Toggle pair just above the shadow wheel (mirror of the light-wheel pair).
+                    mandalaToggle("toggle-shadow"),
                     // The wheel \u2014 bottom three highlighted, cool blend lines.
                     React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, shadow: true }),
                     React.createElement("p", { className: "text-center text-indigo-200/70 text-sm -mt-1 mb-8 italic", style: serif }, "The three quietest voices, and the blends between them \u2014 the shape of what you haven't yet claimed."),
