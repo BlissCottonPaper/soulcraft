@@ -71,7 +71,12 @@
           .then(function(res){
             if(res.ok){
               // Swap the whole form for a clear, visible confirmation.
-              f.hidden=true; done.hidden=false;
+              // Use inline display (not the [hidden] attribute): the form's
+              // Tailwind grid class sets display:grid as an author style and
+              // would otherwise win over the UA [hidden] display:none rule,
+              // leaving the form visible next to the confirmation.
+              f.style.display='none'; f.hidden=true;
+              done.hidden=false; done.style.display='block';
               done.setAttribute('tabindex','-1'); done.focus();
               done.scrollIntoView({behavior:'smooth', block:'center'});
             } else {
