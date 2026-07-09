@@ -71,6 +71,7 @@
     p = p || "/";
     if (p.indexOf("/explore") === 0) return "explore";
     if (p.indexOf("/pricing") === 0) return "pricing";
+    if (p.indexOf("/my-results") === 0) return "results";
     if (p.indexOf("/contact") === 0) return "contact";
     return "home";
   }
@@ -90,6 +91,7 @@
             '<div class="sc-menu" id="sc-explore-menu">' + menu + '</div>' +
           '</div>' +
           '<a class="' + cls("pricing") + '" href="/pricing/">Pricing</a>' +
+          '<a class="' + cls("results") + '" href="/my-results/">My Results</a>' +
           '<a class="' + cls("contact") + '" href="/contact/">Contact</a>' +
         '</div>' +
       '</nav></header>';

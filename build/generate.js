@@ -204,6 +204,48 @@ function contactMain() {
     })();
     </script>`;
 }
+// "My Results" — the front door to the retrieve-by-email flow. For now this is just
+// the email prompt page; the send-a-link backend (/api/request-results-link) is a
+// later step. On submit we always show the same privacy-preserving confirmation.
+function myResultsMain() {
+  return `    <section class="text-center pt-16 pb-8 md:pt-24">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">MY RESULTS</p>
+      <h1 class="serif text-4xl md:text-6xl mb-4">Find your mirror again</h1>
+      <p class="text-violet-200/80 text-lg max-w-xl mx-auto">Took the assessment and saved your email? Enter it below and we'll send you a link back to Your Mandala.</p>
+    </section>
+    <section class="max-w-md mx-auto pb-20">
+      <form id="results-form" class="grid gap-4" novalidate>
+        <label class="block"><span class="text-sm text-violet-200/80">Email</span>
+          <input name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60" /></label>
+        <button type="submit" id="results-submit" class="rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Send my link</button>
+        <p id="results-status" class="text-sm text-center min-h-[1.25rem]" role="status" aria-live="polite"></p>
+      </form>
+      <div id="results-done" class="card rounded-2xl px-8 py-10 text-center" hidden>
+        <div class="text-4xl mb-4" aria-hidden="true">✉️</div>
+        <h2 class="serif text-2xl mb-3">Check your inbox</h2>
+        <p class="text-violet-200/80">If we have a saved result for that email, a link back to Your Mandala is on its way. It can take a minute — and it's worth a peek in your spam folder.</p>
+      </div>
+      <p class="text-center text-violet-300/50 text-xs mt-6">No results saved yet? <a href="/" class="text-amber-200/80 hover:text-amber-100 underline underline-offset-4">Take the assessment →</a></p>
+    </section>
+    <script>
+    (function(){
+      var f=document.getElementById('results-form'); if(!f) return;
+      var btn=document.getElementById('results-submit'), s=document.getElementById('results-status'), done=document.getElementById('results-done');
+      f.addEventListener('submit', function(e){
+        e.preventDefault();
+        var email=f.email.value.trim();
+        if(!email||!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)){ s.style.color='#fca5a5'; s.textContent='Please enter a valid email address.'; return; }
+        btn.disabled=true; btn.textContent='Sending…'; s.textContent='';
+        // Front door only: the retrieve-by-email backend isn't wired yet. Attempt the
+        // future endpoint, then always show the same message — we never reveal whether
+        // an email has results on file. Hide the form via inline display (beats grid).
+        fetch('/api/request-results-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+          .catch(function(){})
+          .then(function(){ f.style.display='none'; f.hidden=true; done.hidden=false; done.style.display='block'; done.setAttribute('tabindex','-1'); done.focus(); });
+      });
+    })();
+    </script>`;
+}
 function pricingMain() {
   return `    <section class="text-center pt-16 pb-10 md:pt-24">
       <h1 class="serif text-4xl md:text-6xl mb-4">Pay once for the depth you want</h1>
@@ -611,6 +653,14 @@ write("contact/index.html", page({
   canonical: "https://artofsoulcraft.com/contact/",
   active: "contact",
   main: contactMain()
+}));
+
+write("my-results/index.html", page({
+  title: "My Results — The Art of Soulcraft",
+  description: "Enter your email and we'll send you a link back to your saved Mandala results.",
+  canonical: "https://artofsoulcraft.com/my-results/",
+  active: "results",
+  main: myResultsMain()
 }));
 
 // Deep archetype pages — only those whose chapter prose exists in /content/archetypes.js.

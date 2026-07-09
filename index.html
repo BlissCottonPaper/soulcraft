@@ -26,7 +26,7 @@
 <!--SC:STYLE--><style id="sc-styles">#site-header{position:sticky;top:0;z-index:30;background:rgba(16,12,34,0.82);backdrop-filter:blur(8px);border-bottom:1px solid rgba(196,181,253,0.10);font-family:'Source Sans 3',system-ui,sans-serif;}.sc-nav{max-width:64rem;margin:0 auto;padding:0 1.25rem;height:4rem;display:flex;align-items:center;justify-content:space-between;}.sc-brand{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.35rem;color:#f5f3ff;text-decoration:none;}.sc-brand:hover{color:#fde8b0;}.sc-links{display:flex;align-items:center;gap:1.25rem;font-size:15px;}.sc-link{color:rgba(224,218,246,0.85);text-decoration:none;transition:color .15s;background:none;border:none;cursor:pointer;font:inherit;display:flex;align-items:center;gap:.25rem;}.sc-link:hover{color:#fde68a;}.sc-link.sc-active{color:#fde8b0;}.sc-dd{position:relative;}.sc-menu{display:none;position:absolute;right:0;margin-top:.5rem;width:14rem;background:#1a1533;border:1px solid rgba(196,181,253,0.18);border-radius:.75rem;padding:.5rem 0;box-shadow:0 10px 30px rgba(0,0,0,0.4);}.sc-dd:hover .sc-menu,.sc-dd:focus-within .sc-menu,.sc-menu.sc-open{display:block;}.sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}.sc-menu a:hover{color:#fde68a;}#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}.sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1rem;}@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}.sc-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;}.sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}.sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}</style><!--/SC:STYLE-->
 </head>
 <body>
-<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a></div></div><a class="sc-link" href="/pricing/">Pricing</a><a class="sc-link" href="/contact/">Contact</a></div></nav></header><!--/SC:HEADER-->
+<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a></div></div><a class="sc-link" href="/pricing/">Pricing</a><a class="sc-link" href="/my-results/">My Results</a><a class="sc-link" href="/contact/">Contact</a></div></nav></header><!--/SC:HEADER-->
 <div id="root"></div>
 <!--SC:FOOTER--><footer id="site-footer"><div class="sc-foot"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><a href="/">Home</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a></div></div></footer><!--/SC:FOOTER-->
 <script>
@@ -227,11 +227,11 @@ function Ladder({ arche }) {
 // it = a loud/active voice, inside it = a quieter voice / growth edge. The gift
 // word on each axis is the Build Spec's label (warmth/clarity/presence/meaning),
 // distinct from TEMPERAMENTS[].gift used in the prose elsewhere.
-// Axes rotated 45° so they sit in the quadrants, not on compass points — this
-// removes the implied up/down/left/right hierarchy. SVG angle convention (0° =
-// east, positive = clockwise/down): Heart upper-left (-135°), Mind upper-right
-// (-45°), Body lower-right (45°), Soul lower-left (135°). Corner-anchored labels
-// (see Radar) keep the text in the bounding-square corners, clear of the spokes.
+// The reference GRID is a normal orthogonal cross (+): vertical Heart(top)–Body(bottom),
+// horizontal Soul(left)–Mind(right). The data dots and labels, however, are anchored in
+// the four quadrants at the 45° diagonals — Heart upper-left, Mind upper-right, Body
+// lower-right, Soul lower-left — so the plotted shape floats cleanly inside the cross.
+// SVG angle convention (0° = east, positive = clockwise/down).
 const RADAR_AXES = [
     { key: "heart", name: "Heart", gift: "warmth", angle: -135 },
     { key: "mind", name: "Mind", gift: "clarity", angle: -45 },
@@ -259,8 +259,12 @@ function Radar({ scores, size, forPrint }) {
     const prof = temperamentProfile(scores);
     const c = size / 2;
     const Rmax = size * 0.28;               // a touch smaller so corner labels stay inside the viewBox
+    const rMin = Rmax * 0.15;               // floor: the innermost VISIBLE ring — raw 1 plots here, never at center
     const toXY = (angle, r) => { const rad = (angle * Math.PI) / 180; return [c + r * Math.cos(rad), c + r * Math.sin(rad)]; };
-    const rOf = (v) => ((Math.max(-1.5, Math.min(1.5, v)) + 1.5) / 3) * Rmax;
+    // Map the centered value (-1.5..+1.5) into [rMin, Rmax]. The minimum score of 1
+    // (v = -1.5) lands on rMin, the innermost visible position — never the origin, so
+    // no dot ever sits at dead center.
+    const rOf = (v) => rMin + ((Math.max(-1.5, Math.min(1.5, v)) + 1.5) / 3) * (Rmax - rMin);
     const pts = prof.axes.map((a) => toXY(a.angle, rOf(a.v)));
     const polyPoints = pts.map((p) => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
     // Dark-ink palette for the printed (white-paper) PDF; luminous palette on screen.
@@ -269,9 +273,13 @@ function Radar({ scores, size, forPrint }) {
         : { ring: "rgba(196,181,253,0.18)", dash: "rgba(253,230,138,0.30)", spoke: "rgba(196,181,253,0.15)", name: "#ece7ff", gift: "rgba(196,181,253,0.6)", fill: "rgba(233,196,124,0.22)", line: "#e9c47c", dot: "#fde68a", hub: "rgba(196,181,253,0.4)" };
     return React.createElement("svg", { viewBox: "0 0 " + size + " " + size, className: "w-full max-w-xs mx-auto block", role: "img", "aria-label": "Your Temperament radar" },
         React.createElement("circle", { cx: c, cy: c, r: Rmax, fill: "none", stroke: col.ring, strokeWidth: 1 }),
-        React.createElement("circle", { cx: c, cy: c, r: Rmax / 2, fill: "none", stroke: col.dash, strokeWidth: 1, strokeDasharray: "3 3" }),
+        React.createElement("circle", { cx: c, cy: c, r: rOf(0), fill: "none", stroke: col.dash, strokeWidth: 1, strokeDasharray: "3 3" }),
+        // Orthogonal reference cross (a normal +): the underlying grid stays upright —
+        // vertical Heart(top)-Body(bottom), horizontal Soul(left)-Mind(right). The data
+        // dots/labels below sit on the diagonals, floating in the four quadrants.
+        React.createElement("line", { x1: c, y1: c - Rmax, x2: c, y2: c + Rmax, stroke: col.spoke, strokeWidth: 1 }),
+        React.createElement("line", { x1: c - Rmax, y1: c, x2: c + Rmax, y2: c, stroke: col.spoke, strokeWidth: 1 }),
         prof.axes.map((a) => {
-            const e = toXY(a.angle, Rmax);
             const l = toXY(a.angle, Rmax + 20);
             // Tuck each two-line label into its corner: right-side axes anchor at the
             // start, left-side at the end, so the text opens away from the chart lines.
@@ -280,13 +288,11 @@ function Radar({ scores, size, forPrint }) {
             const sin = Math.sin((a.angle * Math.PI) / 180);
             const nameDy = sin < 0 ? -3 : 9;   // lift labels above the tip on the top axes, drop below on the bottom
             return React.createElement("g", { key: a.key },
-                React.createElement("line", { x1: c, y1: c, x2: e[0], y2: e[1], stroke: col.spoke, strokeWidth: 1 }),
                 React.createElement("text", { x: l[0], y: l[1] + nameDy, textAnchor: anchor, fontSize: "13", fontWeight: "600", fill: col.name, style: { fontFamily: "'Cormorant Garamond', Georgia, serif" } }, a.name),
                 React.createElement("text", { x: l[0], y: l[1] + nameDy + 12, textAnchor: anchor, fontSize: "9", fill: col.gift, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.08em" } }, a.gift));
         }),
         React.createElement("polygon", { points: polyPoints, fill: col.fill, stroke: col.line, strokeWidth: 2, strokeLinejoin: "round" }),
-        pts.map((p, i) => React.createElement("circle", { key: i, cx: p[0], cy: p[1], r: 3.5, fill: col.dot })),
-        React.createElement("circle", { cx: c, cy: c, r: 2, fill: col.hub }));
+        pts.map((p, i) => React.createElement("circle", { key: i, cx: p[0], cy: p[1], r: 3.5, fill: col.dot })));
 }
 const INTEGRATED_PROFILE_COPY = "You move fluidly between all four temperaments. Integration, not dominance, is your signature — you adapt how you show up to what the moment actually needs. Your growth edge is different: developing the discipline to choose intentionally rather than flow automatically.";
 // The archetype × temperament prose (The 48 + Crossing Practices) lives in
