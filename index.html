@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>The Art of Soulcraft — Mirror Prototype</title>
+<title>The Art of Soulcraft</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -550,7 +550,7 @@ function TwelveWithin() {
     // a real description). Returned as a finished sentence; null → show nothing.
     const blendTexture = (a, b) => {
         const t = (typeof BLEND_TEXTURES !== "undefined") && BLEND_TEXTURES[[a.key, b.key].sort().join("|")];
-        return t ? t.charAt(0).toUpperCase() + t.slice(1) + "." : null;
+        return t || null;   // verbatim from The 66 Lexicon (already a finished sentence)
     };
     const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
     const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
@@ -711,7 +711,7 @@ function TwelveWithin() {
 
                     // ===== PRINT PAGE 2 - Top Three + Blends + Edges =====
                     TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
-                        TIERS[tier].topCount >= 3 && React.createElement("div", { className: "mb-5", style: { pageBreakInside: "avoid" } },
+                        TIERS[tier].topCount >= 3 && React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "32px" } },
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR TOP THREE, IN DEPTH"),
                             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" } },
                                 ranked.slice(0, 3).map((r, n) => {
@@ -722,8 +722,7 @@ function TwelveWithin() {
                                         React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "11.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
                                         React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "12.5px", lineHeight: "1.3", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
                                 }))),
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "YOUR COMBINATIONS"),
-                        React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "Your Blends"),
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-3", style: sans }, "YOUR BLENDS"),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                             const nm = blendName(ranked[a], ranked[b]);
                             const tx = blendTexture(ranked[a], ranked[b]);
@@ -767,14 +766,14 @@ function TwelveWithin() {
                     })(),
 
                     // ===== PRINT PAGE 4 - The Remaining Nine + Full Ranking =====
-                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px 24px", boxSizing: "border-box" } },
+                    TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "44px 24px 24px", boxSizing: "border-box" } },
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
                         React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "The Remaining Nine"),
                         ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-1", style: { borderBottom: "1px solid #eee", paddingBottom: "4px", pageBreakInside: "avoid" } },
                             React.createElement("span", { className: "text-xs font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},55%,38%)` } }, r.name),
                             React.createElement("span", { className: "text-xs italic", style: sans }, "  " + longsPhrase(r) + "  "),
                             React.createElement("span", { className: "text-xs", style: sans }, r.stages.join(" → ")))),
-                        React.createElement("h2", { className: "text-2xl mb-3", style: { ...serif, marginTop: "36px" } }, "Full Ranking"),
+                        React.createElement("h2", { className: "text-2xl mb-3", style: { ...serif, marginTop: "52px" } }, "Full Ranking"),
                         ranked.map((r, i) => React.createElement("div", { key: r.key, className: "mb-1", style: { display: "flex", alignItems: "center", gap: "8px", pageBreakInside: "avoid" } },
                             React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "18px", textAlign: "right", fontSize: "11px", color: "#8a86a0", flexShrink: 0 } }, (i + 1) + "."),
                             React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "94px", fontSize: "12px", fontWeight: "600", color: `hsl(${HUE(r.i)},55%,40%)`, flexShrink: 0 } }, r.name),
@@ -940,7 +939,7 @@ function TwelveWithin() {
                         };
                     } }, "Print your mandala"),
                     React.createElement(Btn, { onClick: restart }, "Start over")),
-                React.createElement("p", { className: "text-center text-violet-300/45 text-xs mt-3", style: sans }, "Tip: to hide your browser's own date and web address on the printout, turn off “Headers and footers” in the print dialog (More settings)."),
+                React.createElement("p", { className: "text-center text-violet-300/45 text-xs mt-3", style: sans }, "For the cleanest print, turn off Headers and Footers in your browser print settings."),
                 !isSample && saveStatus === "saved" && !emailSent && React.createElement("div", { className: "mt-6 rounded-2xl border border-violet-300/18 px-5 py-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-sm text-violet-200/85 mb-3", style: sans }, "Want a link to find this again? Enter your email (optional) \u2014 no account, no newsletter, just a way back."),
                     React.createElement("div", { className: "flex gap-2" },
@@ -950,7 +949,7 @@ function TwelveWithin() {
                 // Save is best-effort and fully independent of the reading above: if it
                 // fails we say so quietly and never touch the result render.
                 !isSample && saveStatus === "error" && React.createElement("p", { className: "mt-6 text-center text-violet-300/55 text-sm", style: sans }, "Your reading below is complete. (We couldn't save a copy to return to later \u2014 no problem; you can retake anytime.)"),
-                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A mirror, not a fortune. Wherever you stand today, take one rung up."))))));
+                React.createElement("p", { className: "text-center text-violet-300/50 text-xs mt-7", style: sans }, "A map, not a fortune. Wherever you stand today, take one rung up."))))));
 }
 
 function mountApp() {
