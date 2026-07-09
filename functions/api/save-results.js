@@ -118,37 +118,41 @@ export async function onRequestPost({ request, env }) {
 
     // --- If we have an email, generate and send a magic link ---
     let magicLinkSent = false;
-    if (userId) {
+    if (userId && email && email.trim()) {
       const token = longToken();
-      const expiresAt = now + 60 * 60 * 24; // 24 hours from now
+      // Tokens NEVER expire — a result saved years ago must still open. We store a
+      // far-future expiry so the existing expiry checks (verify-link/my-results) pass.
+      const expiresAt = now + 60 * 60 * 24 * 365 * 100; // ~100 years
 
       await env.DB
         .prepare("INSERT INTO magic_links (token, user_id, expires_at, used) VALUES (?, ?, ?, 0)")
         .bind(token, userId, expiresAt)
         .run();
 
-      const resultUrl = `https://artofsoulcraft.com/r/${resultId}`;
-      const loginUrl = `https://artofsoulcraft.com/verify?token=${token}&result=${resultId}`;
+      // The token maps to the USER, so this one link opens all of their saved
+      // results (the /results page shows a picker when there is more than one).
+      const linkUrl = `https://artofsoulcraft.com/results?token=${token}`;
 
-      // Actual email sending goes here via Resend or Postmark — see the
-      // Build Spec (§3) for the recommended providers. Both have a simple
-      // fetch-based API; this is a placeholder call shape:
-      //
-      // await fetch("https://api.resend.com/emails", {
-      //   method: "POST",
-      //   headers: {
-      //     "Authorization": `Bearer ${env.RESEND_API_KEY}`,
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     from: "The Art of Soulcraft <hello@artofsoulcraft.com>",
-      //     to: [email],
-      //     subject: "Your Mandala — find your way back anytime",
-      //     html: `<p>Here's your link: <a href="${loginUrl}">${loginUrl}</a></p>`,
-      //   }),
-      // });
-
-      magicLinkSent = true;
+      if (env.RESEND_API_KEY) {
+        try {
+          const emailRes = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from: "The Art of Soulcraft <hello@artofsoulcraft.com>",
+              to: [email.trim()],
+              subject: "Your Art of Soulcraft results",
+              text: "Here's your link back to Your Mandala — it doesn't expire, so keep it anywhere:\n\n" + linkUrl + "\n\nThe Art of Soulcraft · artofsoulcraft.com",
+              html: "<p>Here's your link back to Your Mandala — it doesn't expire, so keep it anywhere:</p>" +
+                    "<p><a href=\"" + linkUrl + "\">" + linkUrl + "</a></p>" +
+                    "<p style=\"color:#8a86a0;font-size:13px\">The Art of Soulcraft · artofsoulcraft.com</p>",
+            }),
+          });
+          magicLinkSent = emailRes.ok;
+        } catch (e) {
+          magicLinkSent = false;
+        }
+      }
     }
 
     return new Response(

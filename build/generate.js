@@ -204,9 +204,9 @@ function contactMain() {
     })();
     </script>`;
 }
-// "My Results" — the front door to the retrieve-by-email flow. For now this is just
-// the email prompt page; the send-a-link backend (/api/request-results-link) is a
-// later step. On submit we always show the same privacy-preserving confirmation.
+// "My Results" — the front door to the retrieve-by-email flow. On submit we POST to
+// /api/request-results-link, which looks the email up in D1 and emails a magic link
+// back to every result saved under it. If nothing is on file, we say so plainly.
 function myResultsMain() {
   return `    <section class="text-center pt-16 pb-8 md:pt-24">
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">MY RESULTS</p>
@@ -235,13 +235,26 @@ function myResultsMain() {
         e.preventDefault();
         var email=f.email.value.trim();
         if(!email||!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)){ s.style.color='#fca5a5'; s.textContent='Please enter a valid email address.'; return; }
-        btn.disabled=true; btn.textContent='Sending…'; s.textContent='';
-        // Front door only: the retrieve-by-email backend isn't wired yet. Attempt the
-        // future endpoint, then always show the same message — we never reveal whether
-        // an email has results on file. Hide the form via inline display (beats grid).
+        btn.disabled=true; btn.textContent='Sending…'; s.textContent=''; s.style.color='';
+        // Ask the backend to look up saved results for this email and, if it finds any,
+        // email a magic link. This tool deliberately tells you plainly when nothing is on
+        // file (found:false) — more helpful than a silent non-answer for a low-stakes,
+        // self-reflection product. On found, hide the form (inline display beats grid).
         fetch('/api/request-results-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
-          .catch(function(){})
-          .then(function(){ f.style.display='none'; f.hidden=true; done.hidden=false; done.style.display='block'; done.setAttribute('tabindex','-1'); done.focus(); });
+          .then(function(r){ return r.json().catch(function(){ return {}; }); })
+          .then(function(d){
+            if(d && d.found===false){
+              btn.disabled=false; btn.textContent='Send my link';
+              s.style.color='#fca5a5';
+              s.textContent="We don't have results saved for that email — try taking the assessment first.";
+              return;
+            }
+            f.style.display='none'; f.hidden=true; done.hidden=false; done.style.display='block'; done.setAttribute('tabindex','-1'); done.focus();
+          })
+          .catch(function(){
+            // Network hiccup — don't strand the user; show the neutral confirmation.
+            f.style.display='none'; f.hidden=true; done.hidden=false; done.style.display='block'; done.setAttribute('tabindex','-1'); done.focus();
+          });
       });
     })();
     </script>`;

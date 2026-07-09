@@ -55,6 +55,7 @@ export async function onRequestGet({ request, env }) {
       mode: r.mode,
       archetypeScores: JSON.parse(r.archetype_scores),
       temperamentScores: JSON.parse(r.channel_scores),
+      descriptorPicks: r.descriptor_picks ? JSON.parse(r.descriptor_picks) : [],
       wasUpgradeOf: r.upgraded_from_id || null, // null = a fresh attempt, not an upgrade
       createdAt: r.created_at,
     }));
