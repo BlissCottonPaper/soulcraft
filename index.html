@@ -158,20 +158,19 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
     const secPts = showBlends ? pairs.map(([i, j], k) => ({ xy: midXY(i, j, R, c, top3[2 - k]), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") })) : [];
     // Colors tuned for a dark background don't work on white paper — every
     // color below has a print-mode alternative, chosen for legibility on white.
-    // Print: hardcode an explicit soft gray on the ring AND every spoke so black
-    // never appears regardless of the print engine's defaults or grayscale filter.
-    const wheelStroke = forPrint ? "rgba(150,150,150,0.4)" : "rgba(210,200,240,0.14)";
-    // Spokes and the inner blend triangle carry no meaning of their own — match them
-    // to the ring's soft gray so ONLY the gold top-three triangle (and its blend
-    // points) stand out, instead of competing dark lines fanning out from center.
-    const spokeStroke = forPrint ? "rgba(150,150,150,0.3)" : "rgba(210,200,240,0.07)";
-    const secPolyStroke = spokeStroke;
+    // Print: use a SOLID hex gray (not rgba) on the ring AND every spoke. An SVG stroke
+    // presentation attribute doesn't reliably accept rgba() in every print engine — an
+    // invalid value falls back to the UA default and can read as black — so a plain hex
+    // guarantees a soft gray everywhere. Only the gold top-three triangle stands out.
+    const wheelStroke = forPrint ? "#cfcfcf" : "rgba(210,200,240,0.14)";
+    const spokeStroke = forPrint ? "#d5d5d5" : "rgba(210,200,240,0.07)";
+    const secPolyStroke = forPrint ? "#d5d5d5" : "rgba(210,200,240,0.07)";
     const blendLabelFill = forPrint ? "rgba(40,38,45,0.9)" : "rgba(224,218,246,0.82)";
-    const dotStroke = forPrint ? "rgba(60,55,65,0.5)" : "rgba(255,255,255,0.5)";
+    const dotStroke = forPrint ? "#c4c4c4" : "rgba(255,255,255,0.5)";
     const labelFillTop = forPrint ? "rgba(20,18,25,0.95)" : "rgba(244,240,255,0.95)";
     const labelFillOther = forPrint ? "rgba(60,55,68,0.75)" : "rgba(196,190,222,0.62)";
     const nodeStrokeTop = forPrint ? "rgba(255,255,255,0.9)" : "rgba(255,252,240,0.95)";
-    const nodeStrokeOther = forPrint ? "rgba(80,75,85,0.4)" : "rgba(255,255,255,0.25)";
+    const nodeStrokeOther = forPrint ? "#c4c4c4" : "rgba(255,255,255,0.25)";
     const youFill = forPrint ? "rgba(60,50,20,0.85)" : "rgba(235,228,255,0.7)";
     const triStroke = forPrint ? "rgba(180,130,40,0.95)" : "rgba(233,196,124,0.9)";
     return (React.createElement("svg", { viewBox: "-30 -30 400 400", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
@@ -708,20 +707,21 @@ function TwelveWithin() {
                         React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
                             React.createElement("div", { style: { width: "5.6in", maxWidth: "100%" } },
                                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true }))),
-                        TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR TOP THREE, IN DEPTH"),
-                        TIERS[tier].topCount >= 3 && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", pageBreakInside: "avoid" } },
-                            ranked.slice(0, 3).map((r, n) => {
-                                const hue = HUE(r.i);
-                                return React.createElement("div", { key: r.key, style: { border: `1.5px solid hsl(${hue},55%,72%)`, borderTop: `5px solid hsl(${hue},60%,52%)`, borderRadius: "10px", padding: "10px 9px", background: `hsl(${hue},70%,97%)`, pageBreakInside: "avoid" } },
-                                    React.createElement("p", { className: "text-[8.5px] tracking-[0.16em]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},50%,38%)` } }, ["LOUDEST", "SECOND", "THIRD"][n] + " VOICE"),
-                                    React.createElement("h3", { className: "text-lg mb-0.5", style: { fontFamily: "'Cormorant Garamond', Georgia, serif", color: `hsl(${hue},55%,30%)` } }, r.name),
-                                    React.createElement("p", { className: "text-[9px] italic mb-1", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: `hsl(${hue},35%,45%)` } }, longsPhrase(r)),
-                                    React.createElement("div", null, [4, 3, 2, 1, 0].map((s) => React.createElement("p", { key: s, className: "text-[9.5px]", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", color: s === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,50%)`, fontWeight: s === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[s]))));
-                            })),
                         React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "Until the unconscious becomes conscious, it will direct your life — and you'll call it fate.")),
 
                     // ===== PRINT PAGE 2 - Your Blends + Your Edges =====
                     TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
+                        TIERS[tier].topCount >= 3 && React.createElement("div", { className: "mb-4", style: { pageBreakInside: "avoid" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR TOP THREE, IN DEPTH"),
+                            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "9px" } },
+                                ranked.slice(0, 3).map((r, n) => {
+                                    const hue = HUE(r.i);
+                                    return React.createElement("div", { key: r.key, style: { border: `1px solid hsl(${hue},55%,74%)`, borderTop: `4px solid hsl(${hue},60%,54%)`, borderRadius: "9px", padding: "8px 8px", background: `hsl(${hue},70%,97.5%)`, pageBreakInside: "avoid" } },
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "8px", letterSpacing: "0.14em", color: `hsl(${hue},50%,40%)` } }, ["LOUDEST", "SECOND", "THIRD"][n] + " VOICE"),
+                                        React.createElement("h3", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1rem", color: `hsl(${hue},55%,30%)`, marginBottom: "1px" } }, r.name),
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "8.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "4px" } }, longsPhrase(r)),
+                                        React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "8.5px", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "0.5px" } }, r.stages[st]))));
+                                }))),
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "YOUR COMBINATIONS"),
                         React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "Your Blends"),
                         React.createElement("p", { className: "text-sm mb-4", style: { ...sans, color: "#5a5570" } }, "Where two of your primary voices meet, a third quality appears — the texture of how you actually move through the world."),
@@ -758,14 +758,10 @@ function TwelveWithin() {
                                     React.createElement(Radar, { scores: radarScores, forPrint: true }))),
                             caseCopy && React.createElement("p", { className: "text-xs mb-2", style: { ...sans, color: "#4a4560" } }, caseCopy),
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "HOW YOUR TOP VOICES SHOW UP"),
-                            blocks.map(({ a, readout }) => {
-                                const loudItem = readout.items.find((x) => x.kind === "loud");            // loudest temperament prose
-                                const practiceItem = readout.items.slice().reverse().find((x) => x.kind === "practice");  // quietest temperament practice
-                                return React.createElement("div", { key: a.key, className: "mb-2", style: { borderTop: "1px solid #eee", paddingTop: "5px", pageBreakInside: "avoid" } },
-                                    React.createElement("p", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(a.i)},55%,34%)` } }, a.name),
-                                    loudItem && React.createElement("p", { style: { ...sans, fontSize: "10.5px", lineHeight: "1.3", color: "#4a4560", marginBottom: "2px" } }, "How this shows up · " + loudItem.temperament + " — " + loudItem.text),
-                                    practiceItem && React.createElement("p", { style: { ...sans, fontSize: "10.5px", lineHeight: "1.3", color: "#8a6a2a", marginBottom: "2px" } }, "An Intentional Practice · " + practiceItem.temperament + " — " + practiceItem.text));
-                            }));
+                            blocks.map(({ a, readout }) => React.createElement("div", { key: a.key, className: "mb-2", style: { borderTop: "1px solid #eee", paddingTop: "5px", pageBreakInside: "avoid" } },
+                                React.createElement("p", { className: "text-sm font-semibold", style: { ...serif, color: `hsl(${HUE(a.i)},55%,34%)` } }, a.name),
+                                // EVERY temperament: loud (3-4) as "How this shows up", quiet (1-2) as "An Intentional Practice".
+                                readout.items.map((s, i) => React.createElement("p", { key: i, style: { ...sans, fontSize: "10px", lineHeight: "1.3", color: s.kind === "loud" ? "#4a4560" : "#8a6a2a", marginBottom: "2px" } }, (s.kind === "loud" ? "How this shows up · " : "An Intentional Practice · ") + s.temperament + " — " + s.text)))));
                     })(),
 
                     // ===== PRINT PAGE 4 - The Remaining Nine =====
