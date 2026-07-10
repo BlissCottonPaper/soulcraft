@@ -25,31 +25,29 @@ function longToken() {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+function json(obj, status) {
+  return new Response(JSON.stringify(obj), { status: status || 200, headers: { "Content-Type": "application/json" } });
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json();
     const {
-      tier,               // 'free' | 'triad' | 'full'
+      tier,               // 'free' | 'full'
       mode,               // 'quick' | 'full'
       archetypeScores,    // { lover: 14, sage: 21, ... }
       temperamentScores,      // { heart: 8, mind: 30, ... }
       descriptorPicks,    // array, optional
       email,              // optional — may be null/undefined/empty
       redeemCode,         // optional — a code from the `codes` table, if this came via a partner gift
-      upgradeFromId,      // optional — set when this save is an upgrade of an earlier result (Triad -> Full), not a fresh retake
+      upgradeFromId,      // optional — set when this save is an upgrade of an earlier result, not a fresh retake
+      claimResultId,      // optional — set to attach an email to an already-saved (anonymous) result
     } = body;
-
-    if (!tier || !mode || !archetypeScores || !temperamentScores) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
 
     const now = Math.floor(Date.now() / 1000);
     let userId = null;
 
-    // --- Optional email: only touch the users table if an email was given ---
+    // --- Optional email: resolve/create the user (needed for a claim AND the magic link) ---
     if (email && email.trim()) {
       const cleanEmail = email.trim().toLowerCase();
       const existing = await env.DB
@@ -68,52 +66,73 @@ export async function onRequestPost({ request, env }) {
       }
     }
 
-    // --- If a redemption code was supplied, validate it before honoring the requested tier ---
+    let resultId;
     let finalTier = tier;
-    if (redeemCode) {
-      const codeRow = await env.DB
-        .prepare("SELECT * FROM codes WHERE code = ? AND used = 0")
-        .bind(redeemCode)
+
+    if (claimResultId) {
+      // ── CLAIM path ─────────────────────────────────────────────────────────
+      // The front end saves anonymously (user_id = NULL) the moment results
+      // display, then offers "email me a link back." Claiming ATTACHES that
+      // existing row to the user instead of writing a second, duplicate row —
+      // so a saved reading is one row, retrievable, with no orphaned copies.
+      if (!userId) return json({ error: "An email is required to save your results." }, 400);
+      const row = await env.DB
+        .prepare("SELECT id, tier FROM results WHERE id = ?")
+        .bind(claimResultId)
         .first();
-
-      if (!codeRow) {
-        return new Response(JSON.stringify({ error: "Invalid or already-used code" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      // The code determines the tier, not the client's own claim — never
-      // trust a tier value the browser sends when a code is involved.
-      finalTier = codeRow.grants_tier;
-    }
-
-    // --- Save the result itself ---
-    const resultId = uuid();
-    await env.DB
-      .prepare(
-        `INSERT INTO results
-         (id, user_id, tier, mode, archetype_scores, channel_scores, descriptor_picks, is_public, upgraded_from_id, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
-      )
-      .bind(
-        resultId,
-        userId,
-        finalTier,
-        mode,
-        JSON.stringify(archetypeScores),
-        JSON.stringify(temperamentScores),
-        descriptorPicks ? JSON.stringify(descriptorPicks) : null,
-        upgradeFromId || null,
-        now
-      )
-      .run();
-
-    // --- Mark the redemption code as used, now that we have a result to attach it to ---
-    if (redeemCode) {
+      if (!row) return json({ error: "That result no longer exists — please retake the assessment." }, 404);
+      finalTier = row.tier;
+      // Only claim an UNCLAIMED row (or one already this user's) — never reassign
+      // a result that belongs to someone else.
       await env.DB
-        .prepare("UPDATE codes SET used = 1, used_by_result_id = ? WHERE code = ?")
-        .bind(resultId, redeemCode)
+        .prepare("UPDATE results SET user_id = ? WHERE id = ? AND (user_id IS NULL OR user_id = ?)")
+        .bind(userId, claimResultId, userId)
         .run();
+      resultId = claimResultId;
+    } else {
+      // ── FRESH SAVE path ────────────────────────────────────────────────────
+      if (!tier || !mode || !archetypeScores || !temperamentScores) {
+        return json({ error: "Missing required fields" }, 400);
+      }
+
+      // If a redemption code was supplied, validate it before honoring the tier.
+      if (redeemCode) {
+        const codeRow = await env.DB
+          .prepare("SELECT * FROM codes WHERE code = ? AND used = 0")
+          .bind(redeemCode)
+          .first();
+        if (!codeRow) return json({ error: "Invalid or already-used code" }, 400);
+        // The code determines the tier, not the client's own claim.
+        finalTier = codeRow.grants_tier;
+      }
+
+      resultId = uuid();
+      await env.DB
+        .prepare(
+          `INSERT INTO results
+           (id, user_id, tier, mode, archetype_scores, channel_scores, descriptor_picks, is_public, upgraded_from_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
+        )
+        .bind(
+          resultId,
+          userId,
+          finalTier,
+          mode,
+          JSON.stringify(archetypeScores),
+          JSON.stringify(temperamentScores),
+          descriptorPicks ? JSON.stringify(descriptorPicks) : null,
+          upgradeFromId || null,
+          now
+        )
+        .run();
+
+      // Mark the redemption code used, now that a result exists to attach it to.
+      if (redeemCode) {
+        await env.DB
+          .prepare("UPDATE codes SET used = 1, used_by_result_id = ? WHERE code = ?")
+          .bind(resultId, redeemCode)
+          .run();
+      }
     }
 
     // --- If we have an email, generate and send a magic link ---

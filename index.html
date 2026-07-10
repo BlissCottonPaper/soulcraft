@@ -551,18 +551,13 @@ function TwelveWithin() {
 
     const sendMyEmail = () => {
         if (!emailInput.trim() || !savedResultId) return;
+        // CLAIM the already-saved anonymous result (savedResultId) with this email —
+        // attaches it to the user and emails a magic link, instead of writing a
+        // second duplicate row.
         fetch("/api/save-results", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                tier,
-                mode: TIERS[tier].pairMode,
-                archetypeScores: Object.fromEntries(ranked.map((r) => [r.key, r.score])),
-                temperamentScores: Object.fromEntries(TEMPERAMENTS.map((ch) => [ch.key, chScores[ch.key] || 0])),
-                descriptorPicks: picks,
-                email: emailInput.trim(),
-                upgradeFromId: savedResultId, // links this email-added save back to the original
-            }),
+            body: JSON.stringify({ claimResultId: savedResultId, email: emailInput.trim() }),
         })
             .then((res) => res.json())
             .then(() => setEmailSent(true))
