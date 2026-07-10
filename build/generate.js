@@ -335,26 +335,92 @@ function pricingMain() {
       <h1 class="serif text-4xl md:text-6xl mb-4">Pay once for the depth you want</h1>
       <p class="text-violet-200/80 text-lg max-w-xl mx-auto">No subscriptions. Start free; unlock more of your mirror whenever you're ready.</p>
     </section>
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 pb-8">
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 max-w-3xl mx-auto">
       <div class="card rounded-2xl px-6 py-7 flex flex-col">
-        <h2 class="serif text-2xl mb-1">Free</h2><p class="text-4xl mb-4">$0</p>
-        <p class="text-violet-300/75 text-sm mb-6">Your loudest voice — the single archetype speaking most loudly in you, on the wheel.</p>
-        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Begin free</a>
+        <h2 class="serif text-2xl mb-1">Your Mandala</h2><p class="text-4xl mb-4">$19</p>
+        <p class="text-violet-300/75 text-sm mb-6">The full assessment — your three most expressive voices, their blends, your Temperament radar, and the complete report.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Begin Your Mandala</a>
       </div>
       <div class="card rounded-2xl px-6 py-7 flex flex-col" style="border-color: rgba(253,230,138,0.4);">
-        <h2 class="serif text-2xl mb-1">Triad</h2><p class="text-4xl mb-4">$9</p>
-        <p class="text-violet-300/75 text-sm mb-3">Your top three voices, their three Pairings, and your quietest voice — the fuller shape of your mandala.</p>
-        <p class="text-[13px] text-violet-300/55 mb-6 border-t border-violet-300/10 pt-3">Your Temperament Profile (Heart · Mind · Body · Soul radar) is available in the Full Mirror.</p>
-        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Choose Triad</a>
+        <h2 class="serif text-2xl mb-1">Full</h2>
+        <p class="text-violet-300/60 text-sm -mt-0.5 mb-1">Your Mandala + Shadow Mandala</p>
+        <p class="text-4xl mb-4">$34</p>
+        <p class="text-violet-300/75 text-sm mb-3">Both mandalas together — your most expressive voices <em>and</em> your quieter ones: the three you've been carrying quietly, their shadow pairings, and what becomes possible when you claim them.</p>
+        <p class="text-[13px] text-violet-300/55 mb-6 border-t border-violet-300/10 pt-3">Or start with Your Mandala for $19 and unlock your shadow at any time for $15 more.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Begin the Full reading</a>
       </div>
-      <div class="card rounded-2xl px-6 py-7 flex flex-col">
-        <h2 class="serif text-2xl mb-1">Full Mirror</h2><p class="text-4xl mb-4">$19</p>
-        <p class="text-violet-300/75 text-sm mb-6">The complete 1–12 ranking, your Temperament, and the full reading. Already have Triad? Upgrade for the $10 difference — not a fresh charge.</p>
-        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Choose Full Mirror</a>
-      </div>
+    </section>
+    <section class="pb-8 text-center max-w-3xl mx-auto">
+      <p class="text-violet-300/55 text-sm">Not sure yet? A <a href="/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">free single-archetype result</a> shows your loudest voice at no charge.</p>
     </section>
     <section class="pb-16 text-center">
       <p class="text-violet-300/60 text-sm">Curious first? <a href="/explore/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Explore the system</a> before you begin.</p>
+    </section>`;
+}
+
+// ---- The Shadow (/explore/shadow/) — verbatim from Notion "The Shadow — Explore Page (v1)" ----
+function shadowMain() {
+  return `    <section class="pt-16 pb-8 md:pt-24 max-w-3xl">
+      <div class="flex items-center gap-3 mb-4"><span class="w-4 h-4 rounded-full" style="background:hsl(250,45%,58%)"></span><span class="text-[11px] tracking-[0.35em] text-violet-300/60 uppercase">The Shadow · a guide to what's waiting</span></div>
+      <h1 class="serif text-5xl md:text-6xl mb-6">The Shadow</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed mb-4">You can't go into the basement.</p>
+      <p class="text-violet-200/85 text-lg leading-relaxed">But you can see the forces moving under the blanket. That's what this is — a tool for making the unconscious conscious. Not to know everything. To know something. The monster or the wind or the slow leak that's been running for years.</p>
+    </section>
+
+    <section class="py-8 max-w-3xl">
+      <blockquote class="text-center serif text-2xl md:text-3xl italic text-violet-100 leading-snug px-4">Until you make the unconscious conscious, it will direct your life — and you'll call it fate.</blockquote>
+      <p class="text-center text-[11px] tracking-[0.2em] text-violet-300/50 mt-3">— AFTER JUNG</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-4">What the shadow actually is</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-4">The shadow isn't what's wrong with you. It's what you haven't claimed yet.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Jung used the word shadow to describe the parts of yourself you've pushed out of conscious awareness — not deliberately, not maliciously, but because at some point it wasn't safe, wasn't welcome, or wasn't you. Or so you thought.</p>
+      <p class="text-violet-200/80 leading-relaxed">The shadow operates autonomously. It runs you from the basement without your knowledge. You see it most clearly not in yourself but in your strongest reactions to other people — the qualities that irritate you most, the people you find most baffling, the behaviors you find most incomprehensible. Those reactions are a mirror.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-4">Two kinds of shadow</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-6">There are two places the shadow lives in this system.</p>
+      <h3 class="serif text-2xl mb-3">Vertical shadow — within your own archetype</h3>
+      <p class="text-violet-200/80 leading-relaxed mb-4">The Descended and Devolved stages of your loudest voices aren't just you under stress. They're what happens when the shadow goes unaddressed long enough. The Sage becomes the Cynic when the heart — the emotional vulnerability the Sage has disowned — goes unintegrated long enough. The Ruler becomes the Tyrant when the Rebel inside — the part that questions authority, that knows power can corrupt — is completely suppressed.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Bandwidth expansion requires shadow integration. You can't ascend without encountering what you've disowned. That's the engine of growth — psychologically precise and experientially true.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-8">The remedy for vertical shadow: meet the depleted Core Need. The Sage who can't escape the Cynic needs their Competence need met — real recognition, real mastery, real ground to stand on. Without that, the descent continues regardless of intention.</p>
+      <h3 class="serif text-2xl mb-3">Horizontal shadow — your quietest voices</h3>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Your three quietest archetypes aren't just underdeveloped. They're often actively disowned. A high Sage often genuinely cannot see their Trickster energy. A high Warrior often genuinely cannot access their Caregiver. The shadow work isn't just "develop this muscle" — it's "recognize that you probably have strong feelings about people who embody this archetype, and those feelings are information about yourself."</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Your quietest voice isn't just unfamiliar. It's often the energy you find most irritating, most incomprehensible, or most invisible in others. Pay attention to your strongest reactions to people who lead with your quietest archetype. That reaction is a mirror.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-6">The remedy for horizontal shadow: encounter the disowned archetype consciously. Not become it — stop disowning it. The Sage doesn't need to become a Trickster. They need to stop being unconsciously governed by their avoidance of Trickster energy.</p>
+      <p class="text-violet-300/60 text-sm italic leading-relaxed border-l-2 border-violet-300/20 pl-4">Most shadow frameworks address only one of these. Jung focused primarily on the horizontal — projecting disowned qualities onto others. SDT's motivational work addresses something closer to the vertical — contracted vs expansive expression under need deprivation. This system integrates both into one coherent map.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-4">Three positions, not two</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-4">The shadow work moves through three positions:</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4"><strong class="text-violet-100">In shadow</strong> — outside conscious awareness entirely. Operating without your knowledge. You don't know it's there. It runs you anyway.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4"><strong class="text-violet-100">The threshold</strong> — the moment of recognition. You can see it now. You know it's yours. But you haven't yet done the work of integration. This is what the Shadow Mandala creates — the moment of recognition. The BridgeTender's territory. You don't live here. You cross it.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-6"><strong class="text-violet-100">Integrated</strong> — you've brought it into conscious awareness and done something with it. It's no longer running you from the basement. It's available as a resource you can choose. Not becoming it — owning it.</p>
+      <p class="text-violet-200/80 leading-relaxed">The movement from shadow into integration is the work. That's what the Shadow Mandala is for.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-4">What the Shadow Mandala shows you</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Your three quietest archetypes and the three pairings between them. Not your weaknesses. Your unclaimed capacity.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-2">Each pairing has two readings:</p>
+      <p class="text-violet-200/80 leading-relaxed mb-2"><em class="text-violet-100 not-italic font-semibold">In shadow</em> — what this energy looks like when it lives outside your awareness, operating sideways.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4"><em class="text-violet-100 not-italic font-semibold">Integrated</em> — what becomes possible when you bring it into conscious awareness and do something with it.</p>
+      <p class="text-violet-200/80 leading-relaxed">The pairings between your shadow archetypes are already named in the system. They carry the same depth as the pairings between your loudest voices. The difference is that you haven't recognized them as yours yet.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-4">How to work with this</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-4">You don't integrate the shadow by deciding to. You integrate it by noticing.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Notice your strongest reactions to people who lead with your shadow archetypes. Notice where you feel contempt, bafflement, or the particular irritation of someone doing something you tell yourself you'd never do. That feeling is the entry point.</p>
+      <p class="text-violet-200/80 leading-relaxed">The Shadow Mandala gives you the map. The integration practices give you somewhere to go. The work itself happens in the space between — in the moment of recognition, when something you've been calling "not me" starts to look familiar.</p>
+      <p class="text-violet-200/80 leading-relaxed mt-4">That's the threshold. That's where the BridgeTender works.</p>
+    </section>
+
+    <section class="py-16 border-t border-violet-300/10 max-w-3xl">
+      <blockquote class="text-center serif text-2xl md:text-3xl italic text-violet-100 leading-snug px-4">Your shadow has always gone unnoticed. It is waiting for you to discover it.</blockquote>
     </section>`;
 }
 
@@ -552,8 +618,10 @@ function archetypeMain(key) {
   const pairs = DATA.ARCHETYPES.filter((x) => x.key !== key).map((x) => {
     const nm = DATA.pairingName(key, x.key);
     const phue = DATA.HUE(DATA.ARCHETYPES.indexOf(x));
-    const desc = c.pairings[x.key] || "";
-    return `        <a href="/explore/${x.key}/" class="card card-hover rounded-xl px-5 py-3.5 flex items-baseline gap-3 transition-colors"><span class="w-2.5 h-2.5 rounded-full shrink-0 self-center" style="background:hsl(${phue},62%,56%)"></span><span class="text-violet-300/80 text-sm w-24 shrink-0">${x.name}</span><span class="text-sm"><span class="text-amber-100">${nm}</span>${desc ? ' <span class="text-violet-300/60">— ' + desc + "</span>" : ""}</span></a>`;
+    // Every pairing card shows a description. Prefer the archetype's own content line;
+    // fall back to the canonical one-line texture from The 66 so no card is ever blank.
+    const desc = c.pairings[x.key] || DATA.BLEND_TEXTURES[[key, x.key].sort().join("|")] || "";
+    return `        <a href="/explore/${x.key}/" class="card card-hover rounded-xl px-5 py-3.5 flex items-baseline gap-3 transition-colors"><span class="w-2.5 h-2.5 rounded-full shrink-0 self-center" style="background:hsl(${phue},62%,56%)"></span><span class="text-violet-300/80 text-sm w-24 shrink-0">${x.name}</span><span class="text-sm"><span class="text-amber-100">${nm}</span>${desc ? ' <span class="text-violet-300/60 italic">— ' + desc + "</span>" : ""}</span></a>`;
   }).join("\n");
 
   return `    <section class="pt-14 pb-8 md:pt-20">
@@ -734,9 +802,17 @@ write("explore/growth-edge/index.html", page({
   main: growthEdgeMain()
 }));
 
+write("explore/shadow/index.html", page({
+  title: "The Shadow — what you haven't claimed yet | The Art of Soulcraft",
+  description: "The shadow isn't what's wrong with you — it's what you haven't claimed yet. The two kinds of shadow, the three positions, and the work of integration.",
+  canonical: "https://artofsoulcraft.com/explore/shadow/",
+  active: "explore",
+  main: shadowMain()
+}));
+
 write("pricing/index.html", page({
   title: "Pricing — The Art of Soulcraft",
-  description: "Your Mandala pricing: Free, Triad ($9), and the Full Mirror ($19). No subscriptions — pay once for the depth you want.",
+  description: "Pricing: a free single-archetype result, Your Mandala ($19), and the Full reading with both mandalas ($34). No subscriptions — pay once.",
   canonical: "https://artofsoulcraft.com/pricing/",
   active: "pricing",
   main: pricingMain()

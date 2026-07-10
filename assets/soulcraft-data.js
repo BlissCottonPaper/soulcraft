@@ -22,6 +22,7 @@
     root.HUE = data.HUE;
     root.BLEND_NAMES = data.BLEND_NAMES;
     root.BLEND_TEXTURES = data.BLEND_TEXTURES;
+    root.BLEND_SHADOW_TEXTURES = data.BLEND_SHADOW_TEXTURES;
     root.TEMPERAMENT_EXPRESSIONS = data.TEMPERAMENT_EXPRESSIONS;
     root.TEMPERAMENTS = data.TEMPERAMENTS;
   }
@@ -53,7 +54,7 @@
     "lover|trickster": "The Flirt", "innocent|lover": "The Faithful", "lover|mystic": "The Devout",
     "caregiver|everyman": "The Good Neighbor", "caregiver|ruler": "The Steward", "caregiver|warrior": "The Protector",
     "caregiver|creator": "The Cultivator", "caregiver|sage": "The Healer", "caregiver|explorer": "The Shepherd",
-    "caregiver|rebel": "The Samaritan", "caregiver|trickster": "The Merrymaker", "caregiver|innocent": "The Gentleheart", "caregiver|mystic": "The Midwife",
+    "caregiver|rebel": "The Advocate", "caregiver|trickster": "The Merrymaker", "caregiver|innocent": "The Gentleheart", "caregiver|mystic": "The BridgeTender",
     "everyman|ruler": "The Mayor", "everyman|warrior": "The Citizen-Soldier", "creator|everyman": "The Folk Artist",
     "everyman|sage": "The Folk Sage", "everyman|explorer": "The Sojourner", "everyman|rebel": "The Folk Hero",
     "everyman|trickster": "The Rascal", "everyman|innocent": "The Salt-of-the-Earth", "everyman|mystic": "The Everyday Mystic",
@@ -143,6 +144,79 @@
     "innocent|mystic": "Blameless before mystery."
   };
 
+  // Shadow Mandala pairing copy — LOCKED July 2026 (verbatim from The 66 Shadow
+  // Pairings in Notion). One line per pairing, in the form "In shadow: … Integrated:
+  // …": what happens when the two energies can't cooperate, and what becomes
+  // possible once both are held at once. Keyed identically to BLEND_TEXTURES.
+  var BLEND_SHADOW_TEXTURES = {
+    "caregiver|lover": "In shadow: care and desire split — you either smother or withhold. Integrated: you can love someone and tend to them without losing yourself in either.",
+    "everyman|lover": "In shadow: you perform closeness to secure belonging, but no one gets close enough to know you. Integrated: you can open to people without needing them to make you feel chosen.",
+    "lover|ruler": "In shadow: the longing for closeness hides inside control of the household. Integrated: you can build a home that holds intimacy rather than replacing it.",
+    "lover|warrior": "In shadow: passion shows up only as jealousy or the fight to keep what you love. Integrated: you can defend what you cherish without possessing it.",
+    "creator|lover": "In shadow: strong feeling stays mute or leaks out as drama. Integrated: you can turn what moves you into something that lasts.",
+    "lover|sage": "In shadow: you retreat into analysis to avoid being touched. Integrated: you can let understanding and feeling inform each other.",
+    "explorer|lover": "In shadow: appetite for experience keeps you moving before attachment can deepen. Integrated: you can be devoted and still free.",
+    "lover|rebel": "In shadow: desire only surfaces as breaking rules or people. Integrated: you can love on your own terms without burning it down.",
+    "lover|trickster": "In shadow: flirtation deflects real closeness. Integrated: you can bring lightness to intimacy instead of hiding behind it.",
+    "lover|mystic": "In shadow: you reach for the infinite to avoid the particular person in front of you. Integrated: you can let the sacred deepen a real bond.",
+    "innocent|lover": "In shadow: you either give without limit or armor against being hurt. Integrated: you can love openly and still keep faith with yourself.",
+    "caregiver|everyman": "In shadow: you resent the helping you can't stop doing. Integrated: you can show up for others by choice rather than compulsion.",
+    "caregiver|ruler": "In shadow: care becomes control dressed as concern. Integrated: you can carry responsibility for others without running their lives.",
+    "caregiver|warrior": "In shadow: protectiveness turns into fighting battles no one asked you to fight. Integrated: you can stand up for people and still let them stand for themselves.",
+    "caregiver|creator": "In shadow: you pour all your creative energy into developing others and lose contact with what you were meant to bring forth yourself. Integrated: you can nurture others and still create for yourself.",
+    "caregiver|sage": "In shadow: you analyze others' pain to keep from feeling your own. Integrated: you can bring insight and care to the same wound.",
+    "caregiver|explorer": "In shadow: you flee whenever caring gets heavy. Integrated: you can stay present to others without feeling trapped.",
+    "caregiver|rebel": "In shadow: outrage at injustice becomes easier than actually staying with the people who are hurting. Integrated: you can let care, not just anger, move you to act.",
+    "caregiver|trickster": "In shadow: you joke to avoid tending anything real. Integrated: you can use humor to lighten care rather than dodge it.",
+    "caregiver|innocent": "In shadow: tenderness feels dangerous, so you harden. Integrated: you can stay soft without being naive.",
+    "caregiver|mystic": "In shadow: you tend the surface and avoid the threshold. Integrated: you can hold space at the crossing without flinching.",
+    "everyman|ruler": "In shadow: the wish to belong keeps you from ever stepping up. Integrated: you can lead without losing your place among people.",
+    "everyman|warrior": "In shadow: you shrink from any fight that would single you out. Integrated: you can defend the common good without needing to stay invisible.",
+    "creator|everyman": "In shadow: you dismiss your own originality to fit in. Integrated: you can make something distinct and still belong.",
+    "everyman|sage": "In shadow: you hide what you know to avoid standing apart. Integrated: you can share understanding without needing permission.",
+    "everyman|explorer": "In shadow: you drift to avoid the risk of really belonging. Integrated: you can move freely and still put down roots.",
+    "everyman|rebel": "In shadow: you go along to get along and swallow the dissent. Integrated: you can belong and still say what's wrong.",
+    "everyman|trickster": "In shadow: your wit turns into passive undermining. Integrated: you can use cleverness openly rather than from the shadows.",
+    "everyman|innocent": "In shadow: you make yourself so agreeable you disappear. Integrated: you can be dependable without erasing yourself.",
+    "everyman|mystic": "In shadow: you keep your inner life hidden to seem normal. Integrated: you can let depth show inside an ordinary life.",
+    "ruler|warrior": "In shadow: the will to organize only surfaces as domination. Integrated: you can organize strength around a purpose larger than your own control.",
+    "creator|ruler": "In shadow: you either refuse structure or impose it rigidly. Integrated: you can build systems that free rather than confine.",
+    "ruler|sage": "In shadow: you avoid authority so you never have to be wrong. Integrated: you can make the call and live with what it costs.",
+    "explorer|ruler": "In shadow: you resist committing to anything you'd have to maintain. Integrated: you can found something and stay to tend it.",
+    "rebel|ruler": "In shadow: you tear down without building anything back. Integrated: you can be the one who breaks it and the one who builds what comes next.",
+    "ruler|trickster": "In shadow: control and mischief split into rigidity or chaos. Integrated: you can hold authority lightly enough to keep it honest.",
+    "innocent|ruler": "In shadow: you refuse power because it feels corrupting. Integrated: you can hold authority without losing your good faith.",
+    "mystic|ruler": "In shadow: vision stays private and guides no one. Integrated: you can bring inner sight into real leadership.",
+    "creator|warrior": "In shadow: drive turns destructive or stalls in perfectionism. Integrated: you can forge with force instead of merely breaking with it.",
+    "sage|warrior": "In shadow: you think instead of act, or act without thought. Integrated: you can pair clear judgment with the will to follow through.",
+    "explorer|warrior": "In shadow: you pick fights to keep yourself moving. Integrated: you can be bold without needing an enemy.",
+    "rebel|warrior": "In shadow: the fight for justice curdles into rage. Integrated: you can channel anger into disciplined action.",
+    "trickster|warrior": "In shadow: you avoid every direct confrontation. Integrated: you can pick your battles with cunning rather than fear.",
+    "innocent|warrior": "In shadow: you suppress your strength to stay nice. Integrated: you can be forceful without becoming hard.",
+    "mystic|warrior": "In shadow: you either fight for nothing higher or dream without discipline. Integrated: you can put real rigor behind what you hold sacred.",
+    "creator|sage": "In shadow: ideas stay in your head and never reach the world. Integrated: you can turn understanding into something someone can use.",
+    "creator|explorer": "In shadow: curiosity scatters and finishes nothing. Integrated: you can wander widely and still bring back a map.",
+    "creator|rebel": "In shadow: you break things without making anything new. Integrated: you can dismantle old forms in service of a better one.",
+    "creator|trickster": "In shadow: cleverness hides that you're not saying anything real. Integrated: you can use wit to reveal rather than deflect.",
+    "creator|innocent": "In shadow: you distrust your own imagination as naive. Integrated: you can create from wonder without shame.",
+    "creator|mystic": "In shadow: vision stays formless and unshared. Integrated: you can give shape to what you intuit.",
+    "explorer|sage": "In shadow: you keep seeking so you never have to conclude. Integrated: you can let real inquiry reach real ground.",
+    "rebel|sage": "In shadow: contrarianism stands in for genuine understanding. Integrated: you can question orthodoxy in the name of truth, not just defiance.",
+    "sage|trickster": "In shadow: you undercut everyone's certainty, including your own footing. Integrated: you can puncture false certainty and still stand for something.",
+    "innocent|sage": "In shadow: you feign not-knowing to dodge responsibility for what you do know. Integrated: you can stay curious without playing dumb.",
+    "mystic|sage": "In shadow: you either distrust what you perceive or treat inner knowing as beyond question. Integrated: you can test what you perceive, live what survives, and carry it back in service.",
+    "explorer|rebel": "In shadow: independence hardens into reflexive opposition. Integrated: you can go your own way without defining yourself against everyone.",
+    "explorer|trickster": "In shadow: you slip past every boundary to avoid commitment. Integrated: you can cross lines with purpose rather than just to escape.",
+    "explorer|innocent": "In shadow: you either fear the new or chase it blindly. Integrated: you can meet the unknown with open, clear eyes.",
+    "explorer|mystic": "In shadow: seeking becomes endless spiritual tourism. Integrated: you can let the outer journey serve an inner one.",
+    "rebel|trickster": "In shadow: everything becomes cynicism that risks nothing. Integrated: you can use humor to resist without hiding behind it.",
+    "innocent|rebel": "In shadow: you stay silent to keep the peace. Integrated: you can speak the plain truth without needing to be right.",
+    "mystic|rebel": "In shadow: conviction outruns discernment, and every impulse begins to sound like revelation. Integrated: you can challenge power from conviction grounded in something larger than yourself.",
+    "innocent|trickster": "In shadow: playfulness gets buried under seriousness or turns sharp. Integrated: you can be mischievous in a way that heals rather than wounds.",
+    "mystic|trickster": "In shadow: you shapeshift so much that no one, including you, finds the center. Integrated: you can move fluidly and still stay whole.",
+    "innocent|mystic": "In shadow: you avoid the depths to keep your innocence intact. Integrated: you can face mystery without losing your trust.",
+  };
+
   var TEMPERAMENT_EXPRESSIONS = {
     lover: { heart: "The Sweetheart", mind: "The Admirer", body: "The Embracer", soul: "The Adorer" },
     caregiver: { heart: "The Comforter", mind: "The Coordinator", body: "The Provider", soul: "The Tender" },
@@ -175,6 +249,7 @@
     HUE: HUE,
     BLEND_NAMES: BLEND_NAMES,
     BLEND_TEXTURES: BLEND_TEXTURES,
+    BLEND_SHADOW_TEXTURES: BLEND_SHADOW_TEXTURES,
     TEMPERAMENT_EXPRESSIONS: TEMPERAMENT_EXPRESSIONS,
     TEMPERAMENTS: TEMPERAMENTS,
     pairingName: pairingName

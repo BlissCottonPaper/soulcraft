@@ -26,7 +26,7 @@
 <!--SC:STYLE--><style id="sc-styles">#site-header{position:sticky;top:0;z-index:30;background:rgba(16,12,34,0.82);backdrop-filter:blur(8px);border-bottom:1px solid rgba(196,181,253,0.10);font-family:'Source Sans 3',system-ui,sans-serif;}.sc-nav{max-width:64rem;margin:0 auto;padding:0 1.25rem;height:4rem;display:flex;align-items:center;justify-content:space-between;}.sc-brand{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.35rem;color:#f5f3ff;text-decoration:none;}.sc-brand:hover{color:#fde8b0;}.sc-links{display:flex;align-items:center;gap:1.25rem;font-size:15px;}.sc-link{color:rgba(224,218,246,0.85);text-decoration:none;transition:color .15s;background:none;border:none;cursor:pointer;font:inherit;display:flex;align-items:center;gap:.25rem;}.sc-link:hover{color:#fde68a;}.sc-link.sc-active{color:#fde8b0;}.sc-dd{position:relative;}.sc-menu{display:none;position:absolute;right:0;margin-top:.5rem;width:14rem;background:#1a1533;border:1px solid rgba(196,181,253,0.18);border-radius:.75rem;padding:.5rem 0;box-shadow:0 10px 30px rgba(0,0,0,0.4);}.sc-dd:hover .sc-menu,.sc-dd:focus-within .sc-menu,.sc-menu.sc-open{display:block;}.sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}.sc-menu a:hover{color:#fde68a;}#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}.sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1rem;}@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}.sc-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;}.sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}.sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}</style><!--/SC:STYLE-->
 </head>
 <body>
-<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a></div></div><a class="sc-link" href="/pricing/">Pricing</a><a class="sc-link" href="/my-results/">My Results</a><a class="sc-link" href="/contact/">Contact</a></div></nav></header><!--/SC:HEADER-->
+<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/shadow/">Shadow</a></div></div><a class="sc-link" href="/pricing/">Pricing</a><a class="sc-link" href="/my-results/">My Results</a><a class="sc-link" href="/contact/">Contact</a></div></nav></header><!--/SC:HEADER-->
 <div id="root"></div>
 <!--SC:FOOTER--><footer id="site-footer"><div class="sc-foot"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><a href="/">Home</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></div></div></footer><!--/SC:FOOTER-->
 <script>
@@ -95,6 +95,29 @@ function hslToRgb(h, s, l) {
 }
 const rgbStr = (r) => `rgb(${r[0]},${r[1]},${r[2]})`;
 const longsPhrase = (a) => a.longingVerb ? `longs to ${a.longing}` : `longs for ${a.longing}`;
+// Split a locked shadow-pairing line ("In shadow: … Integrated: …") into its two
+// halves so the labels can be styled. Falls back to the whole string if it doesn't
+// match the expected shape.
+const parseShadow = (s) => {
+    if (!s) return null;
+    const m = s.match(/^In shadow:\s*([\s\S]*?)\s*Integrated:\s*([\s\S]*)$/);
+    return m ? { shadow: m[1], integrated: m[2] } : { shadow: s, integrated: "" };
+};
+// Load Stripe.js on demand — only when someone actually opens the Shadow unlock
+// checkout — so it never touches initial page load. Resolves with window.Stripe.
+let _stripeJsPromise = null;
+function loadStripeJs() {
+    if (typeof window !== "undefined" && window.Stripe) return Promise.resolve(window.Stripe);
+    if (_stripeJsPromise) return _stripeJsPromise;
+    _stripeJsPromise = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://js.stripe.com/v3/";
+        s.onload = () => resolve(window.Stripe);
+        s.onerror = () => reject(new Error("Stripe.js failed to load"));
+        document.head.appendChild(s);
+    });
+    return _stripeJsPromise;
+}
 // Archetype names in the results link to their Explore page. Inherits the
 // surrounding color/size so it still reads as styled text; underlines on hover.
 const archLink = (r, extraStyle) => React.createElement("a", { key: "al-" + r.key, href: `/explore/${r.key}/`, className: "arch-link", style: Object.assign({ color: "inherit", textDecoration: "none" }, extraStyle || {}) }, r.name);
@@ -148,11 +171,15 @@ const midXY = (i, j, R, c, thirdIdx) => {
 // not demonstrate the "growth edge is also a top voice" overlap case.
 const SAMPLE_WINS = { sage: 21, creator: 18, mystic: 16, explorer: 14, warrior: 13, rebel: 12, everyman: 11, caregiver: 9, innocent: 8, trickster: 7, lover: 6, ruler: 3 };
 /* ---------- components ---------- */
-function Mandala({ ranked, topCount = 3, forPrint = false }) {
+function Mandala({ ranked, topCount = 3, forPrint = false, shadow = false }) {
     const c = 170, R = 128;
     const idx = (key) => ARCHETYPES.findIndex((a) => a.key === key);
-    const showBlends = topCount >= 3;
-    const top3 = ranked.slice(0, Math.min(3, topCount)).map((r) => idx(r.key));
+    // Shadow mandala: same wheel, same geometry — but the THREE highlighted nodes
+    // and their blend triangle are the bottom three (the disowned), drawn in a
+    // cooler, deeper color that reads as depth rather than negativity.
+    const showBlends = shadow ? ranked.length >= 3 : topCount >= 3;
+    const three = shadow ? ranked.slice(-3) : ranked.slice(0, Math.min(3, topCount));
+    const top3 = three.map((r) => idx(r.key));
     const triPts = showBlends ? top3.map((i) => nodeXY(i, R, c)) : [];
     const pairs = showBlends ? [[top3[0], top3[1]], [top3[0], top3[2]], [top3[1], top3[2]]] : [];
     const secPts = showBlends ? pairs.map(([i, j], k) => ({ xy: midXY(i, j, R, c, top3[2 - k]), fill: mixHues(HUE(i), HUE(j)), label: (BLEND_NAMES[[ARCHETYPES[i].key, ARCHETYPES[j].key].sort().join("|")] || "").replace(/^The /, "") })) : [];
@@ -167,13 +194,26 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
     const secPolyStroke = forPrint ? "#d5d5d5" : "rgba(210,200,240,0.07)";
     const blendLabelFill = forPrint ? "rgba(40,38,45,0.9)" : "rgba(224,218,246,0.82)";
     const dotStroke = forPrint ? "#c4c4c4" : "rgba(255,255,255,0.5)";
-    const labelFillTop = forPrint ? "rgba(20,18,25,0.95)" : "rgba(244,240,255,0.95)";
+    const labelFillTop = shadow
+        ? (forPrint ? "rgba(40,44,90,0.95)" : "rgba(236,233,252,0.96)")
+        : (forPrint ? "rgba(20,18,25,0.95)" : "rgba(244,240,255,0.95)");
     const labelFillOther = forPrint ? "rgba(60,55,68,0.75)" : "rgba(196,190,222,0.62)";
-    const nodeStrokeTop = forPrint ? "rgba(255,255,255,0.9)" : "rgba(255,252,240,0.95)";
+    const nodeStrokeTop = shadow
+        ? (forPrint ? "rgba(88,98,168,0.95)" : "rgba(233,230,252,0.95)")
+        : (forPrint ? "rgba(255,255,255,0.9)" : "rgba(255,252,240,0.95)");
     const nodeStrokeOther = forPrint ? "#c4c4c4" : "rgba(255,255,255,0.25)";
     const youFill = forPrint ? "rgba(60,50,20,0.85)" : "rgba(235,228,255,0.7)";
-    const triStroke = forPrint ? "rgba(180,130,40,0.95)" : "rgba(233,196,124,0.9)";
-    return (React.createElement("svg", { viewBox: "-30 -30 400 400", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
+    // The blend triangle color. Light mandala: gold. Shadow mandala: on the dark screen
+    // it must be a PALE lavender/silver-white to stay visible against the dark ground;
+    // in print (white paper) a deep indigo reads best. Depth, never danger — no black,
+    // no red.
+    const triStroke = shadow
+        ? (forPrint ? "rgba(70,80,150,0.95)" : "rgba(223,219,250,0.92)")
+        : (forPrint ? "rgba(180,130,40,0.95)" : "rgba(233,196,124,0.9)");
+    const triFill = shadow
+        ? (forPrint ? "rgba(120,130,220,0.06)" : "rgba(214,210,246,0.08)")
+        : "rgba(255,250,235,0.06)";
+    return (React.createElement("svg", { viewBox: "-46 -30 432 400", className: "w-full mx-auto block", style: { width: "100%", maxWidth: forPrint ? "24rem" : "28.8rem" }, role: "img", "aria-label": "Your personal mandala" },
         React.createElement("defs", null,
             React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
                 React.createElement("stop", { offset: "0%", stopColor: "rgba(255,252,240,0.95)" }),
@@ -184,7 +224,7 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
             const [x, y] = nodeXY(i, R, c);
             return React.createElement("line", { key: "sp" + i, x1: c, y1: c, x2: x, y2: y, stroke: spokeStroke, strokeWidth: "1" });
         }),
-        showBlends && React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: "rgba(255,250,235,0.06)", stroke: triStroke, strokeWidth: "1.5", strokeLinejoin: "round" }),
+        showBlends && React.createElement("polygon", { points: triPts.map((p) => p.join(",")).join(" "), fill: triFill, stroke: triStroke, strokeWidth: "1.5", strokeLinejoin: "round" }),
         showBlends && React.createElement("polygon", { points: secPts.map((p) => p.xy.join(",")).join(" "), fill: "none", stroke: secPolyStroke, strokeWidth: "1", strokeLinejoin: "round" }),
         showBlends && secPts.map((p, k) => {
             // Push each blend's label radially outward from center (c,c),
@@ -203,11 +243,21 @@ function Mandala({ ranked, topCount = 3, forPrint = false }) {
         }),
         ARCHETYPES.map((a, i) => {
             const [x, y] = nodeXY(i, R, c);
-            const [lx, ly] = nodeXY(i, R + 28, c);
+            const [lx, ly] = nodeXY(i, R + 26, c);
             const isTop = top3.includes(i);
+            // Anchor each label AWAY from its node so wide side labels (e.g. Trickster
+            // at due west, Ruler at due east) never sit on top of the dot: right-side
+            // labels start at the anchor and open rightward, left-side end at it and
+            // open leftward, with a few px of gap; top/bottom stay centered.
+            const cosA = Math.cos(((i * 30 - 90) * Math.PI) / 180);
+            const anchor = cosA > 0.35 ? "start" : cosA < -0.35 ? "end" : "middle";
+            const nudge = anchor === "start" ? 5 : anchor === "end" ? -5 : 0;
             return (React.createElement("g", { key: a.key },
                 React.createElement("circle", { cx: x, cy: y, r: isTop ? 11 : 6, fill: `hsl(${HUE(i)},62%,56%)`, stroke: isTop ? nodeStrokeTop : nodeStrokeOther, strokeWidth: isTop ? 2.2 : 0.8 }),
-                React.createElement("text", { x: lx, y: ly + 3, textAnchor: "middle", fontSize: isTop ? "11.5" : "9.5", fontWeight: isTop ? "600" : "400", fill: isTop ? labelFillTop : labelFillOther, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.04em" } }, a.name)));
+                // Each name label links to its Explore page (underline on hover only,
+                // via the shared .arch-link rule; keeps its current fill colour).
+                React.createElement("a", { href: `/explore/${a.key}/`, "aria-label": a.name },
+                    React.createElement("text", { className: "arch-link", x: lx + nudge, y: ly + 3, textAnchor: anchor, fontSize: isTop ? "11.5" : "9.5", fontWeight: isTop ? "600" : "400", fill: isTop ? labelFillTop : labelFillOther, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.04em", cursor: "pointer" } }, a.name))));
         }),
         React.createElement("circle", { cx: c, cy: c, r: "30", fill: "url(#ctrGlow)" }),
         React.createElement("circle", { cx: c, cy: c, r: "6.5", fill: "rgb(255,252,240)" }),
@@ -325,10 +375,15 @@ function temperamentReadout(archetypeKey, profile) {
 // No Stripe wired yet: `tier` is just app state, chosen at the intro screen.
 // Swapping in real payment later means setting this from a verified purchase
 // instead of a button click — nothing else in the app needs to change.
+// Two products: a free single-archetype taste, and "Your Mandala" — the full
+// $19 reading (complete 66-item report). The Shadow Mandala is NOT a separate
+// tier: it's an unlock on top of Your Mandala (the `shadowUnlocked` flag),
+// bought as a $15 in-session upsell or as part of the $34 Full upfront. The
+// key stays "full" so the existing gating/render code is untouched; only the
+// label and the shadow gate changed.
 const TIERS = {
-    free:  { label: "Free",  topCount: 1,  showBlends: false, showTemperament: false, showFullRanking: false, showQuietest: false, pairMode: "quick" },
-    triad: { label: "Triad", topCount: 3,  showBlends: true,  showTemperament: false, showFullRanking: false, showQuietest: true,  pairMode: "quick" },
-    full:  { label: "Full",  topCount: 12, showBlends: true,  showTemperament: true,  showFullRanking: true,  showQuietest: true,  pairMode: "full"  },
+    free:  { label: "Free",         topCount: 1,  showBlends: false, showTemperament: false, showFullRanking: false, showQuietest: false, pairMode: "quick" },
+    full:  { label: "Your Mandala", topCount: 12, showBlends: true,  showTemperament: true,  showFullRanking: true,  showQuietest: true,  pairMode: "full"  },
 };
 
 /* ---------- main ---------- */
@@ -343,6 +398,12 @@ function TwelveWithin() {
     });
     const [mode, setMode] = useState("quick");
     const [tier, setTier] = useState("full"); // which product tier is active for this session
+    // Whether the Shadow Mandala has been unlocked — true when bought upfront as the
+    // $34 Full, when unlocked mid-session for $15, or when viewing the sample.
+    const [shadowUnlocked, setShadowUnlocked] = useState(false);
+    const [unlocking, setUnlocking] = useState(false);   // Stripe checkout in progress
+    const [unlockError, setUnlockError] = useState("");
+    const [devCode, setDevCode] = useState("");          // internal-testing bypass code
     const [session, setSession] = useState(0);
     const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
     const [pairIdx, setPairIdx] = useState(0);
@@ -358,9 +419,13 @@ function TwelveWithin() {
     const [resendRequested, setResendRequested] = useState(false);
     const chips = useMemo(() => shuffle(ARCHETYPES.flatMap((a) => a.descriptors.map((d) => ({ word: d, key: a.key })))), [session]);
     const pairs = useMemo(() => buildPairs(TIERS[tier].pairMode), [tier, session]);
-    const start = (t) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setScreen("descriptors"); };
-    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); };
-    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("full"); setIsSample(true); setScreen("results"); };
+    // withShadow=true is the $34 "Full" upfront path: the shadow is already paid for,
+    // so it shows immediately with no unlock card.
+    const start = (t, withShadow) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setShadowUnlocked(!!withShadow); setUnlockError(""); setScreen("descriptors"); };
+    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); setShadowUnlocked(false); setUnlocking(false); setUnlockError(""); };
+    // The sample is the demo of the best version of the product — the full tier with
+    // BOTH mandalas already revealed.
+    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("full"); setIsSample(true); setShadowUnlocked(true); setScreen("results"); };
     const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
     const choosePairGraded = (leftIdx, rightIdx, position) => {
         // position 1..5: 1=strongly left, 3=truly between, 5=strongly right
@@ -435,6 +500,7 @@ function TwelveWithin() {
     // result, so re-renders don't trigger duplicate saves, but a genuine
     // new attempt (session changes) is allowed to save again.
     const savedForSession = useRef(null);
+    const checkoutRef = useRef(null); // holds the live Stripe embedded-checkout instance
     const [savedResultId, setSavedResultId] = useState(null);
     const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
     const [emailInput, setEmailInput] = useState("");
@@ -496,6 +562,75 @@ function TwelveWithin() {
             .catch(() => {});
     };
 
+    // --- Shadow unlock: the $15 in-session upsell. Opens Stripe embedded checkout in
+    // an on-page overlay; on a server-verified payment the shadow reveals immediately
+    // below the existing results — no reload, no new URL. Requires the Stripe env
+    // config (see functions/api/create-checkout.js). ---
+    const unlockShadow = async () => {
+        setUnlocking(true); setUnlockError("");
+        let data;
+        try {
+            const res = await fetch("/api/create-checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ product: "shadow", resultId: savedResultId || null }),
+            });
+            data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.clientSecret || !data.publishableKey) {
+                setUnlockError((data && data.error) || "Checkout isn't available just yet. Please try again in a moment.");
+                setUnlocking(false);
+                return;
+            }
+        } catch (e) {
+            setUnlockError("We couldn't start checkout — please check your connection and try again.");
+            setUnlocking(false);
+            return;
+        }
+        try {
+            const Stripe = await loadStripeJs();
+            const stripe = Stripe(data.publishableKey);
+            const checkout = await stripe.initEmbeddedCheckout({
+                clientSecret: data.clientSecret,
+                onComplete: async () => {
+                    // Never trust the client alone — confirm the session is paid server-side.
+                    let paid = false;
+                    try {
+                        const v = await fetch("/api/checkout-status?session_id=" + encodeURIComponent(data.sessionId));
+                        const vd = await v.json().catch(() => ({}));
+                        paid = !!vd.paid;
+                    } catch (e) {}
+                    try { checkout.destroy(); } catch (e) {}
+                    checkoutRef.current = null;
+                    setUnlocking(false);
+                    if (paid) {
+                        setShadowUnlocked(true);
+                        setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 60);
+                    } else {
+                        setUnlockError("Your payment didn't complete — nothing was charged. You can try again anytime.");
+                    }
+                },
+            });
+            checkoutRef.current = checkout;
+            // Mount once the overlay is in the DOM (it renders when `unlocking` is true).
+            setTimeout(() => { try { checkout.mount("#shadow-checkout-modal"); } catch (e) { setUnlockError("Checkout couldn't open. Please try again."); setUnlocking(false); } }, 0);
+        } catch (e) {
+            setUnlockError("Checkout couldn't open. Please try again.");
+            setUnlocking(false);
+        }
+    };
+    const cancelUnlock = () => { try { if (checkoutRef.current) checkoutRef.current.destroy(); } catch (e) {} checkoutRef.current = null; setUnlocking(false); };
+    // Internal-testing bypass: entering SHADOW-DEV reveals the shadow without payment.
+    // For our own QA of the shadow experience before Stripe is live — not a customer path.
+    const applyDevCode = () => {
+        if (devCode.trim().toUpperCase() === "SHADOW-DEV") {
+            setUnlockError("");
+            setShadowUnlocked(true);
+            setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 60);
+        } else {
+            setUnlockError("That testing code isn't valid.");
+        }
+    };
+
     // --- Magic link: on first load, if the URL carries ?token=&result=, verify
     // it against the backend and jump straight to the restored result (silent
     // success). Expired links land on a re-entry screen. Runs once. ---
@@ -552,6 +687,20 @@ function TwelveWithin() {
         const t = (typeof BLEND_TEXTURES !== "undefined") && BLEND_TEXTURES[[a.key, b.key].sort().join("|")];
         return t || null;   // verbatim from The 66 Lexicon (already a finished sentence)
     };
+    // The "as shadow material" line for a pairing — DRAFT copy (BLEND_SHADOW_TEXTURES),
+    // flagged in the UI as awaiting Marc's review before launch.
+    const blendShadowTexture = (a, b) => {
+        const t = (typeof BLEND_SHADOW_TEXTURES !== "undefined") && BLEND_SHADOW_TEXTURES[[a.key, b.key].sort().join("|")];
+        return t || null;
+    };
+    // The three lowest voices (quietest first). The shadow layer renders only on the
+    // full "Your Mandala" reading once it's been unlocked (paid $15 upsell, bought as
+    // the $34 Full, or the sample) — never for free or an un-unlocked Mandala.
+    const showShadow = tier === "full" && shadowUnlocked && ranked.length >= 12;
+    // The unlock CTA card: a full Mandala reading that hasn't unlocked shadow yet (and
+    // not the sample, which always shows both).
+    const showShadowCTA = tier === "full" && !shadowUnlocked && !isSample && ranked.length >= 12;
+    const shadowThree = ranked.length >= 12 ? [ranked[11], ranked[10], ranked[9]] : [];
     const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
     const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
     const sans = { fontFamily: "'Source Sans 3', system-ui, sans-serif" };
@@ -561,6 +710,11 @@ function TwelveWithin() {
         React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
         kicker && React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, kicker),
         React.createElement("h3", { className: "text-2xl", style: { ...serif, color: "#efe9ff" } }, title));
+    // A simple in-page toggle pair (one placed above each wheel) — plain anchor
+    // links that jump between the two mandala sections. No sticky/fixed/z-index.
+    const mandalaToggle = (key) => React.createElement("div", { key: key, className: "flex justify-center gap-2 mb-4 print:hidden" },
+        React.createElement("a", { href: "#your-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR MANDALA"),
+        React.createElement("a", { href: "#shadow-mandala", className: "rounded-full border border-indigo-300/40 px-4 py-1.5 text-xs tracking-[0.15em] text-indigo-200/85 hover:border-indigo-300/80 hover:text-indigo-100 transition-colors", style: sans }, "YOUR SHADOW MANDALA"));
     return (React.createElement("div", { className: "min-h-screen w-full text-violet-50", style: { background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" } },
         React.createElement("div", { className: "max-w-md md:max-w-3xl mx-auto px-5 md:px-12 pb-16 pt-10 print:max-w-full print:px-0" },
             React.createElement("style", null, `
@@ -612,14 +766,17 @@ function TwelveWithin() {
                 React.createElement("p", { className: "text-[11px] tracking-[0.15em] text-violet-300/45 mb-6", style: sans }, "\u2014 after Jung"),
                 React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-8", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
                 React.createElement("div", { className: "grid gap-3" },
-                    React.createElement(Btn, { primary: true, onClick: () => start("free") }, "Free \u00B7 your loudest voice (~10 min)"),
-                    React.createElement(Btn, { onClick: () => start("triad") }, "Triad \u00B7 your top three (~10 min)"),
-                    React.createElement(Btn, { onClick: () => start("full") }, "Full Mirror \u00B7 the complete ranking (~18 min)"),
+                    React.createElement(Btn, { onClick: () => start("free") }, "Free \u00B7 your loudest voice (~8 min)"),
+                    React.createElement(Btn, { onClick: () => start("full") }, "Your Mandala \u00B7 your full reading (~18 min)"),
+                    // Full is the recommended tier \u2014 set apart with a gold border + label.
+                    React.createElement("div", { className: "relative" },
+                        React.createElement("span", { className: "absolute -top-2 right-4 z-10 rounded-full bg-amber-200 text-[#1b1430] text-[9px] tracking-[0.15em] font-semibold uppercase px-2 py-0.5", style: sans }, "Recommended"),
+                        React.createElement("button", { onClick: () => start("full", true), className: "w-full rounded-xl px-5 py-3.5 text-[15px] transition-colors border-2 border-amber-200/70 bg-amber-100/5 text-violet-50 hover:bg-amber-100/10 hover:border-amber-200", style: sans }, "Full \u00B7 Your Mandala + Shadow Mandala (~18 min)")),
                     React.createElement("div", { className: "rounded-xl px-5 py-3.5 text-[15px] border border-violet-300/15 text-violet-300/40 flex items-center justify-between cursor-not-allowed", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
                         React.createElement("span", null, "Compatibility \u00B7 for two"),
                         React.createElement("span", { className: "text-[10px] tracking-[0.15em] uppercase" }, "Coming soon")),
                     React.createElement("button", { onClick: showSample, className: "text-amber-200/70 hover:text-amber-100 text-sm underline underline-offset-4 mt-1", style: sans }, "Show a sample mirror first")),
-                React.createElement("p", { className: "text-violet-300/50 text-xs mt-8", style: sans }, "A reflective tool \u2014 a mirror, not a fortune. Not prediction, not diagnosis."))),
+                React.createElement("p", { className: "text-violet-300/50 text-xs mt-8", style: sans }, "A reflective tool \u2014 a map, not a fortune. Not prediction, not diagnosis."))),
             screen === "descriptors" && (React.createElement("div", null,
                 React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-2", style: sans }, "FIRST \u00B7 WORDS"),
                 React.createElement("h2", { className: "text-3xl mb-2", style: serif }, "Choose the six words most like you"),
@@ -683,16 +840,19 @@ function TwelveWithin() {
                         React.createElement("span", { className: "text-[12px] leading-tight text-violet-200/80 text-center", style: sans }, label)))))));
             })(),
             screen === "results" && (React.createElement("div", null,
-                React.createElement("div", { className: "text-center mb-2" },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.35em] text-amber-200/80 mb-2", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR MANDALA"),
-                    React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00B7 ", archLink(r)])),
-                    TIERS[tier].topCount >= 2 && React.createElement("p", { className: "text-violet-300/75 text-sm mt-2", style: sans },
-                        "Your time signature: ",
-                        React.createElement("span", { className: "text-amber-200" }, timeSig),
-                        " ",
-                        React.createElement("span", { className: "text-violet-300/50" }, "\u00B7 hour is your loudest voice, minutes your second"))),
+                // Light mandala section header — a named entry point mirroring the shadow
+                // section (gold rule + eyebrow + serif). The #your-mandala anchor lives
+                // here so a toggle lands above the whole title sequence.
+                React.createElement("div", { id: "your-mandala", className: "text-center mb-2", style: { scrollMarginTop: "5rem" } },
+                    React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
+                    React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, "YOUR MANDALA"),
+                    React.createElement("h3", { className: "text-2xl mb-2", style: { ...serif, color: "#efe9ff" } }, "Your Loudest Voices"),
+                    React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00B7 ", archLink(r)]))),
+                // Time signature retained in data (timeSig) but no longer displayed.
                 topTie && React.createElement("p", { className: "text-center text-amber-200/80 text-sm mt-1 mb-1", style: sans },
                     joinNames(topTie.map((r) => r.name)), " are tied for your loudest voice \u2014 the order shown is only by wheel position, not by strength."),
+                // Toggle pair just above the light wheel (mirrored above the shadow wheel).
+                showShadow && mandalaToggle("toggle-light"),
                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount }),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three blends \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
@@ -712,7 +872,7 @@ function TwelveWithin() {
                     // ===== PRINT PAGE 2 - Top Three + Blends + Edges =====
                     TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
                         TIERS[tier].topCount >= 3 && React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "32px" } },
-                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR TOP THREE, IN DEPTH"),
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR LOUDEST VOICES, IN DEPTH"),
                             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" } },
                                 ranked.slice(0, 3).map((r, n) => {
                                     const hue = HUE(r.i);
@@ -722,7 +882,8 @@ function TwelveWithin() {
                                         React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "11.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
                                         React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "12.5px", lineHeight: "1.3", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
                                 }))),
-                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-3", style: sans }, "YOUR BLENDS"),
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em]", style: sans }, "YOUR BLENDS"),
+                        React.createElement("h3", { className: "text-xl mb-3", style: { ...serif, color: "#2a2340" } }, "Your Archetypal Pairings"),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                             const nm = blendName(ranked[a], ranked[b]);
                             const tx = blendTexture(ranked[a], ranked[b]);
@@ -742,7 +903,55 @@ function TwelveWithin() {
                                     ? ` — also your ${GROWTH_ORD[growthIdx]} voice; you already carry this energy, so growth means drawing on it more consciously and deliberately, not building it from scratch`
                                     : " — the fixed complement to your loudest voice"))),
 
-                    // ===== PRINT PAGE 3 - Temperament Profile (radar) + How Your Top Voices Show Up =====
+                    // ===== PRINT PAGE 3 - Shadow Mandala (only once unlocked) =====
+                    // Title page mirrors the primary mandala page 1 exactly: same header
+                    // spacing (mb-8), same 4xl serif three-name title, same wheel size.
+                    showShadow && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px", boxSizing: "border-box" } },
+                        React.createElement("div", { className: "flex justify-between items-baseline mb-8" },
+                            React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE SHADOW MANDALA" : "YOUR SHADOW MANDALA"),
+                            React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
+                        React.createElement("h1", { className: "text-4xl text-center mb-1", style: serif }, shadowThree.map((r) => r.name).join(" · ")),
+                        // Condensed shame-prevention framing — two sentences for print.
+                        React.createElement("p", { className: "text-center text-xs mb-2", style: { ...sans, color: "#6b6580", maxWidth: "5.5in", margin: "0 auto 10px" } }, "Your shadow isn't what's wrong with you — it's what you haven't claimed yet. You didn't choose your shadow; integrating it doesn't diminish you, it completes you."),
+                        React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
+                            React.createElement("div", { style: { width: "5.6in", maxWidth: "100%" } },
+                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true, shadow: true })))),
+
+                    // ===== PRINT PAGE 4 - Your Three Quietest Voices, In Depth + Shadow Pairings =====
+                    // Mirrors the primary "Top Three, In Depth" page: same card, same altitude
+                    // ladder, same colour coding — labelled QUIETEST / SECOND QUIETEST / THIRD.
+                    showShadow && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
+                        React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "28px" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR QUIETEST VOICES, IN DEPTH"),
+                            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" } },
+                                shadowThree.map((r, n) => {
+                                    const hue = HUE(r.i);
+                                    return React.createElement("div", { key: r.key, style: { border: `1px solid hsl(${hue},55%,74%)`, borderTop: `4px solid hsl(${hue},60%,54%)`, borderRadius: "9px", padding: "10px 10px", background: `hsl(${hue},70%,97.5%)`, pageBreakInside: "avoid" } },
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "10px", letterSpacing: "0.14em", color: `hsl(${hue},50%,40%)` } }, ["QUIETEST VOICE", "SECOND QUIETEST", "THIRD QUIETEST"][n]),
+                                        React.createElement("h3", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.4rem", color: `hsl(${hue},55%,30%)`, marginBottom: "1px" } }, r.name),
+                                        React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "11.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
+                                        React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "12.5px", lineHeight: "1.3", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
+                                }))),
+                        // Keep all three pairings together — never orphan one on its own sheet.
+                        React.createElement("div", { style: { pageBreakInside: "avoid" } },
+                            React.createElement("p", { className: "text-[11px] mb-2", style: { ...sans, color: "#6b6580", lineHeight: "1.4" } }, "These energies have been living outside your conscious awareness — showing up sideways in your reactions to others. “In shadow” is what that looks like; “Integrated” is what becomes possible when you bring them into awareness and do something with them. That movement is the work."),
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR SHADOW PAIRINGS"),
+                            [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
+                                const nm = blendName(shadowThree[a], shadowThree[b]);
+                                const tx = blendTexture(shadowThree[a], shadowThree[b]);
+                                const sh = parseShadow(blendShadowTexture(shadowThree[a], shadowThree[b]));
+                                return React.createElement("div", { key: a + "-" + b, className: "mb-2", style: { borderBottom: "1px solid #eee", paddingBottom: "7px", pageBreakInside: "avoid" } },
+                                    React.createElement("p", { className: "text-lg", style: { ...serif, color: "#2a2340" } },
+                                        shadowThree[a].name + " × " + shadowThree[b].name + " → ",
+                                        React.createElement("span", { style: { color: nm ? "#4b4a8a" : "#8a86a0", fontStyle: nm ? "normal" : "italic" } }, nm || "unnamed")),
+                                    tx && React.createElement("p", { className: "text-sm italic", style: { ...serif, color: "#6b6580" } }, tx),
+                                    sh && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#4a4560", marginTop: "2px", lineHeight: "1.35" } },
+                                        React.createElement("span", { style: { fontWeight: 600, color: "#4b4a8a" } }, "In shadow: "), sh.shadow),
+                                    sh && sh.integrated && React.createElement("p", { className: "text-xs", style: { ...sans, color: "#3f3a58", marginTop: "1px", lineHeight: "1.35" } },
+                                        React.createElement("span", { style: { fontWeight: 600, color: "#8a6a2a" } }, "Integrated: "), sh.integrated));
+                            }))),
+
+                    // ===== PRINT PAGE 5 - Temperament Profile (radar) + How Your Top Voices Show Up =====
                     TIERS[tier].showTemperament && (() => {
                         const prof = temperamentProfile(radarScores);
                         const caseCopy = prof.allLoud ? ALL_LOUD_COPY : prof.allQuiet ? ALL_QUIET_COPY : null;
@@ -765,7 +974,7 @@ function TwelveWithin() {
                             rest.length > 0 && React.createElement("div", { style: { pageBreakInside: "avoid", breakInside: "avoid" } }, rest.map(renderArch)));
                     })(),
 
-                    // ===== PRINT PAGE 4 - The Remaining Nine + Full Ranking =====
+                    // ===== PRINT PAGE 6-7 - The Remaining Nine + Full Ranking =====
                     TIERS[tier].showFullRanking && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "44px 24px 24px", boxSizing: "border-box" } },
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "THE FULL PICTURE"),
                         React.createElement("h2", { className: "text-2xl mb-3", style: serif }, "The Remaining Nine"),
@@ -781,7 +990,7 @@ function TwelveWithin() {
                                 React.createElement("div", { style: { height: "100%", borderRadius: "5px", width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},60%,52%)` } })))),
                         React.createElement("p", { className: "text-center text-xs italic mt-6", style: { ...serif, color: "#8a86a0" } }, "Generated __PRINTDATE__ · artofsoulcraft.com"))),
                 // \u2550\u2550 SECTION \u2014 Your Pattern: your top three, in depth (altitude ladders) \u2550\u2550
-                sectionHeader("Your Pattern", "YOUR TOP THREE, IN DEPTH"),
+                sectionHeader("Your Loudest Voices", "IN DEPTH"),
                 ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
                     React.createElement("div", { className: "flex items-baseline gap-3" },
@@ -789,10 +998,9 @@ function TwelveWithin() {
                         React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r))),
                     React.createElement(Ladder, { arche: r })))),
 
-                // \u2550\u2550 SECTION \u2014 Your Combinations: the three blends \u2550\u2550
-                TIERS[tier].showBlends && sectionHeader("Your Combinations", "YOUR BLENDS"),
+                // \u2550\u2550 SECTION \u2014 Your Pairings: the three pairings \u2550\u2550
+                TIERS[tier].showBlends && sectionHeader("Your Archetypal Pairings", "YOUR BLENDS"),
                 TIERS[tier].showBlends && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "YOUR BLENDS"),
                     [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                         const nm = blendName(ranked[a], ranked[b]);
                         const tx = blendTexture(ranked[a], ranked[b]);
@@ -837,7 +1045,11 @@ function TwelveWithin() {
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "QUIETEST VOICE"),
                     React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
                         React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
-                        " speaks softest in you \u2014 often the blind spot, sometimes the invitation.")),
+                        " speaks softest in you \u2014 often the blind spot, sometimes the invitation."),
+                    React.createElement("p", { className: "text-[14px] text-violet-200/80 mt-2 leading-relaxed", style: sans },
+                        "Pay attention to your strongest reactions to people who lead with ",
+                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
+                        ". That reaction is a mirror.")),
                 React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "AN INTENTIONAL PRACTICE"),
                     growthIsTopVoice
@@ -864,6 +1076,77 @@ function TwelveWithin() {
                         React.createElement("div", { className: "flex-1 h-2.5 rounded-full bg-violet-300/10 overflow-hidden" },
                             React.createElement("div", { className: "h-full rounded-full", style: { width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},62%,56%)` } }))))))),
                 !TIERS[tier].showFullRanking && React.createElement("p", { className: "text-center text-violet-300/60 text-sm italic mb-8", style: serif }, `Unlock the complete 1\u201312 ranking with ${TIERS.full.label}.`),
+
+                // \u2550\u2550 Light \u2194 Shadow bridge \u2014 clean prose, not a card \u2550\u2550
+                showShadow && React.createElement("div", { className: "text-center mt-16 mb-2 max-w-2xl mx-auto" },
+                    React.createElement("div", { className: "mx-auto mb-5 h-px w-12", style: { background: "rgba(129,140,248,0.5)" } }),
+                    React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-200/85", style: sans },
+                        "You are already all twelve. These are the voices that speak loudest in you right now. Below is what's waiting to be claimed.")),
+
+                // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (unlocked only) \u2550\u2550
+                showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "5rem" } },
+                    sectionHeader("Your Quietest Voices", "YOUR SHADOW MANDALA"),
+                    // The three quietest archetype names \u2014 same treatment as the light
+                    // mandala's Sage \u00b7 Creator \u00b7 Mystic title (dot-separated serif, clickable).
+                    React.createElement("h2", { className: "text-4xl text-center mb-2", style: serif }, shadowThree.flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00b7 ", archLink(r)])),
+                    // Toggle pair right under the names, before the shame card \u2014
+                    // mirrors the light section (pills sit directly under the header).
+                    mandalaToggle("toggle-shadow"),
+                    // Shame-prevention intro \u2014 REQUIRED before the wheel or naming the bottom three.
+                    React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-5 mb-6", style: { background: "rgba(80,90,180,0.06)" } },
+                        React.createElement("p", { className: "text-[16px] leading-relaxed mb-3", style: { ...sans, color: "rgba(199,210,254,0.95)", fontWeight: 600 } }, "Your shadow isn't what's wrong with you. It's what you haven't claimed yet."),
+                        React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 mb-3", style: sans }, "The archetypes at the bottom of your ranking aren't failures or weaknesses \u2014 they're the energies that weren't safe to express in the environment where you formed. You didn't choose your shadow. Your shadow chose you."),
+                        React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 mb-3", style: sans }, "What's disowned doesn't disappear. It shows up sideways \u2014 in your strongest reactions to other people, in the patterns you can't quite explain, in the gap between who you want to be and how you actually show up under pressure."),
+                        React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85", style: sans }, "This is your hidden capacity, not your hidden flaw. Integration doesn't diminish you. It completes you.")),
+                    // The wheel \u2014 bottom three highlighted, cool blend lines.
+                    React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, shadow: true }),
+                    React.createElement("p", { className: "text-center text-indigo-200/70 text-sm -mt-1 mb-8 italic", style: serif }, "The three quietest voices, and the blends between them \u2014 the shape of what you haven't yet claimed."),
+                    // Bottom three, in depth \u2014 same altitude-ladder card as the top three, quietest first.
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-indigo-200/75 mb-3 text-center", style: sans }, "YOUR QUIETEST VOICES, IN DEPTH"),
+                    shadowThree.map((r, n) => React.createElement("div", { key: r.key, className: "rounded-2xl border border-indigo-300/18 px-5 py-5 mb-4", style: { background: "rgba(80,90,180,0.05)" } },
+                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-indigo-200/75 mb-1", style: sans }, ["QUIETEST VOICE", "SECOND QUIETEST", "THIRD QUIETEST"][n]),
+                        React.createElement("div", { className: "flex items-baseline gap-3" },
+                            React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
+                            React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r))),
+                        React.createElement(Ladder, { arche: r }))),
+                    // One-time definition paragraph before the pairings (locked copy).
+                    React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 max-w-2xl mx-auto mb-5", style: sans }, "These energies have been living outside your conscious awareness \u2014 operating in your life without your knowledge, showing up sideways in your reactions to others. In shadow describes what that looks like. Integrated describes what becomes possible when you bring them into conscious awareness and do something with them. That movement \u2014 from shadow into integration \u2014 is the work."),
+                    // Shadow Pairings \u2014 the three blends among the bottom three.
+                    React.createElement("div", { className: "rounded-2xl border border-indigo-300/18 px-5 py-5 mb-4", style: { background: "rgba(80,90,180,0.05)" } },
+                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-indigo-200/75 mb-3", style: sans }, "YOUR SHADOW PAIRINGS"),
+                        [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
+                            const nm = blendName(shadowThree[a], shadowThree[b]);
+                            const tx = blendTexture(shadowThree[a], shadowThree[b]);
+                            const sh = parseShadow(blendShadowTexture(shadowThree[a], shadowThree[b]));
+                            return React.createElement("div", { key: a + "-" + b, className: "mb-4 last:mb-0" },
+                                React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                                    archLink(shadowThree[a]), " \u00d7 ", archLink(shadowThree[b]), " \u2192 ",
+                                    nm ? React.createElement("span", { className: "text-indigo-200" }, nm) : React.createElement("span", { className: "text-violet-300/60 italic" }, "unnamed \u2014 an entry awaiting the 66-blend lexicon")),
+                                tx && React.createElement("p", { className: "text-[13px] text-violet-300/65 italic mt-0.5", style: serif }, tx),
+                                sh && React.createElement("p", { className: "text-[13.5px] text-indigo-100/80 mt-1.5 leading-relaxed", style: sans },
+                                    React.createElement("span", { className: "text-indigo-300/90 font-semibold" }, "In shadow: "), sh.shadow),
+                                sh && sh.integrated && React.createElement("p", { className: "text-[13.5px] text-violet-100/85 mt-1 leading-relaxed", style: sans },
+                                    React.createElement("span", { className: "text-amber-200/85 font-semibold" }, "Integrated: "), sh.integrated));
+                        }))),
+
+                // \u2550\u2550 Shadow unlock CTA \u2014 the $15 in-session upsell (item: the unlock mechanic) \u2550\u2550
+                // A quiet continuation of the reading, not an ad: two sentences (verbatim)
+                // and one button. No price on the card \u2014 that appears at Stripe checkout.
+                showShadowCTA && React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-6 py-8 mt-14 mb-2 text-center", style: { background: "rgba(80,90,180,0.06)" } },
+                    React.createElement("p", { className: "text-[17px] leading-relaxed text-violet-100 mb-6 max-w-md mx-auto", style: serif }, "Your shadow has always gone unnoticed. It is waiting for you to discover it."),
+                    React.createElement("button", { onClick: unlockShadow, disabled: unlocking, className: "inline-block rounded-xl px-7 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60", style: sans }, unlocking ? "Opening checkout\u2026" : "Unlock your Shadow Mandala"),
+                    unlockError && React.createElement("p", { className: "text-sm text-violet-300/70 mt-4 max-w-sm mx-auto", style: sans }, unlockError),
+                    // Internal-testing bypass (SHADOW-DEV) \u2014 small, muted, near the button.
+                    React.createElement("div", { className: "mt-5 flex items-center justify-center gap-2" },
+                        React.createElement("input", { type: "text", value: devCode, onChange: (e) => setDevCode(e.target.value), onKeyDown: (e) => { if (e.key === "Enter") applyDevCode(); }, placeholder: "Testing code", "aria-label": "Testing code", className: "w-36 rounded-lg bg-black/20 border border-violet-300/20 px-3 py-1.5 text-xs text-violet-100 outline-none focus:border-amber-200/50", style: sans }),
+                        React.createElement("button", { onClick: applyDevCode, className: "rounded-lg border border-violet-300/25 px-3 py-1.5 text-xs text-violet-200/80 hover:border-amber-200/60 hover:text-amber-100 transition-colors", style: sans }, "Apply"))),
+                // Embedded Stripe checkout mounts here (a centered overlay) while unlocking.
+                unlocking && React.createElement("div", { id: "shadow-checkout-overlay", className: "fixed inset-0 z-50 flex items-start justify-center overflow-auto py-10 px-4", style: { background: "rgba(8,6,20,0.75)" } },
+                    React.createElement("div", { className: "w-full max-w-xl" },
+                        React.createElement("div", { className: "flex justify-end mb-2" },
+                            React.createElement("button", { onClick: cancelUnlock, className: "text-violet-200/70 hover:text-violet-50 text-sm", style: sans }, "\u2715 Close")),
+                        React.createElement("div", { id: "shadow-checkout-modal", className: "rounded-xl bg-white p-1 min-h-[3rem]" }))),
+
                 React.createElement("div", { className: "grid gap-3" },
                     React.createElement(Btn, { primary: true, onClick: () => {
                         // Print via an isolated iframe rather than window.print() + CSS media

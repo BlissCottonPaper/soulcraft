@@ -64,7 +64,8 @@
     { href: "/explore/#the-twelve", label: "The Twelve Archetypes" },
     { href: "/explore/bandwidth/", label: "Bandwidth" },
     { href: "/explore/temperaments/", label: "Temperaments" },
-    { href: "/explore/core-needs/", label: "Core Needs" }
+    { href: "/explore/core-needs/", label: "Core Needs" },
+    { href: "/explore/shadow/", label: "Shadow" }
   ];
 
   function activeFromPath(p) {
