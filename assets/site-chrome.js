@@ -66,9 +66,9 @@
     ".sc-return-dismiss{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:0;color:rgba(253,232,176,0.7);font-size:20px;line-height:1;cursor:pointer;padding:.15rem .4rem;}",
     ".sc-return-dismiss:hover{color:#fde8b0;}",
     // --- Mobile hamburger nav (below 768px) ---
-    ".sc-burger{display:none;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;margin-right:-.4rem;background:none;border:0;cursor:pointer;color:#f5f3ff;padding:0;}",
+    ".sc-burger{display:none;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;margin-right:-.4rem;background:none;border:0;cursor:pointer;color:#f5f3ff;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-appearance:none;appearance:none;}",
     ".sc-burger:hover{color:#fde8b0;}",
-    ".sc-burger svg{display:block;}",
+    ".sc-burger svg{display:block;pointer-events:none;}",
     ".sc-mobile{display:none;border-top:1px solid rgba(196,181,253,0.10);background:rgba(16,12,34,0.98);padding:.4rem 0 .8rem;}",
     ".sc-mobile.sc-open{display:block;}",
     ".sc-mobile a{display:block;padding:.6rem 1.5rem;font-size:16px;color:rgba(224,218,246,0.9);text-decoration:none;}",
@@ -178,30 +178,41 @@
     });
   }
 
-  // Mobile hamburger: tap toggles the drawer; tapping a link or outside closes it.
+  // Mobile hamburger. Uses document-level event DELEGATION rather than binding a
+  // handler to the button directly: the listener lives on `document` (which always
+  // exists), so it can't miss the button to a timing/order/null issue, and it keeps
+  // working even if the header is injected or replaced after load. iOS Safari fires
+  // `click` on a real <button>, and the SVG is pointer-events:none so the tap target
+  // is always the button itself.
   function wireMobile() {
     if (typeof document === "undefined") return;
-    var btn = document.getElementById("sc-burger");
-    var menu = document.getElementById("sc-mobile-menu");
-    if (!btn || !menu || btn.getAttribute("data-wired")) return;
-    btn.setAttribute("data-wired", "1");
-    var close = function () { menu.classList.remove("sc-open"); btn.setAttribute("aria-expanded", "false"); };
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var open = menu.classList.toggle("sc-open");
-      btn.setAttribute("aria-expanded", open ? "true" : "false");
-    });
-    // Tapping any item closes the drawer (also collapses it for same-page anchors).
-    menu.addEventListener("click", function (e) {
-      if (e.target.closest && e.target.closest("a")) close();
-    });
-    // Tapping outside the drawer/button closes it.
+    var doc = document.documentElement;
+    if (doc.getAttribute("data-sc-mobile-wired")) return; // bind exactly once
+    doc.setAttribute("data-sc-mobile-wired", "1");
+
+    var setOpen = function (open) {
+      var m = document.getElementById("sc-mobile-menu");
+      var b = document.getElementById("sc-burger");
+      if (m) m.classList.toggle("sc-open", open);
+      if (b) b.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+
     document.addEventListener("click", function (e) {
-      if (!menu.classList.contains("sc-open")) return;
-      if (menu.contains(e.target) || btn.contains(e.target)) return;
-      close();
+      var t = e.target;
+      var onBurger = t && t.closest ? t.closest("#sc-burger") : null;
+      var menu = document.getElementById("sc-mobile-menu");
+      if (onBurger) {                                   // tap the hamburger → toggle
+        setOpen(!(menu && menu.classList.contains("sc-open")));
+        return;
+      }
+      if (!menu || !menu.classList.contains("sc-open")) return;
+      if (menu.contains(t)) {                            // inside the drawer
+        if (t.closest && t.closest("a")) setOpen(false); // a nav link → close (then navigate)
+      } else {
+        setOpen(false);                                  // anywhere outside → close
+      }
     });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") setOpen(false); });
   }
 
   // --- "Return to Your Mandala": session persistence (Task 1) ---------------
