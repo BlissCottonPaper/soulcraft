@@ -4,11 +4,14 @@
 # routing, so /verify is the only client-side path that must serve the app.
 # A broad `/*  /index.html  200` catch-all here shadows the static Explore/
 # pricing pages — e.g. /explore/sage/ would return the assessment app instead
-# of the Sage archetype page. Keep this scoped to /verify.
+# of the Sage archetype page. Keep this scoped to /verify and /results.
 # (The root `/` serves index.html natively; real static pages serve themselves;
 #  genuinely missing paths now 404, which is correct for SEO.)
 # Cloudflare Pages Functions (/api/*) are matched BEFORE these static redirects.
 /verify   /index.html   200
+# The "My Results" magic link lands on /results?token=… — the app reads the token
+# from the query string and restores the saved reading. Same SPA, scoped path.
+/results  /index.html   200
 
 # "Embodiments" was renamed to "Temperaments" (locked July 2026). Keep the old
 # path working for any existing links.

@@ -81,6 +81,8 @@ export async function onRequestGet({ request, env }) {
         archetypeScores: JSON.parse(result.archetype_scores),
         temperamentScores: JSON.parse(result.channel_scores),
         descriptorPicks: result.descriptor_picks ? JSON.parse(result.descriptor_picks) : [],
+        shadowUnlocked: !!result.shadow_unlocked,
+        fullPurchased: !!result.full_purchased,
         createdAt: result.created_at,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }

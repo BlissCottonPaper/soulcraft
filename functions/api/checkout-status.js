@@ -26,7 +26,23 @@ export async function onRequestGet({ request, env }) {
 
     // 'paid' is the definitive signal; 'complete' covers $0/other edge flows.
     const paid = session.payment_status === "paid" || session.status === "complete";
-    return json({ paid: paid, product: (session.metadata && session.metadata.product) || null });
+    const product = (session.metadata && session.metadata.product) || null;
+    const resultId = session.metadata && session.metadata.result_id;
+
+    // Persist the unlock on the result row — this is what makes a saved reading
+    // re-reveal the shadow on a later magic-link visit, with no repeat payment.
+    // 'shadow' unlocks the Shadow Mandala; 'full' also records the $34 upfront buy.
+    if (paid && resultId && env.DB) {
+      try {
+        if (product === "full") {
+          await env.DB.prepare("UPDATE results SET shadow_unlocked = 1, full_purchased = 1 WHERE id = ?").bind(resultId).run();
+        } else if (product === "shadow") {
+          await env.DB.prepare("UPDATE results SET shadow_unlocked = 1 WHERE id = ?").bind(resultId).run();
+        }
+      } catch (e) { /* best-effort; the client still reveals on a paid session */ }
+    }
+
+    return json({ paid: paid, product: product });
   } catch (err) {
     return json({ paid: false, error: "Server error", detail: err.message }, 500);
   }
