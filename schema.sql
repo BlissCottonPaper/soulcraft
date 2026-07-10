@@ -38,6 +38,12 @@ CREATE TABLE results (
                                         -- or an upgrade" a real, queryable distinction —
                                         -- both matter for Compare-Over-Time later, but
                                         -- an upgrade shouldn't count as a second "attempt."
+  shadow_unlocked INTEGER NOT NULL DEFAULT 0,  -- 1 once the $15 Shadow Mandala unlock is
+                                        -- paid (or included in the $34 Full). On retrieval
+                                        -- this re-reveals the shadow with no repeat payment.
+  full_purchased INTEGER NOT NULL DEFAULT 0,   -- 1 when this reading was bought as the $34
+                                        -- Full (both mandalas) upfront, vs Your Mandala
+                                        -- ($19) with the shadow unlocked later.
   created_at INTEGER NOT NULL
 );
 

@@ -56,6 +56,8 @@ export async function onRequestGet({ request, env }) {
       archetypeScores: JSON.parse(r.archetype_scores),
       temperamentScores: JSON.parse(r.channel_scores),
       descriptorPicks: r.descriptor_picks ? JSON.parse(r.descriptor_picks) : [],
+      shadowUnlocked: !!r.shadow_unlocked,      // re-reveal the Shadow Mandala with no repeat payment
+      fullPurchased: !!r.full_purchased,        // bought as the $34 Full upfront
       wasUpgradeOf: r.upgraded_from_id || null, // null = a fresh attempt, not an upgrade
       createdAt: r.created_at,
     }));

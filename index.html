@@ -431,6 +431,8 @@ function TwelveWithin() {
     const restoreOne = (r) => {
         setRestored({ tier: r.tier, mode: r.mode, archetypeScores: r.archetypeScores || {}, temperamentScores: r.temperamentScores || {}, descriptorPicks: r.descriptorPicks || [] });
         setTier(r.tier); setMode(r.mode); setPicks(r.descriptorPicks || []); setSavedResultId(r.resultId);
+        // A reading that already paid for the shadow re-reveals it with no payment.
+        setShadowUnlocked(!!r.shadowUnlocked);
         setPickList(null); setVerifyStatus("ok"); setScreen("results");
     };
     const toggleChip = (n) => setPicks((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p));
@@ -688,6 +690,7 @@ function TwelveWithin() {
                     setMode(data.mode);
                     setPicks(data.descriptorPicks || []);
                     setSavedResultId(data.resultId);
+                    setShadowUnlocked(!!data.shadowUnlocked); // re-reveal a paid shadow
                     setVerifyStatus("ok");
                     setScreen("results");
                 } else if (res.status === 410) {
