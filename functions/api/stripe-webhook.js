@@ -9,9 +9,12 @@
 //   https://artofsoulcraft.com/api/stripe-webhook   (event: checkout.session.completed)
 //
 // Mapping (per spec):
-//   purchase_type 'mandala' -> full_purchased = 1
-//   purchase_type 'shadow'  -> shadow_unlocked = 1
-//   purchase_type 'full'    -> full_purchased = 1 AND shadow_unlocked = 1
+//   purchase_type 'mandala'       -> no D1 flag change (save-results already stored
+//                                    the reading; the $19 buys the reading itself)
+//   purchase_type 'shadow'        -> shadow_unlocked = 1
+//   purchase_type 'full'          -> full_purchased = 1 AND shadow_unlocked = 1
+//   purchase_type 'compatibility' -> no D1 flag change yet (product wired; the
+//                                    Compatibility invite flow isn't built)
 //
 // Needs: STRIPE_WEBHOOK_SECRET, and the D1 binding env.DB.
 // ============================================================
@@ -92,9 +95,9 @@ export async function onRequestPost({ request, env }) {
           await env.DB.prepare("UPDATE results SET full_purchased = 1, shadow_unlocked = 1 WHERE id = ?").bind(resultId).run();
         } else if (purchaseType === "shadow") {
           await env.DB.prepare("UPDATE results SET shadow_unlocked = 1 WHERE id = ?").bind(resultId).run();
-        } else if (purchaseType === "mandala") {
-          await env.DB.prepare("UPDATE results SET full_purchased = 1 WHERE id = ?").bind(resultId).run();
         }
+        // 'mandala' ($19 Your Mandala) and 'compatibility' ($19, invite flow TBD)
+        // intentionally set no flags here — acknowledged and ignored.
       } catch (e) {
         // Log-and-500 so Stripe retries the webhook rather than dropping the payment.
         return new Response(JSON.stringify({ error: "Database update failed", detail: e.message }), {

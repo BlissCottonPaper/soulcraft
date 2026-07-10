@@ -52,6 +52,7 @@
     ".sc-dd:hover .sc-menu,.sc-dd:focus-within .sc-menu,.sc-menu.sc-open{display:block;}",
     ".sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}",
     ".sc-menu a:hover{color:#fde68a;}",
+    ".sc-menu-divider{height:1px;background:rgba(196,181,253,0.16);margin:.4rem 1rem;}",
     "#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}",
     ".sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1rem;}",
     "@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}",
@@ -67,18 +68,20 @@
 
   var EXPLORE_ITEMS = [
     { href: "/how-it-works/", label: "How It Works" },
-    { href: "/explore/", label: "Overview" },
     { href: "/explore/#the-twelve", label: "The Twelve Archetypes" },
     { href: "/explore/bandwidth/", label: "Bandwidth" },
-    { href: "/explore/temperaments/", label: "Temperaments" },
-    { href: "/explore/core-needs/", label: "Core Needs" },
-    { href: "/explore/shadow/", label: "Shadow" }
+    { href: "/explore/temperaments/", label: "Temperament" },
+    { href: "/explore/#pairings", label: "Pairings" },
+    { href: "/explore/shadow/", label: "Shadow" },
+    { divider: true },
+    { href: "/integration-guide/", label: "Integration Guide" }
   ];
 
   function activeFromPath(p) {
     p = p || "/";
     if (p.indexOf("/about") === 0) return "about";
     if (p.indexOf("/how-it-works") === 0) return "explore";
+    if (p.indexOf("/integration-guide") === 0) return "explore";
     if (p.indexOf("/explore") === 0) return "explore";
     if (p.indexOf("/pricing") === 0) return "pricing";
     if (p.indexOf("/my-results") === 0) return "results";
@@ -88,6 +91,7 @@
 
   function headerHtml(active) {
     var menu = EXPLORE_ITEMS.map(function (it) {
+      if (it.divider) return '<div class="sc-menu-divider" role="separator"></div>';
       return '<a href="' + it.href + '">' + it.label + "</a>";
     }).join("");
     var cls = function (name) { return "sc-link" + (active === name ? " sc-active" : ""); };
@@ -113,8 +117,8 @@
       '<footer id="site-footer"><div class="sc-foot">' +
         '<p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p>' +
         '<div class="sc-foot-links">' +
-          '<a href="/">Home</a><a href="/about/">About</a><a href="/how-it-works/">How It Works</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a>' +
-          '<a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>' +
+          '<a href="/">Home</a><a href="/about/">About</a><a href="/how-it-works/">How It Works</a><a href="/explore/bandwidth/">Bandwidth</a>' +
+          '<a href="/explore/temperaments/">Temperament</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/integration-guide/">Integration Guide</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>' +
         '</div>' +
       '</div></footer>';
   }
