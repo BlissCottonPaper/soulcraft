@@ -213,7 +213,7 @@ function Mandala({ ranked, topCount = 3, forPrint = false, shadow = false }) {
     const triFill = shadow
         ? (forPrint ? "rgba(120,130,220,0.06)" : "rgba(214,210,246,0.08)")
         : "rgba(255,250,235,0.06)";
-    return (React.createElement("svg", { viewBox: "-46 -30 432 400", className: "w-full max-w-sm mx-auto block", role: "img", "aria-label": "Your personal mandala" },
+    return (React.createElement("svg", { viewBox: "-46 -30 432 400", className: "w-full mx-auto block", style: { width: "100%", maxWidth: forPrint ? "24rem" : "28.8rem" }, role: "img", "aria-label": "Your personal mandala" },
         React.createElement("defs", null,
             React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
                 React.createElement("stop", { offset: "0%", stopColor: "rgba(255,252,240,0.95)" }),
@@ -842,7 +842,7 @@ function TwelveWithin() {
                 // here so a toggle lands above the whole title sequence.
                 React.createElement("div", { id: "your-mandala", className: "text-center mb-2", style: { scrollMarginTop: "5rem" } },
                     React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
-                    React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, isSample ? "SAMPLE REPORT · FULL VERSION" : "YOUR MANDALA"),
+                    React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, "YOUR MANDALA"),
                     React.createElement("h3", { className: "text-2xl mb-2", style: { ...serif, color: "#efe9ff" } }, "Your Loudest Voices"),
                     React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00B7 ", archLink(r)]))),
                 // Time signature retained in data (timeSig) but no longer displayed.
@@ -1083,15 +1083,15 @@ function TwelveWithin() {
                 // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (unlocked only) \u2550\u2550
                 showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "5rem" } },
                     sectionHeader("Your Quietest Voices", "YOUR SHADOW MANDALA"),
+                    // Toggle pair right under the serif header, before the shame card \u2014
+                    // mirrors the light section (pills sit directly under the header).
+                    mandalaToggle("toggle-shadow"),
                     // Shame-prevention intro \u2014 REQUIRED before the wheel or naming the bottom three.
                     React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-5 mb-6", style: { background: "rgba(80,90,180,0.06)" } },
                         React.createElement("p", { className: "text-[16px] leading-relaxed mb-3", style: { ...sans, color: "rgba(199,210,254,0.95)", fontWeight: 600 } }, "Your shadow isn't what's wrong with you. It's what you haven't claimed yet."),
                         React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 mb-3", style: sans }, "The archetypes at the bottom of your ranking aren't failures or weaknesses \u2014 they're the energies that weren't safe to express in the environment where you formed. You didn't choose your shadow. Your shadow chose you."),
                         React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85 mb-3", style: sans }, "What's disowned doesn't disappear. It shows up sideways \u2014 in your strongest reactions to other people, in the patterns you can't quite explain, in the gap between who you want to be and how you actually show up under pressure."),
                         React.createElement("p", { className: "text-[14.5px] leading-relaxed text-violet-200/85", style: sans }, "This is your hidden capacity, not your hidden flaw. Integration doesn't diminish you. It completes you.")),
-                    // Toggle pair just above the shadow wheel (mirror of the light-wheel pair).
-                    // The section header above already names the section \u2014 no eyebrow here.
-                    mandalaToggle("toggle-shadow"),
                     // The wheel \u2014 bottom three highlighted, cool blend lines.
                     React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, shadow: true }),
                     React.createElement("p", { className: "text-center text-indigo-200/70 text-sm -mt-1 mb-8 italic", style: serif }, "The three quietest voices, and the blends between them \u2014 the shape of what you haven't yet claimed."),
