@@ -56,12 +56,12 @@
     "caregiver|creator": "The Cultivator", "caregiver|sage": "The Healer", "caregiver|explorer": "The Shepherd",
     "caregiver|rebel": "The Advocate", "caregiver|trickster": "The Merrymaker", "caregiver|innocent": "The Gentleheart", "caregiver|mystic": "The BridgeTender",
     "everyman|ruler": "The Mayor", "everyman|warrior": "The Citizen-Soldier", "creator|everyman": "The Folk Artist",
-    "everyman|sage": "The Folk Sage", "everyman|explorer": "The Sojourner", "everyman|rebel": "The Folk Hero",
+    "everyman|sage": "The Elder", "everyman|explorer": "The Sojourner", "everyman|rebel": "The Folk Hero",
     "everyman|trickster": "The Rascal", "everyman|innocent": "The Salt-of-the-Earth", "everyman|mystic": "The Everyday Mystic",
     "ruler|warrior": "The General", "creator|ruler": "The Architect", "ruler|sage": "The Judge", "explorer|ruler": "The Founder",
     "rebel|ruler": "The Revolutionary", "ruler|trickster": "The Gamemaster", "innocent|ruler": "The Benefactor",
     "mystic|ruler": "The Visionary", // ascended reading — same pair's shadow reading is "The Priest" (institution over insight)
-    "creator|warrior": "The Smith", "sage|warrior": "The Master-at-Arms", "explorer|warrior": "The Ranger",
+    "creator|warrior": "The Smith", "sage|warrior": "The Strategist", "explorer|warrior": "The Ranger",
     "rebel|warrior": "The Freedom Fighter", "trickster|warrior": "The Rogue", "innocent|warrior": "The Gentle Giant", "mystic|warrior": "The Warrior-Monk",
     "creator|sage": "The Inventor", "creator|explorer": "The Cartographer", "creator|rebel": "The Iconoclast",
     "creator|trickster": "The Satirist", "creator|innocent": "The Wonderworker", "creator|mystic": "The Magician",
@@ -100,7 +100,7 @@
     "everyman|ruler": "One of the people, trusted to lead them.",
     "everyman|warrior": "Ordinary life, extraordinary stakes.",
     "creator|everyman": "Beauty made from common things.",
-    "everyman|sage": "Wisdom without credentials.",
+    "everyman|sage": "Wisdom earned by living, not by title.",
     "everyman|explorer": "Belongs everywhere, stays nowhere long.",
     "everyman|rebel": "Of the people, against the crown.",
     "everyman|trickster": "Cunning from below.",
@@ -115,7 +115,7 @@
     "innocent|ruler": "Power held lightly.",
     "mystic|ruler": "Leads from what others cannot yet see.",
     "creator|warrior": "Strength turned to making.",
-    "sage|warrior": "Discipline as craft.",
+    "sage|warrior": "Wins by thinking, not just by fighting.",
     "explorer|warrior": "Protects the frontier.",
     "rebel|warrior": "Force in service of justice.",
     "trickster|warrior": "Wins by refusing the obvious fight.",
@@ -239,8 +239,29 @@
     { key: "soul", name: "Soul", gift: "communion", corruption: "fanaticism" }
   ];
 
+  // The six axis questions — one per wheel axis (a pair of opposites). Each archetype
+  // lives at one end of exactly one of these questions; its growth edge holds the other.
+  // Keyed by the sorted archetype-key pair, so either end resolves to the same question.
+  var AXIS_QUESTIONS = {
+    "lover|sage": "Do you trust what you feel, or what you can prove?",
+    "caregiver|explorer": "Where does your loyalty belong — to those who need you, or to the call of what's next?",
+    "everyman|rebel": "Do you find belonging by moving toward the group, or by refusing to disappear into it?",
+    "ruler|trickster": "Is the structure serving life, or has life started serving the structure?",
+    "innocent|warrior": "Is the world fundamentally safe, or fundamentally dangerous — and what does your answer cost you?",
+    "creator|mystic": "Does meaning come from what you make, or from what you receive?"
+  };
+
   // Order-independent Pairing lookup for any two archetype keys.
   function pairingName(a, b) { return BLEND_NAMES[[a, b].sort().join("|")] || null; }
+
+  // The axis question an archetype is built around answering (via its wheel-opposite).
+  function axisQuestion(key) {
+    var a = ARCHETYPES.find(function (x) { return x.key === key; });
+    if (!a) return null;
+    var opp = ARCHETYPES.find(function (x) { return x.name === a.opposite; });
+    if (!opp) return null;
+    return AXIS_QUESTIONS[[key, opp.key].sort().join("|")] || null;
+  }
 
   return {
     ARCHETYPES: ARCHETYPES,
@@ -252,6 +273,8 @@
     BLEND_SHADOW_TEXTURES: BLEND_SHADOW_TEXTURES,
     TEMPERAMENT_EXPRESSIONS: TEMPERAMENT_EXPRESSIONS,
     TEMPERAMENTS: TEMPERAMENTS,
-    pairingName: pairingName
+    AXIS_QUESTIONS: AXIS_QUESTIONS,
+    pairingName: pairingName,
+    axisQuestion: axisQuestion
   };
 });

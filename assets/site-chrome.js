@@ -29,6 +29,7 @@
         document.body.insertAdjacentHTML("beforeend", chrome.footerHtml());
       }
       chrome.wireDropdown();
+      chrome.applyResultToken();
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
     else run();
@@ -56,10 +57,16 @@
     "@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}",
     ".sc-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;}",
     ".sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}",
-    ".sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}"
+    ".sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}",
+    "#sc-return-banner{position:relative;display:flex;align-items:center;justify-content:center;gap:.75rem;background:rgba(253,230,138,0.12);border-bottom:1px solid rgba(253,230,138,0.22);font-family:'Source Sans 3',system-ui,sans-serif;padding:.5rem 2.5rem;text-align:center;}",
+    ".sc-return-link{color:#fde8b0;text-decoration:none;font-size:14px;font-weight:600;}",
+    ".sc-return-link:hover{color:#fff6d8;text-decoration:underline;}",
+    ".sc-return-dismiss{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:0;color:rgba(253,232,176,0.7);font-size:20px;line-height:1;cursor:pointer;padding:.15rem .4rem;}",
+    ".sc-return-dismiss:hover{color:#fde8b0;}"
   ].join("");
 
   var EXPLORE_ITEMS = [
+    { href: "/how-it-works/", label: "How It Works" },
     { href: "/explore/", label: "Overview" },
     { href: "/explore/#the-twelve", label: "The Twelve Archetypes" },
     { href: "/explore/bandwidth/", label: "Bandwidth" },
@@ -70,6 +77,8 @@
 
   function activeFromPath(p) {
     p = p || "/";
+    if (p.indexOf("/about") === 0) return "about";
+    if (p.indexOf("/how-it-works") === 0) return "explore";
     if (p.indexOf("/explore") === 0) return "explore";
     if (p.indexOf("/pricing") === 0) return "pricing";
     if (p.indexOf("/my-results") === 0) return "results";
@@ -87,6 +96,7 @@
         '<a class="sc-brand" href="/">The Art of Soulcraft</a>' +
         '<div class="sc-links">' +
           '<a class="' + cls("home") + '" href="/">Home</a>' +
+          '<a class="' + cls("about") + '" href="/about/">About</a>' +
           '<div class="sc-dd">' +
             '<button id="sc-explore-btn" class="' + cls("explore") + '" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button>' +
             '<div class="sc-menu" id="sc-explore-menu">' + menu + '</div>' +
@@ -103,7 +113,7 @@
       '<footer id="site-footer"><div class="sc-foot">' +
         '<p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p>' +
         '<div class="sc-foot-links">' +
-          '<a href="/">Home</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a>' +
+          '<a href="/">Home</a><a href="/about/">About</a><a href="/how-it-works/">How It Works</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a>' +
           '<a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>' +
         '</div>' +
       '</div></footer>';
@@ -126,11 +136,72 @@
     });
   }
 
+  // --- "Return to Your Mandala": session persistence (Task 1) ---------------
+  // index.html writes a 30-day token to localStorage the moment a real result is
+  // shown (key: soulcraft_result_token, a { expires, snapshot } envelope). Any
+  // page can then offer a one-click way back to that reading. We never expose the
+  // snapshot here — we only read whether a live token exists and, if so, surface
+  // the affordance. The banner links to /?return=mandala; index.html restores the
+  // snapshot from that same localStorage key.
+  var TOKEN_KEY = "soulcraft_result_token";
+  var DISMISS_KEY = "soulcraft_return_dismissed";
+
+  function readResultToken() {
+    try {
+      var raw = window.localStorage.getItem(TOKEN_KEY);
+      if (!raw) return null;
+      var tok = JSON.parse(raw);
+      if (!tok || !tok.snapshot) return null;
+      if (tok.expires && tok.expires < Date.now()) {
+        window.localStorage.removeItem(TOKEN_KEY);   // expired — clean it up
+        return null;
+      }
+      return tok;
+    } catch (e) { return null; }
+  }
+
+  function applyResultToken() {
+    if (typeof document === "undefined") return;
+    var tok = readResultToken();
+    if (!tok) return;
+
+    // 1) "My Results" checks localStorage first, then falls back to the email flow.
+    var mr = document.querySelector('#site-header a[href="/my-results/"]');
+    if (mr) mr.setAttribute("href", "/?return=mandala");
+
+    // 2) A dismissible banner on every page EXCEPT the app itself (where the reading
+    // already lives). Dismissal is per-session (sessionStorage), so it's persistent
+    // but returns next visit.
+    if (location.pathname === "/") return;
+    var dismissed = false;
+    try { dismissed = window.sessionStorage.getItem(DISMISS_KEY) === "1"; } catch (e) {}
+    if (dismissed) return;
+    if (document.getElementById("sc-return-banner")) return;
+    var header = document.getElementById("site-header");
+    if (!header) return;
+
+    var bar = document.createElement("div");
+    bar.id = "sc-return-banner";
+    bar.setAttribute("role", "region");
+    bar.setAttribute("aria-label", "Return to your results");
+    bar.innerHTML =
+      '<a class="sc-return-link" href="/?return=mandala">Return to your Mandala →</a>' +
+      '<button type="button" class="sc-return-dismiss" aria-label="Dismiss">×</button>';
+    header.insertAdjacentElement("afterend", bar);
+    var x = bar.querySelector(".sc-return-dismiss");
+    if (x) x.addEventListener("click", function () {
+      try { window.sessionStorage.setItem(DISMISS_KEY, "1"); } catch (e) {}
+      bar.parentNode && bar.parentNode.removeChild(bar);
+    });
+  }
+
   return {
     CSS: CSS,
     headerHtml: headerHtml,
     footerHtml: footerHtml,
     activeFromPath: activeFromPath,
-    wireDropdown: wireDropdown
+    wireDropdown: wireDropdown,
+    readResultToken: readResultToken,
+    applyResultToken: applyResultToken
   };
 });
