@@ -29,6 +29,7 @@
         document.body.insertAdjacentHTML("beforeend", chrome.footerHtml());
       }
       chrome.wireDropdown();
+      chrome.wireMobile();
       chrome.applyResultToken();
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
@@ -63,7 +64,20 @@
     ".sc-return-link{color:#fde8b0;text-decoration:none;font-size:14px;font-weight:600;}",
     ".sc-return-link:hover{color:#fff6d8;text-decoration:underline;}",
     ".sc-return-dismiss{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:0;color:rgba(253,232,176,0.7);font-size:20px;line-height:1;cursor:pointer;padding:.15rem .4rem;}",
-    ".sc-return-dismiss:hover{color:#fde8b0;}"
+    ".sc-return-dismiss:hover{color:#fde8b0;}",
+    // --- Mobile hamburger nav (below 768px) ---
+    ".sc-burger{display:none;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;margin-right:-.4rem;background:none;border:0;cursor:pointer;color:#f5f3ff;padding:0;}",
+    ".sc-burger:hover{color:#fde8b0;}",
+    ".sc-burger svg{display:block;}",
+    ".sc-mobile{display:none;border-top:1px solid rgba(196,181,253,0.10);background:rgba(16,12,34,0.98);padding:.4rem 0 .8rem;}",
+    ".sc-mobile.sc-open{display:block;}",
+    ".sc-mobile a{display:block;padding:.6rem 1.5rem;font-size:16px;color:rgba(224,218,246,0.9);text-decoration:none;}",
+    ".sc-mobile a:hover,.sc-mobile a.sc-active{color:#fde8b0;}",
+    ".sc-m-group{padding:.7rem 1.5rem .1rem;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(196,181,253,0.5);margin:0;}",
+    ".sc-mobile a.sc-m-sub{padding-left:2.5rem;font-size:15px;color:rgba(224,218,246,0.72);}",
+    ".sc-m-divider{height:1px;background:rgba(196,181,253,0.12);margin:.35rem 1.5rem;}",
+    "@media(max-width:767px){.sc-links{display:none;} .sc-burger{display:flex;}}",
+    "@media(min-width:768px){.sc-mobile{display:none !important;}}"
   ].join("");
 
   var EXPLORE_ITEMS = [
@@ -95,6 +109,29 @@
       return '<a href="' + it.href + '">' + it.label + "</a>";
     }).join("");
     var cls = function (name) { return "sc-link" + (active === name ? " sc-active" : ""); };
+    // The same items, stacked, for the mobile drawer (Explore sub-items indented).
+    var mact = function (name) { return active === name ? ' class="sc-active"' : ""; };
+    var mobileExplore = EXPLORE_ITEMS.map(function (it) {
+      if (it.divider) return '<div class="sc-m-divider" role="separator"></div>';
+      return '<a class="sc-m-sub" href="' + it.href + '">' + it.label + "</a>";
+    }).join("");
+    var burger =
+      '<button class="sc-burger" id="sc-burger" aria-label="Open menu" aria-expanded="false" aria-controls="sc-mobile-menu">' +
+        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">' +
+          '<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>' +
+        '</svg>' +
+      '</button>';
+    var mobile =
+      '<div class="sc-mobile" id="sc-mobile-menu">' +
+        '<a' + mact("home") + ' href="/">Home</a>' +
+        '<a' + mact("about") + ' href="/about/">About</a>' +
+        '<p class="sc-m-group">Explore</p>' +
+        mobileExplore +
+        '<div class="sc-m-divider" role="separator"></div>' +
+        '<a' + mact("pricing") + ' href="/pricing/">Pricing</a>' +
+        '<a' + mact("results") + ' href="/my-results/">My Results</a>' +
+        '<a' + mact("contact") + ' href="/contact/">Contact</a>' +
+      '</div>';
     return '' +
       '<header id="site-header"><nav class="sc-nav" aria-label="Primary">' +
         '<a class="sc-brand" href="/">The Art of Soulcraft</a>' +
@@ -109,7 +146,8 @@
           '<a class="' + cls("results") + '" href="/my-results/">My Results</a>' +
           '<a class="' + cls("contact") + '" href="/contact/">Contact</a>' +
         '</div>' +
-      '</nav></header>';
+        burger +
+      '</nav>' + mobile + '</header>';
   }
 
   function footerHtml() {
@@ -138,6 +176,32 @@
       menu.classList.remove("sc-open");
       btn.setAttribute("aria-expanded", "false");
     });
+  }
+
+  // Mobile hamburger: tap toggles the drawer; tapping a link or outside closes it.
+  function wireMobile() {
+    if (typeof document === "undefined") return;
+    var btn = document.getElementById("sc-burger");
+    var menu = document.getElementById("sc-mobile-menu");
+    if (!btn || !menu || btn.getAttribute("data-wired")) return;
+    btn.setAttribute("data-wired", "1");
+    var close = function () { menu.classList.remove("sc-open"); btn.setAttribute("aria-expanded", "false"); };
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var open = menu.classList.toggle("sc-open");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    // Tapping any item closes the drawer (also collapses it for same-page anchors).
+    menu.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("a")) close();
+    });
+    // Tapping outside the drawer/button closes it.
+    document.addEventListener("click", function (e) {
+      if (!menu.classList.contains("sc-open")) return;
+      if (menu.contains(e.target) || btn.contains(e.target)) return;
+      close();
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
   }
 
   // --- "Return to Your Mandala": session persistence (Task 1) ---------------
@@ -205,6 +269,7 @@
     footerHtml: footerHtml,
     activeFromPath: activeFromPath,
     wireDropdown: wireDropdown,
+    wireMobile: wireMobile,
     readResultToken: readResultToken,
     applyResultToken: applyResultToken
   };
