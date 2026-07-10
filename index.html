@@ -23,12 +23,12 @@
      /build/generate.js (stampIndex). Do not hand-edit between the SC markers —
      edit site-chrome.js and re-run the build. Real markup so the nav shows with
      zero JS and is crawlable; site-chrome.js only wires the dropdown here. -->
-<!--SC:STYLE--><style id="sc-styles">#site-header{position:sticky;top:0;z-index:30;background:rgba(16,12,34,0.82);backdrop-filter:blur(8px);border-bottom:1px solid rgba(196,181,253,0.10);font-family:'Source Sans 3',system-ui,sans-serif;}.sc-nav{max-width:64rem;margin:0 auto;padding:0 1.25rem;height:4rem;display:flex;align-items:center;justify-content:space-between;}.sc-brand{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.35rem;color:#f5f3ff;text-decoration:none;}.sc-brand:hover{color:#fde8b0;}.sc-links{display:flex;align-items:center;gap:1.25rem;font-size:15px;}.sc-link{color:rgba(224,218,246,0.85);text-decoration:none;transition:color .15s;background:none;border:none;cursor:pointer;font:inherit;display:flex;align-items:center;gap:.25rem;}.sc-link:hover{color:#fde68a;}.sc-link.sc-active{color:#fde8b0;}.sc-dd{position:relative;}.sc-menu{display:none;position:absolute;right:0;margin-top:.5rem;width:14rem;background:#1a1533;border:1px solid rgba(196,181,253,0.18);border-radius:.75rem;padding:.5rem 0;box-shadow:0 10px 30px rgba(0,0,0,0.4);}.sc-dd:hover .sc-menu,.sc-dd:focus-within .sc-menu,.sc-menu.sc-open{display:block;}.sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}.sc-menu a:hover{color:#fde68a;}#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}.sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1rem;}@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}.sc-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;}.sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}.sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}</style><!--/SC:STYLE-->
+<!--SC:STYLE--><style id="sc-styles">#site-header{position:sticky;top:0;z-index:30;background:rgba(16,12,34,0.82);backdrop-filter:blur(8px);border-bottom:1px solid rgba(196,181,253,0.10);font-family:'Source Sans 3',system-ui,sans-serif;}.sc-nav{max-width:64rem;margin:0 auto;padding:0 1.25rem;height:4rem;display:flex;align-items:center;justify-content:space-between;}.sc-brand{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.35rem;color:#f5f3ff;text-decoration:none;}.sc-brand:hover{color:#fde8b0;}.sc-links{display:flex;align-items:center;gap:1.25rem;font-size:15px;}.sc-link{color:rgba(224,218,246,0.85);text-decoration:none;transition:color .15s;background:none;border:none;cursor:pointer;font:inherit;display:flex;align-items:center;gap:.25rem;}.sc-link:hover{color:#fde68a;}.sc-link.sc-active{color:#fde8b0;}.sc-dd{position:relative;}.sc-menu{display:none;position:absolute;right:0;margin-top:.5rem;width:14rem;background:#1a1533;border:1px solid rgba(196,181,253,0.18);border-radius:.75rem;padding:.5rem 0;box-shadow:0 10px 30px rgba(0,0,0,0.4);}.sc-dd:hover .sc-menu,.sc-dd:focus-within .sc-menu,.sc-menu.sc-open{display:block;}.sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}.sc-menu a:hover{color:#fde68a;}#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}.sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1rem;}@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}.sc-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;}.sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}.sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}#sc-return-banner{position:relative;display:flex;align-items:center;justify-content:center;gap:.75rem;background:rgba(253,230,138,0.12);border-bottom:1px solid rgba(253,230,138,0.22);font-family:'Source Sans 3',system-ui,sans-serif;padding:.5rem 2.5rem;text-align:center;}.sc-return-link{color:#fde8b0;text-decoration:none;font-size:14px;font-weight:600;}.sc-return-link:hover{color:#fff6d8;text-decoration:underline;}.sc-return-dismiss{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:0;color:rgba(253,232,176,0.7);font-size:20px;line-height:1;cursor:pointer;padding:.15rem .4rem;}.sc-return-dismiss:hover{color:#fde8b0;}</style><!--/SC:STYLE-->
 </head>
 <body>
-<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/shadow/">Shadow</a></div></div><a class="sc-link" href="/pricing/">Pricing</a><a class="sc-link" href="/my-results/">My Results</a><a class="sc-link" href="/contact/">Contact</a></div></nav></header><!--/SC:HEADER-->
+<!--SC:HEADER--><header id="site-header"><nav class="sc-nav" aria-label="Primary"><a class="sc-brand" href="/">The Art of Soulcraft</a><div class="sc-links"><a class="sc-link sc-active" href="/">Home</a><a class="sc-link" href="/about/">About</a><div class="sc-dd"><button id="sc-explore-btn" class="sc-link" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button><div class="sc-menu" id="sc-explore-menu"><a href="/how-it-works/">How It Works</a><a href="/explore/">Overview</a><a href="/explore/#the-twelve">The Twelve Archetypes</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/shadow/">Shadow</a></div></div><a class="sc-link" href="/pricing/">Pricing</a><a class="sc-link" href="/my-results/">My Results</a><a class="sc-link" href="/contact/">Contact</a></div></nav></header><!--/SC:HEADER-->
 <div id="root"></div>
-<!--SC:FOOTER--><footer id="site-footer"><div class="sc-foot"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><a href="/">Home</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></div></div></footer><!--/SC:FOOTER-->
+<!--SC:FOOTER--><footer id="site-footer"><div class="sc-foot"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><a href="/">Home</a><a href="/about/">About</a><a href="/how-it-works/">How It Works</a><a href="/explore/">Overview</a><a href="/explore/bandwidth/">Bandwidth</a><a href="/explore/temperaments/">Temperaments</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></div></div></footer><!--/SC:FOOTER-->
 <script>
 "use strict";
 var useState, useMemo, useEffect, useRef;
@@ -389,11 +389,17 @@ const TIERS = {
 /* ---------- main ---------- */
 function TwelveWithin() {
     const [screen, setScreen] = useState(() => {
-        // If opened from a magic link (?token=&result=), start on a brief
+        // If opened from a magic link (?token=&result=), or returning to a locally
+        // saved reading (?return=mandala with a live token), start on a brief
         // "verifying" screen instead of flashing the intro first.
         try {
             const p = new URLSearchParams(window.location.search);
-            return (p.get("token") && p.get("result")) ? "verifying" : "intro";
+            if (p.get("token") && p.get("result")) return "verifying";
+            if (p.get("return") === "mandala") {
+                const t = JSON.parse(localStorage.getItem("soulcraft_result_token") || "null");
+                if (t && t.snapshot && (!t.expires || t.expires > Date.now())) return "verifying";
+            }
+            return "intro";
         } catch (e) { return "intro"; }
     });
     const [mode, setMode] = useState("quick");
@@ -550,6 +556,34 @@ function TwelveWithin() {
             })
             .catch(() => setSaveStatus("error"));
     }, [screen, isSample, session, restored]);
+
+    // --- Session persistence (Task 1): the moment a REAL reading is on screen,
+    // stash a 30-day snapshot in localStorage under soulcraft_result_token. Any
+    // page across the site can then offer "Return to your Mandala →" (the banner
+    // and My Results wiring live in /assets/site-chrome.js). Never the sample. ---
+    useEffect(() => {
+        if (screen !== "results" || isSample) return;
+        try {
+            const archetypeScores = {};
+            ranked.forEach((r) => { archetypeScores[r.key] = r.score; });
+            const temperamentScores = {};
+            TEMPERAMENTS.forEach((ch) => { temperamentScores[ch.key] = radarScores[ch.key] || 0; });
+            const snapshot = {
+                tier,
+                mode: TIERS[tier].pairMode,
+                archetypeScores,
+                temperamentScores,
+                descriptorPicks: picks,
+                shadowUnlocked,
+                resultId: savedResultId || null,
+            };
+            localStorage.setItem("soulcraft_result_token", JSON.stringify({
+                v: 1,
+                expires: Date.now() + 30 * 24 * 60 * 60 * 1000,
+                snapshot,
+            }));
+        } catch (e) {}
+    }, [screen, isSample, tier, picks, shadowUnlocked, savedResultId, ranked, radarScores]);
 
     const sendMyEmail = () => {
         if (!emailInput.trim() || !savedResultId) return;
@@ -709,6 +743,26 @@ function TwelveWithin() {
                 setVerifyMsg("Something went wrong opening your link. Please try again.");
                 setScreen("verify-error");
             });
+    }, []);
+
+    // --- Return to Your Mandala (Task 1): arriving at /?return=mandala re-hydrates
+    // the last locally-saved reading from localStorage. No server round-trip and no
+    // by-id lookup — the snapshot lives entirely in this browser. Runs once. ---
+    useEffect(() => {
+        let params;
+        try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+        if (params.get("return") !== "mandala") return;
+        try {
+            const raw = localStorage.getItem("soulcraft_result_token");
+            const tok = raw ? JSON.parse(raw) : null;
+            if (!tok || !tok.snapshot || (tok.expires && tok.expires < Date.now())) {
+                if (tok) localStorage.removeItem("soulcraft_result_token");
+                setScreen("intro");
+            } else {
+                restoreOne(tok.snapshot);
+            }
+        } catch (e) { setScreen("intro"); }
+        try { window.history.replaceState({}, "", "/"); } catch (e) {}
     }, []);
 
     const maxScore = Math.max(...ranked.map((r) => r.score), 1);
@@ -918,6 +972,21 @@ function TwelveWithin() {
 
                     // ===== PRINT PAGE 2 - Top Three + Blends + Edges =====
                     TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
+                        // Compact definitions key — a quick reference for the terms used
+                        // throughout the deep sections that follow. Subtle divider above,
+                        // two columns, small text.
+                        React.createElement("div", { style: { borderTop: "2px solid #ddd", paddingTop: "10px", marginBottom: "22px", pageBreakInside: "avoid" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: { ...sans, color: "#6b6580" } }, "KEY TO YOUR REPORT"),
+                            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 22px" } },
+                                [
+                                    ["Bandwidth", "How much of yourself you have available right now — from contracted and fear-driven to expansive and in service of others."],
+                                    ["Ascended / Transcendent / Base / Descended / Devolved", "The five stages of Bandwidth, from highest to lowest."],
+                                    ["Temperament", "Your first natural impulse — Heart, Mind, Body, or Soul."],
+                                    ["Growth Edge", "The archetype directly opposite your loudest voice. Your most direct path to integration."],
+                                    ["Quietest Voice", "Your lowest-ranked archetype — the energy most likely to show up as a strong reaction to others."],
+                                    ["Pairings", "The named pattern that emerges when two of your archetypes combine."],
+                                ].map(([term, def]) => React.createElement("p", { key: term, style: { ...sans, fontSize: "10.5px", lineHeight: "1.35", color: "#4a4560", marginBottom: "4px" } },
+                                    React.createElement("span", { style: { fontWeight: 700, color: "#2a2340" } }, term + ": "), def)))),
                         TIERS[tier].topCount >= 3 && React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "32px" } },
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR LOUDEST VOICES, IN DEPTH"),
                             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" } },
@@ -1051,11 +1120,15 @@ function TwelveWithin() {
                     [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
                         const nm = blendName(ranked[a], ranked[b]);
                         const tx = blendTexture(ranked[a], ranked[b]);
+                        // Two of the top three that are wheel-opposites answer the SAME axis
+                        // question from opposite ends — a live tension, not a settled answer.
+                        const sameAxis = ranked[a].opposite === ranked[b].name;
                         return React.createElement("div", { key: a + "-" + b, className: "mb-2.5 last:mb-0" },
                             React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
                                 archLink(ranked[a]), " × ", archLink(ranked[b]), " → ",
                                 nm ? React.createElement("span", { className: "text-amber-200" }, nm) : React.createElement("span", { className: "text-violet-300/60 italic" }, "unnamed — an entry awaiting the 66-blend lexicon")),
-                            tx && React.createElement("p", { className: "text-[13px] text-violet-300/65 italic mt-0.5", style: serif }, tx));
+                            tx && React.createElement("p", { className: "text-[13px] text-violet-300/65 italic mt-0.5", style: serif }, tx),
+                            sameAxis && React.createElement("p", { className: "text-[13px] text-amber-100/80 mt-1 leading-relaxed", style: sans }, "Two of your loudest voices sit at opposite ends of the same question — meaning this question lives inside you as an active tension, not a settled answer."));
                     })),
 
                 // \u2550\u2550 SECTION \u2014 How You're Wired: temperament radar, prose, summary \u2550\u2550
