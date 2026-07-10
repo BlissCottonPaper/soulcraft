@@ -40,25 +40,25 @@
       title: "Bandwidth",
       def: "How much of yourself you have available right now. Every archetype can be lived from five places — contracted and fear-driven at one end, expansive and in service of others at the other. Bandwidth is where you currently sit on that spectrum, shaped by how well your core human needs are being met."
     },
-    devolved: {
-      title: "Devolved",
-      def: "The archetype's energy fully captured by ego — the gift now serving only the self, often at direct cost to others. Usually while believing it's protecting something real. The most contracted state."
-    },
-    descended: {
-      title: "Descended",
-      def: "The archetype bent by fear but not yet consumed by it. Defensive, grasping, self-protective. The gift is still recognizable — just anxious rather than generous. Where most everyday conflict lives."
-    },
-    base: {
-      title: "Base",
-      def: "The everyday, unexamined expression — the default gear. Not good or bad, just automatic. Where most people spend most of their time. Where the work of Soulcraft begins: noticing what's running, and choosing whether to let it run."
+    transcendent: {
+      title: "Transcendent",
+      def: "Full expansion — core needs so well met that energy flows outward freely, from abundance rather than obligation. The gift in service of others or the whole, not withheld for self-protection. The highest expression of Bandwidth."
     },
     ascended: {
       title: "Ascended",
-      def: "The archetype matured and mastered — competent, integrated, no longer driven by fear. What “good at being yourself” looks like. A real achievement, and for many, a lifetime's worthy goal."
+      def: "Mature and integrated — no longer fear-driven, operating from a growing state of abundance. Competent and genuinely good at being yourself, with enough to give as well as receive."
     },
-    transcendent: {
-      title: "Transcendent",
-      def: "The archetype's highest expression — the gift given away, oriented entirely toward others or the whole rather than the self. Maslow called this self-transcendence: above self-actualization, the place where your energy freely extends outward because your own needs are no longer the primary demand on it."
+    base: {
+      title: "Base",
+      def: "The default gear — everyday, unexamined, automatic. Where most people spend most of their time. Where the work of Soulcraft begins: noticing which archetype is running the moment, and choosing whether to let it run."
+    },
+    descended: {
+      title: "Descended",
+      def: "Fear has bent the gift — defensive and self-protective, the archetype grasping rather than giving. The original longing is still there but anxious rather than generous. Where most everyday conflict lives."
+    },
+    devolved: {
+      title: "Devolved",
+      def: "Maximum contraction — core needs so depleted that all available energy goes toward self-protection. The original gift is unrecognizable, serving only survival, often at direct cost to others."
     },
     temperament: {
       title: "Temperament",

@@ -12,6 +12,12 @@
 <script src="/assets/soulcraft-data.js"></script>
 <script src="/assets/temperament-prose.js"></script>
 <script src="/assets/site-chrome.js"></script>
+<!-- Tooltip definitions + runtime: the results screen surfaces Bandwidth and the
+     five stage names (in the altitude ladders), so the reusable popover component
+     rides along here too. tooltip.js wires any .tooltip-trigger, including ones the
+     React app renders later (it watches for them). -->
+<script src="/assets/tooltips.js"></script>
+<script src="/assets/tooltip.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -213,7 +219,7 @@ function Mandala({ ranked, topCount = 3, forPrint = false, shadow = false }) {
     const triFill = shadow
         ? (forPrint ? "rgba(120,130,220,0.06)" : "rgba(214,210,246,0.08)")
         : "rgba(255,250,235,0.06)";
-    return (React.createElement("svg", { viewBox: "-46 -30 432 400", className: "w-full mx-auto block", style: { width: "100%", maxWidth: forPrint ? "24rem" : "28.8rem" }, role: "img", "aria-label": "Your personal mandala" },
+    return (React.createElement("svg", { viewBox: "-46 -30 432 400", className: "w-full mx-auto block", style: { width: "100%", maxWidth: forPrint ? "24rem" : "28.8rem", display: "block", margin: "0 auto" }, role: "img", "aria-label": "Your personal mandala" },
         React.createElement("defs", null,
             React.createElement("radialGradient", { id: "ctrGlow", r: "50%" },
                 React.createElement("stop", { offset: "0%", stopColor: "rgba(255,252,240,0.95)" }),
@@ -267,14 +273,15 @@ function Ladder({ arche }) {
     const i = ARCHETYPES.findIndex((a) => a.key === arche.key);
     const rows = [4, 3, 2, 1, 0]; // Transcendent → Devolved
     return (React.createElement("div", { className: "mt-3" },
-        React.createElement("p", { className: "text-[10px] tracking-[0.2em] text-violet-300/40 mb-1.5", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, BANDWIDTH_LABEL.toUpperCase()),
+        React.createElement("p", { className: "text-[10px] tracking-[0.2em] text-violet-300/40 mb-1.5", style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
+            React.createElement("span", { className: "tooltip-trigger", "data-term": "bandwidth" }, BANDWIDTH_LABEL.toUpperCase())),
         React.createElement("div", { className: "space-y-1" }, rows.map((s) => (React.createElement("div", { key: s, className: "flex items-center gap-2.5" },
         React.createElement("span", { className: "w-2 h-2 rounded-full shrink-0", style: { background: `hsl(${HUE(i)},58%,${STAGE_LIGHT[s]}%)` } }),
         React.createElement("span", { className: "text-sm " + (s === 2 ? "text-amber-200" : s > 2 ? "text-violet-100" : "text-violet-300/70"), style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } },
             arche.stages[s],
             React.createElement("span", { className: "text-violet-300/45 text-xs ml-2" },
-                STAGE_NAMES[s].toLowerCase(),
-                s === 2 ? " · where the day begins" : "")))))))); 
+                React.createElement("span", { className: "tooltip-trigger", "data-term": STAGE_NAMES[s].toLowerCase() }, STAGE_NAMES[s].toLowerCase()),
+                s === 2 ? " · where the day begins" : ""))))))));
 }
 // TEMPERAMENT RADAR — four temperaments on 4 axes (90° apart). Raw Likert 1–4 is
 // centered on 2.5 (range −1.5..+1.5): the dashed mid-ring is neutral (0), outside
@@ -979,12 +986,13 @@ function TwelveWithin() {
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: { ...sans, color: "#6b6580" } }, "KEY TO YOUR REPORT"),
                             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 22px" } },
                                 [
+                                    ["Mandala", "Your map of all twelve archetypal voices — which speak loudest, which are quietest, and how they relate."],
                                     ["Bandwidth", "How much of yourself you have available right now — from contracted and fear-driven to expansive and in service of others."],
-                                    ["Ascended / Transcendent / Base / Descended / Devolved", "The five stages of Bandwidth, from highest to lowest."],
-                                    ["Temperament", "Your first natural impulse — Heart, Mind, Body, or Soul."],
                                     ["Growth Edge", "The archetype directly opposite your loudest voice. Your most direct path to integration."],
                                     ["Quietest Voice", "Your lowest-ranked archetype — the energy most likely to show up as a strong reaction to others."],
+                                    ["Temperament", "Your first natural impulse — Heart, Mind, Body, or Soul."],
                                     ["Pairings", "The named pattern that emerges when two of your archetypes combine."],
+                                    ["Shadow", "The disowned parts of you — usually your quietest voices — that surface as strong reactions to others."],
                                 ].map(([term, def]) => React.createElement("p", { key: term, style: { ...sans, fontSize: "10.5px", lineHeight: "1.35", color: "#4a4560", marginBottom: "4px" } },
                                     React.createElement("span", { style: { fontWeight: 700, color: "#2a2340" } }, term + ": "), def)))),
                         TIERS[tier].topCount >= 3 && React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "32px" } },
@@ -1298,6 +1306,10 @@ function TwelveWithin() {
                           /* Each major section is its own .print-page and starts on a fresh sheet. */
                           .print-page { page-break-before: always; break-before: page; page-break-inside: auto; }
                           .print-page:first-child { page-break-before: avoid; break-before: avoid; }
+                          /* Center every report SVG (both mandalas + radar) regardless of scale:
+                             an SVG is inline by default, so a narrower-than-parent wheel would
+                             otherwise sit left. Block + auto margins center it at any max-width. */
+                          svg { display: block; margin: 0 auto; }
                           .flex { display: flex; width: 100%; }
                           .justify-between { justify-content: space-between; }
                           .justify-center { justify-content: center; }
