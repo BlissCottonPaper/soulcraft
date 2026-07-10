@@ -1,11 +1,11 @@
 /* ============================================================================
    THE ART OF SOULCRAFT — TOOLTIP / POPOVER DEFINITIONS (single source of truth)
    ----------------------------------------------------------------------------
-   Verbatim from Notion "Tooltips & Popovers — Master Definitions File (v1)".
-   Any term wrapped as  <span class="tooltip-trigger" data-term="KEY">…</span>
-   gets its popover from the entry keyed by KEY here. Update a definition once,
-   here, and it updates everywhere on the site. The runtime that reads this file
-   and wires the click-to-open behavior lives in /assets/tooltip.js.
+   The corrected, final definitions (July 2026). Any term wrapped as
+   <span class="tooltip-trigger" data-term="KEY">…</span> gets its popover from
+   the entry keyed by KEY here. Update a definition once, here, and it updates
+   everywhere on the site. The runtime that reads this file and wires the
+   click-to-open behavior lives in /assets/tooltip.js.
 
    Rule of application (from the master file):
      • ALWAYS on first use of a term on a page where it isn't the page's focus.
@@ -38,7 +38,7 @@
     },
     bandwidth: {
       title: "Bandwidth",
-      def: "How much of yourself you have available right now. Every archetype can be lived from five places — contracted and fear-driven at one end, expansive and in service of others at the other. Bandwidth is where you currently sit on that spectrum, shaped by how well your core human needs are being met."
+      def: "How much of yourself you have available right now, determined by how well your six core human needs are being met — belonging, autonomy, competence, self-esteem, trust, and purpose. Every archetype can be lived from five places: contracted and fear-driven at one end, expansive and in service of others at the other."
     },
     transcendent: {
       title: "Transcendent",
@@ -66,7 +66,7 @@
     },
     heart: {
       title: "Heart",
-      def: "Feeling first. Something happens, and the Heart-led person's whole system responds emotionally before anything else engages. Presence, warmth, and relational attunement are native here."
+      def: "Feeling first. Something happens and the Heart-led person's whole system responds emotionally before anything else engages. Presence, warmth, and relational attunement are native here."
     },
     mind: {
       title: "Mind",
@@ -98,7 +98,7 @@
     },
     threshold: {
       title: "The Threshold",
-      def: "The crossing between one version of yourself and the next. Not a stage on the Bandwidth ladder — the space between stages, where the old strategy has stopped working but the new one hasn't formed yet. Growth lives here. So does discomfort. Like the phoenix, we emerge from the ashes — but first, we have to burn."
+      def: "The crossing between one version of yourself and the next. Not a stage on the Bandwidth ladder — the liminal space between stages, where the old strategy has stopped working but the new one hasn't formed yet. Growth lives here. So does discomfort. Like the phoenix, we emerge from the ashes — but first, we have to burn."
     },
     "core-needs": {
       title: "Core Human Needs",
@@ -110,11 +110,11 @@
     },
     wheel: {
       title: "The Wheel",
-      def: "The twelve archetypes arranged as twelve points around a circle, with opposites facing each other. Your position on the wheel determines your growth edge (your opposite) and which of the six axis questions most defines your experience."
+      def: "The twelve archetypes arranged as twelve points around a circle, with opposites facing each other. Your position on the wheel determines your growth edge and which of the six axis questions most defines your experience."
     },
     axis: {
       title: "The Axis / Axis Questions",
-      def: "Six fundamental questions that organize the wheel. Each archetype lives at one end of one question — and your growth edge lives at the other end of the same question. The question your archetype is built around answering is your Lifelong Question."
+      def: "Six fundamental questions that organize the wheel. Each archetype lives at one end of one question — and your growth edge lives at the other end of the same question. The question your archetype is built around answering is its Lifelong Question."
     }
   };
 });
