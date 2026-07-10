@@ -389,6 +389,9 @@ function TwelveWithin() {
     const [unlocking, setUnlocking] = useState(false);   // Stripe checkout in progress
     const [unlockError, setUnlockError] = useState("");
     const [devCode, setDevCode] = useState("");          // internal-testing bypass code
+    const [promoCode, setPromoCode] = useState("");      // customer-facing free-access promo code
+    const [promoError, setPromoError] = useState("");
+    const [promoBusy, setPromoBusy] = useState(false);
     const [session, setSession] = useState(0);
     const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
     const [pairIdx, setPairIdx] = useState(0);
@@ -587,6 +590,35 @@ function TwelveWithin() {
             setUnlockError("We couldn't start checkout — please check your connection and try again.");
             setUnlocking(false);
         }
+    };
+    // Customer-facing promo code: a valid code (validated server-side against the
+    // PROMO_CODES env var — never listed client-side) unlocks full access for free,
+    // bypassing Stripe. The server stamps full_purchased + shadow_unlocked on the row;
+    // we reveal the Shadow Mandala immediately. An invalid code shows an inline note and
+    // leaves the normal $15 checkout untouched.
+    const applyPromo = async () => {
+        const code = promoCode.trim();
+        if (!code) { setPromoError("Enter a code, or continue to checkout."); return; }
+        if (!savedResultId) { setPromoError("Your reading isn't saved yet — give it a second and try again."); return; }
+        setPromoBusy(true); setPromoError("");
+        try {
+            const res = await fetch("/api/redeem-promo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ result_id: savedResultId, code }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (data && data.ok) {
+                setPromoError("");
+                setShadowUnlocked(true);
+                setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 60);
+            } else {
+                setPromoError((data && data.error) || "That code isn't valid — try again or continue to checkout.");
+            }
+        } catch (e) {
+            setPromoError("We couldn't check that code — please check your connection and try again.");
+        }
+        setPromoBusy(false);
     };
     // Internal-testing bypass: entering SHADOW-DEV reveals the shadow without payment.
     // For our own QA of the shadow experience before Stripe is live — not a customer path.
@@ -1192,6 +1224,14 @@ function TwelveWithin() {
                     React.createElement("p", { className: "text-[17px] leading-relaxed text-violet-100 mb-6 max-w-md mx-auto", style: serif }, "Your shadow has always gone unnoticed. It is waiting for you to discover it."),
                     React.createElement("button", { onClick: unlockShadow, disabled: unlocking, className: "inline-block rounded-xl px-7 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60", style: sans }, unlocking ? "Redirecting to checkout\u2026" : "Unlock your Shadow Mandala \u2014 $15"),
                     unlockError && React.createElement("p", { className: "text-sm text-violet-300/70 mt-4 max-w-sm mx-auto", style: sans }, unlockError),
+                    // Promo / free-access code \u2014 understated, below the pricing. A valid code
+                    // (checked server-side against PROMO_CODES) unlocks full access for free.
+                    React.createElement("div", { className: "mt-6 pt-5 border-t border-indigo-300/15 max-w-xs mx-auto" },
+                        React.createElement("label", { htmlFor: "promo-code", className: "block text-[13px] text-violet-300/70 mb-2", style: sans }, "Have a code? Enter it here."),
+                        React.createElement("div", { className: "flex items-center gap-2" },
+                            React.createElement("input", { id: "promo-code", type: "text", value: promoCode, onChange: (e) => setPromoCode(e.target.value), onKeyDown: (e) => { if (e.key === "Enter") applyPromo(); }, placeholder: "Code", "aria-label": "Promo code", disabled: promoBusy, className: "flex-1 rounded-lg bg-black/20 border border-violet-300/20 px-3 py-2 text-sm text-violet-100 outline-none focus:border-amber-200/50", style: sans }),
+                            React.createElement("button", { onClick: applyPromo, disabled: promoBusy, className: "rounded-lg border border-violet-300/25 px-4 py-2 text-sm text-violet-200/80 hover:border-amber-200/60 hover:text-amber-100 transition-colors disabled:opacity-60", style: sans }, promoBusy ? "\u2026" : "Apply")),
+                        promoError && React.createElement("p", { className: "text-xs text-violet-300/70 mt-2", style: sans }, promoError)),
                     // Internal-testing bypass (SHADOW-DEV) \u2014 small, muted, near the button.
                     React.createElement("div", { className: "mt-5 flex items-center justify-center gap-2" },
                         React.createElement("input", { type: "text", value: devCode, onChange: (e) => setDevCode(e.target.value), onKeyDown: (e) => { if (e.key === "Enter") applyDevCode(); }, placeholder: "Testing code", "aria-label": "Testing code", className: "w-36 rounded-lg bg-black/20 border border-violet-300/20 px-3 py-1.5 text-xs text-violet-100 outline-none focus:border-amber-200/50", style: sans }),

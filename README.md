@@ -70,6 +70,23 @@ A twelve-archetype developmental self-discovery system. You are not one type —
 
 ---
 
+## Environment Variables (Cloudflare Pages)
+
+Set these in the Pages project's **Settings → Environment variables** (and the D1 binding under **Settings → Functions → D1 database bindings**). None of them are ever exposed to the browser — every value is read server-side inside the Pages Functions.
+
+| Name | Purpose |
+| --- | --- |
+| `DB` | D1 database **binding** (not a text value) — makes `env.DB` resolve in every function. |
+| `RESEND_API_KEY` | Resend API key used to send the magic-link / results emails. |
+| `STRIPE_SECRET_KEY` | Stripe secret key (`sk_…`) used server-side to create Checkout sessions. |
+| `STRIPE_WEBHOOK_SECRET` | Stripe signing secret (`whsec_…`) used to verify webhook signatures in `stripe-webhook.js`. |
+| `STRIPE_PRICE_MANDALA` | Stripe Price ID for **Your Mandala** ($19). |
+| `STRIPE_PRICE_SHADOW` | Stripe Price ID for the **Shadow Mandala** add-on ($15). |
+| `STRIPE_PRICE_FULL` | Stripe Price ID for the **Full** upfront bundle ($34). |
+| `PROMO_CODES` | Comma-separated list of free-access promo codes (matched case-insensitively). A valid code, redeemed via `/api/redeem-promo`, grants full access — it stamps `full_purchased` and `shadow_unlocked` on the results row and bypasses Stripe entirely. Validated server-side only; the list is never sent to the client. |
+
+---
+
 ## Canon Reference
 
 The full system architecture, decisions log, naming audit, and open questions are maintained in Notion and are the living source of truth. This repo's code should be kept in sync with Notion's decisions, not the other way around — if the two ever disagree, Notion wins.
