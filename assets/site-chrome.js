@@ -118,7 +118,7 @@
         '<p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p>' +
         '<div class="sc-foot-links">' +
           '<a href="/">Home</a><a href="/about/">About</a><a href="/how-it-works/">How It Works</a><a href="/explore/bandwidth/">Bandwidth</a>' +
-          '<a href="/explore/temperaments/">Temperament</a><a href="/explore/core-needs/">Core Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/integration-guide/">Integration Guide</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>' +
+          '<a href="/explore/temperaments/">Temperament</a><a href="/explore/core-needs/">Core Human Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/integration-guide/">Integration Guide</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>' +
         '</div>' +
       '</div></footer>';
   }

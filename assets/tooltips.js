@@ -38,11 +38,11 @@
     },
     bandwidth: {
       title: "Bandwidth",
-      def: "How much of yourself you have available right now, determined by how well your six core human needs are being met — belonging, autonomy, competence, self-esteem, trust, and purpose. Every archetype can be lived from five places: contracted and fear-driven at one end, expansive and in service of others at the other."
+      def: "How much of yourself you have available right now, determined by how well your six Core Human Needs are being met — belonging, autonomy, competence, self-esteem, trust, and purpose. Every archetype can be lived from five places: contracted and fear-driven at one end, expansive and in service of others at the other."
     },
     transcendent: {
       title: "Transcendent",
-      def: "Full expansion — core needs so well met that energy flows outward freely, from abundance rather than obligation. The gift in service of others or the whole, not withheld for self-protection. The highest expression of Bandwidth."
+      def: "Full expansion — Core Human Needs so well met that energy flows outward freely, from abundance rather than obligation. The gift in service of others or the whole, not withheld for self-protection. The highest expression of Bandwidth."
     },
     ascended: {
       title: "Ascended",
@@ -58,7 +58,7 @@
     },
     devolved: {
       title: "Devolved",
-      def: "Maximum contraction — core needs so depleted that all available energy goes toward self-protection. The original gift is unrecognizable, serving only survival, often at direct cost to others."
+      def: "Maximum contraction — Core Human Needs so depleted that all available energy goes toward self-protection. The original gift is unrecognizable, serving only survival, often at direct cost to others."
     },
     temperament: {
       title: "Temperament",
@@ -119,6 +119,19 @@
     "quietest-voice": {
       title: "Quietest Voice",
       def: "Your lowest-ranked archetype — the energy most likely to appear as a strong reaction to others rather than as a recognized part of yourself."
-    }
+    },
+    // The twelve archetypes — a one-line essence each (longing + defining descriptors).
+    lover: { title: "The Lover", def: "Longs for union. Passionate, devoted, sensual — it believes connection is what makes life worth living." },
+    caregiver: { title: "The Caregiver", def: "Longs to nurture. Nurturing, supportive, selfless — it feels most itself tending to what someone else needs." },
+    everyman: { title: "The Everyman", def: "Longs to belong. Approachable, down-to-earth, inclusive — it wants to be an equal part of the group, not set above it." },
+    ruler: { title: "The Ruler", def: "Longs for order. Authoritative, decisive, responsible — it steps in to structure, decide, and steward." },
+    warrior: { title: "The Warrior", def: "Longs to protect. Determined, courageous, protective — it stands between danger and whatever it has sworn to defend." },
+    creator: { title: "The Creator", def: "Longs to bring forth. Imaginative, artistic, expressive — it can't rest until the unseen is made real." },
+    sage: { title: "The Sage", def: "Longs for truth. Analytical, reflective, insightful — it trusts evidence over comfort." },
+    explorer: { title: "The Explorer", def: "Longs for freedom. Adventurous, independent, restless — it needs room to roam and discover." },
+    rebel: { title: "The Rebel", def: "Longs for justice. Defiant, nonconformist, outspoken — it questions what's unfair, dead, or oppressive." },
+    trickster: { title: "The Trickster", def: "Longs for revelation. Playful, mischievous, irreverent — it exposes what's fake or stuck through humor." },
+    innocent: { title: "The Innocent", def: "Longs for trust. Hopeful, trusting, optimistic — it believes goodness is the truer story underneath." },
+    mystic: { title: "The Mystic", def: "Longs for communion with mystery. Intuitive, otherworldly, contemplative — it senses depth beneath ordinary life." }
   };
 });

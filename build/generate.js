@@ -74,6 +74,17 @@ ${CHROME.footerHtml()}
 const tip = (term, label) =>
   `<span class="tooltip-trigger" data-term="${term}">${label}</span>`;
 
+// The six axis parables shown on the Overview page. The archetype pair and the axis
+// question come from the canonical data; the parable + attribution are page copy.
+const SIX_QUESTIONS = [
+  { a: "lover", b: "sage", parable: `Blaise Pascal was one of the greatest mathematical minds in history — and a man of profound mystical religious experience. He never resolved the tension between them. He wrote: “The heart has reasons that reason cannot know.” Neither side won. That unresolved living is the axis.`, attr: `Blaise Pascal, Pensées.` },
+  { a: "caregiver", b: "explorer", parable: `A man walking along a riverbank sees a baby floating in the water. He jumps in and saves it. Then he sees another. And another. Soon a crowd is helping him pull babies from the river — but at some point, someone needs to get out of the river, run upstream, and find out why babies are falling in.`, attr: `parable associated with Irving Zola, medical ethicist.` },
+  { a: "everyman", b: "rebel", parable: `Rosa Parks didn't refuse to give up her seat because she was a firebrand. She refused because she was tired — tired in the way the Everyman gets tired of disappearing. The belonging she wanted was real belonging, not the performed belonging of compliance. One act of refusal became the clearest expression of what belonging actually requires.`, attr: `Rosa Parks, Montgomery, Alabama, December 1, 1955.` },
+  { a: "ruler", b: "trickster", parable: `The Church's structure existed for real reasons — order, meaning, the protection of truth as they understood it. Galileo's disruption existed for real reasons too — the structure had stopped serving truth and started serving itself. Neither side was simply wrong. The question was never about who was right. It was about what the structure was for.`, attr: `Galileo Galilei, Inquisition, 1633.` },
+  { a: "warrior", b: "innocent", parable: `Fred Rogers went on television in 1969 and told children the world was safe and they were loved — during Vietnam, during assassinations, during riots. Every Warrior instinct said the world was dangerous and children needed to be hardened. Rogers said: what if we tried the other thing? His entire life was the answer to the axis question — and the cost was that some people never stopped doubting him.`, attr: `Fred Rogers, Mister Rogers' Neighborhood, 1968–2001.` },
+  { a: "creator", b: "mystic", parable: `Igor Stravinsky said: “Inspiration comes from work. Just as appetite comes with eating, so work brings inspiration.” He didn't wait for the mystery. He worked until the mystery arrived. Michelangelo said the opposite: the sculpture already exists inside the marble — he just removes what isn't it. Both men made things that outlasted them. Neither agreed on where the meaning came from.`, attr: `Stravinsky quote, widely cited — verify exact wording before print. Michelangelo quote, widely attributed.` }
+];
+
 // ---- Overview (/explore/) --------------------------------------------------
 function overviewMain() {
   const grid = DATA.ARCHETYPES.map((a, i) => {
@@ -84,6 +95,22 @@ function overviewMain() {
   const magician = DATA.pairingName("creator", "mystic");   // "The Magician"
   const cartographer = DATA.pairingName("creator", "explorer"); // "The Cartographer"
   const pairCount = Object.keys(DATA.BLEND_NAMES).length;
+
+  const nameOf = (key) => DATA.ARCHETYPES.find((x) => x.key === key).name;
+  const sixQuestions = SIX_QUESTIONS.map((e, i) =>
+    `        <div class="${i === 0 ? "" : "border-t border-violet-300/10 pt-8 "}mb-8 last:mb-0">
+          <h3 class="serif text-2xl mb-1">${tip(e.a, nameOf(e.a))} <span class="text-violet-300/45">↔</span> ${tip(e.b, nameOf(e.b))}</h3>
+          <p class="italic text-violet-200/70 mb-3">${DATA.axisQuestion(e.a)}</p>
+          <p class="text-violet-200/80 leading-relaxed mb-2">${e.parable}</p>
+          <p class="text-violet-300/45 text-xs">${e.attr}</p>
+        </div>`
+  ).join("\n");
+
+  const linkOut = (href, prompt, label) =>
+    `        <a href="${href}" class="group rounded-xl border border-violet-300/12 px-5 py-3.5 flex items-center justify-between gap-4 hover:border-amber-200/40 transition-colors">
+          <span class="text-violet-200/80 text-[15px]">${prompt}</span>
+          <span class="text-amber-200/70 text-sm whitespace-nowrap group-hover:text-amber-100">${label} →</span>
+        </a>`;
 
   return `    <section class="text-center pt-16 pb-12 md:pt-24 md:pb-16">
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">EXPLORE THE SYSTEM</p>
@@ -102,44 +129,26 @@ ${grid}
       <p class="text-violet-300/55 text-sm mt-4 italic">Individual archetype pages are in progress.</p>
     </section>
 
-    <section class="py-12 border-t border-violet-300/10">
-      <h2 class="serif text-3xl md:text-4xl mb-2">Five Stages of Bandwidth</h2>
-      <p class="text-violet-300/75 mb-8 max-w-2xl">Every archetype exists on one spectrum — from all your capacity spent holding yourself together, to capacity overflowing outward to others. Descent narrows; ascent integrates. <a href="/explore/bandwidth/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Read the full explainer →</a></p>
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,30%)"></div><h3 class="serif text-xl mb-1">Devolved</h3><p class="text-sm text-violet-300/70">Bandwidth near empty — the energy captured by ego: domination, consumption, control.</p></div>
-        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,42%)"></div><h3 class="serif text-xl mb-1">Descended</h3><p class="text-sm text-violet-300/70">The energy bent by fear: grasping, pettiness, defense.</p></div>
-        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,55%)"></div><h3 class="serif text-xl mb-1">Base</h3><p class="text-sm text-violet-300/70">The everyday, unexamined expression — where the day begins.</p></div>
-        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,67%)"></div><h3 class="serif text-xl mb-1">Ascended</h3><p class="text-sm text-violet-300/70">The energy mastered and matured.</p></div>
-        <div class="card rounded-2xl px-4 py-5"><div class="h-1.5 rounded-full mb-3" style="background:hsl(280,45%,79%)"></div><h3 class="serif text-xl mb-1">Transcendent</h3><p class="text-sm text-violet-300/70">Bandwidth overflowing — the energy given away, freely available to others and the whole.</p></div>
-      </div>
+    <section id="pairings" class="py-12 border-t border-violet-300/10 scroll-mt-20 max-w-2xl">
+      <h2 class="serif text-3xl md:text-4xl mb-1">Pairings</h2>
+      <p class="text-violet-300/45 italic serif text-lg mb-4">Two become one.</p>
+      <p class="text-violet-300/75 mb-5">When two archetypes combine, something new emerges that neither produces alone — both stay present and distinct, yet together they name a pattern of their own. The Creator and the Mystic read as <span class="text-amber-100">${magician}</span>; the Explorer and the Creator, <span class="text-amber-100">${cartographer}</span>.</p>
+      <a href="/explore/pairings/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">The full ${pairCount} Pairings Lexicon →</a>
+    </section>
+
+    <section class="py-12 border-t border-violet-300/10 max-w-2xl">
+      <h2 class="serif text-3xl md:text-4xl mb-3">The Six Questions</h2>
+      <p class="text-violet-300/75 mb-8">Every archetype is built around one of six fundamental questions — the tension that defines how it sees the world. Your loudest voice tells you which question you've already answered. Your growth edge holds the other end of the same question.</p>
+${sixQuestions}
     </section>
 
     <section class="py-12 border-t border-violet-300/10">
-      <h2 class="serif text-3xl md:text-4xl mb-2">The Four Temperaments</h2>
-      <p class="text-violet-300/75 mb-8 max-w-2xl">Not <em>how resourced</em> you are, but <em>how you show up</em> — the faculty you meet a moment through, before you've decided to give anything at all. <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Read the full explainer →</a></p>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-${DATA.TEMPERAMENTS.map((ch) => `        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-2xl mb-2">${ch.name}</h3><p class="text-sm text-violet-200/80">At its best, <span class="text-amber-200">${ch.gift}</span>.</p><p class="text-sm text-violet-300/60">Collapsed, ${ch.corruption}.</p></div>`).join("\n")}
+      <p class="text-[11px] tracking-[0.3em] text-violet-300/40 mb-4">THE OTHER LAYERS</p>
+      <div class="grid gap-2 max-w-2xl">
+${linkOut("/explore/bandwidth/", "How full is your tank right now?", "Explore Bandwidth")}
+${linkOut("/explore/temperaments/", "How do you lead — with Heart, Mind, Body, or Soul?", "Explore Temperament")}
+${linkOut("/explore/core-needs/", "What's depleting your Bandwidth?", "Explore Core Human Needs")}
       </div>
-    </section>
-
-    <section class="py-12 border-t border-violet-300/10">
-      <h2 class="serif text-3xl md:text-4xl mb-2">The Six Core Needs</h2>
-      <p class="text-violet-300/75 mb-8 max-w-2xl">A separate, complementary layer — not folded into Bandwidth, but what <em>feeds</em> it. Your Core Needs are the fuel; your Bandwidth is the gauge reading how much capacity that fuel gives you right now. <a href="/explore/core-needs/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Read the full explainer →</a></p>
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Autonomy</h3></div>
-        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Competence / Mastery</h3></div>
-        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Relatedness / Belonging</h3></div>
-        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Self-Esteem</h3></div>
-        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Trust</h3></div>
-        <div class="card rounded-2xl px-5 py-4"><h3 class="text-lg">Purpose / Meaning</h3></div>
-      </div>
-      <p class="text-violet-300/55 text-sm mt-4">Drawn from Self-Determination Theory (Deci &amp; Ryan), Elena Aguilar's Core Human Needs synthesis, and the work of Gabor Maté.</p>
-    </section>
-
-    <section id="pairings" class="py-12 border-t border-violet-300/10 scroll-mt-20">
-      <h2 class="serif text-3xl md:text-4xl mb-2">Pairings</h2>
-      <p class="text-violet-300/75 max-w-2xl mb-4">What emerges when two archetypes combine — both stay present and distinct; nothing dissolves into a third thing. Your top two voices name a Pairing: the Creator and the Mystic together read as <span class="text-amber-100">${magician}</span>; the Explorer and the Creator, <span class="text-amber-100">${cartographer}</span>.</p>
-      <p class="text-violet-300/60 text-sm max-w-2xl">There are ${pairCount} in all — one for every pair of the twelve. Your results name the three that arise from your top three voices.</p>
     </section>
 
     <section class="py-14 text-center border-t border-violet-300/10">
@@ -360,7 +369,7 @@ function pricingMain() {
     <section class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 max-w-3xl mx-auto">
       <div class="card rounded-2xl px-6 py-7 flex flex-col">
         <h2 class="serif text-2xl mb-1">Your Mandala</h2><p class="text-4xl mb-4">$19</p>
-        <p class="text-violet-300/75 text-sm mb-6">The full assessment — your three most expressive voices, their blends, your Temperament radar, and the complete report.</p>
+        <p class="text-violet-300/75 text-sm mb-6">The full assessment — your three most expressive voices, their pairings, your Temperament radar, and the complete report.</p>
         <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Begin Your Mandala</a>
       </div>
       <div class="card rounded-2xl px-6 py-7 flex flex-col" style="border-color: rgba(253,230,138,0.4);">
@@ -407,7 +416,7 @@ function shadowMain() {
       <h3 class="serif text-2xl mb-3">Vertical shadow — within your own archetype</h3>
       <p class="text-violet-200/80 leading-relaxed mb-4">The Descended and Devolved stages of your loudest voices aren't just you under stress. They're what happens when the shadow goes unaddressed long enough. The Sage becomes the Cynic when the heart — the emotional vulnerability the Sage has disowned — goes unintegrated long enough. The Ruler becomes the Tyrant when the Rebel inside — the part that questions authority, that knows power can corrupt — is completely suppressed.</p>
       <p class="text-violet-200/80 leading-relaxed mb-4">Bandwidth expansion requires shadow integration. You can't ascend without encountering what you've disowned. That's the engine of growth — psychologically precise and experientially true.</p>
-      <p class="text-violet-200/80 leading-relaxed mb-8">The remedy for vertical shadow: meet the depleted Core Need. The Sage who can't escape the Cynic needs their Competence need met — real recognition, real mastery, real ground to stand on. Without that, the descent continues regardless of intention.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-8">The remedy for vertical shadow: meet the depleted Core Human Need. The Sage who can't escape the Cynic needs their Competence need met — real recognition, real mastery, real ground to stand on. Without that, the descent continues regardless of intention.</p>
       <h3 class="serif text-2xl mb-3">Horizontal shadow — your quietest voices</h3>
       <p class="text-violet-200/80 leading-relaxed mb-4">Your three quietest archetypes aren't just underdeveloped. They're often actively disowned. A high Sage often genuinely cannot see their Trickster energy. A high Warrior often genuinely cannot access their Caregiver. The shadow work isn't just "develop this muscle" — it's "recognize that you probably have strong feelings about people who embody this archetype, and those feelings are information about yourself."</p>
       <p class="text-violet-200/80 leading-relaxed mb-4">Your quietest voice isn't just unfamiliar. It's often the energy you find most irritating, most incomprehensible, or most invisible in others. Pay attention to your strongest reactions to people who lead with your quietest archetype. That reaction is a mirror.</p>
@@ -485,9 +494,9 @@ ${swatches}
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
-      <h2 class="serif text-3xl mb-3">What fills the tank: Core Needs</h2>
-      <p class="text-violet-200/80 leading-relaxed mb-4">Bandwidth is a gauge — it reads how much capacity you have, not why. The <em>why</em> is your <strong>Core Needs</strong>: the six human needs that, met, give you room to expand, and starved, pull you into contraction. Your Core Needs are the fuel; your Bandwidth is the gauge reading how much that fuel gives you right now.</p>
-      <a href="/explore/core-needs/" class="inline-block mt-2 text-amber-200 hover:text-amber-100 underline underline-offset-4">The six Core Needs →</a>
+      <h2 class="serif text-3xl mb-3">What fills the tank: Core Human Needs</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Bandwidth is a gauge — it reads how much capacity you have, not why. The <em>why</em> is your <strong>Core Human Needs</strong>: the six that, met, give you room to expand, and starved, pull you into contraction. Your Core Human Needs are the fuel; your Bandwidth is the gauge reading how much that fuel gives you right now.</p>
+      <a href="/explore/core-needs/" class="inline-block mt-2 text-amber-200 hover:text-amber-100 underline underline-offset-4">The six Core Human Needs →</a>
     </section>
 
     <section class="py-14 text-center border-t border-violet-300/10">
@@ -542,7 +551,7 @@ ${cards}
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
-      <p class="text-violet-300/70 text-sm">Your Temperament is a <em>separate</em> layer from Bandwidth and Core Needs: it describes <em>how</em> you show up, not <em>how resourced</em> you are. A Heart-led person can be running on empty or overflowing — the temperament stays the same; the Bandwidth is what moves.</p>
+      <p class="text-violet-300/70 text-sm">Your Temperament is a <em>separate</em> layer from Bandwidth and Core Human Needs: it describes <em>how</em> you show up, not <em>how resourced</em> you are. A Heart-led person can be running on empty or overflowing — the temperament stays the same; the Bandwidth is what moves.</p>
     </section>
 
     <section class="py-14 text-center border-t border-violet-300/10">
@@ -550,7 +559,7 @@ ${cards}
     </section>`;
 }
 
-// ---- Core Needs (/explore/core-needs/) — OVERVIEW (deeper page + questionnaire = future work) ----
+// ---- Core Human Needs (/explore/core-needs/) — OVERVIEW (deeper page + questionnaire = future work) ----
 function coreNeedsMain() {
   const NEEDS = [
     ["Autonomy", "Acting from genuine, self-possessed choice rather than compulsion or fear."],
@@ -565,8 +574,8 @@ function coreNeedsMain() {
   ).join("\n");
   return `    <section class="pt-16 pb-10 md:pt-24 max-w-3xl">
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">THE FUEL BEHIND YOUR BANDWIDTH</p>
-      <h1 class="serif text-4xl md:text-6xl mb-5">Core Needs</h1>
-      <p class="text-violet-200/85 text-lg leading-relaxed">Six human needs that, met, give you room to expand — and starved, pull you into contraction. Core Needs sit alongside <a href="/explore/bandwidth/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Bandwidth</a>, not inside it: <strong>your Core Needs are the fuel; your Bandwidth is the gauge</strong> reading how much capacity that fuel gives you right now.</p>
+      <h1 class="serif text-4xl md:text-6xl mb-5">Core Human Needs</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed">Six needs that, met, give you room to expand — and starved, pull you into contraction. Your Core Human Needs sit alongside <a href="/explore/bandwidth/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Bandwidth</a>, not inside it: <strong>your Core Human Needs are the fuel; your Bandwidth is the gauge</strong> reading how much capacity that fuel gives you right now.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10">
@@ -578,13 +587,13 @@ ${cards}
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
       <h2 class="serif text-3xl mb-3">One dashboard, four dials</h2>
-      <p class="text-violet-200/80 leading-relaxed">Core Needs are the fuel tank. Bandwidth is the gauge reading. Your <a href="/explore/#the-twelve" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Archetype</a> is the engine the fuel powers. Your <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Temperament</a> is the handling — a separate dimension entirely. Different archetypes tend to run on a different "home" need, which is part of why the same low tank shows up so differently from one person to the next.</p>
+      <p class="text-violet-200/80 leading-relaxed">Core Human Needs are the fuel tank. Bandwidth is the gauge reading. Your <a href="/explore/#the-twelve" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Archetype</a> is the engine the fuel powers. Your <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Temperament</a> is the handling — a separate dimension entirely. Different archetypes tend to run on a different "home" need, which is part of why the same low tank shows up so differently from one person to the next.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
       <p class="text-violet-300/70 text-sm mb-4"><strong class="text-violet-200/80">A note on borrowed capacity.</strong> Leaning on others when you're depleted — asking for help, more time, a friend to lean on — is healthy and human. The question isn't whether you borrow, but whether the borrowing is a temporary bridge back to building your own capacity, or a permanent substitute for ever developing it. Only the second is worth watching for — because it can look identical to real capacity on the surface while staying brittle underneath.</p>
       <p class="text-violet-300/55 text-sm">Drawn from Self-Determination Theory (Deci &amp; Ryan) and Elena Aguilar's Core Human Needs synthesis, itself drawing on the work of Gabor Maté.</p>
-      <p class="text-violet-300/45 text-xs mt-4 italic">This is an overview. A fuller Core Needs treatment — and a dedicated way to read your own six — is planned, not yet built.</p>
+      <p class="text-violet-300/45 text-xs mt-4 italic">This is an overview. A fuller Core Human Needs treatment — and a dedicated way to read your own six — is planned, not yet built.</p>
     </section>`;
 }
 
@@ -855,7 +864,7 @@ ${link}
     `Which shadow archetype are you most triggered by in others right now? That's where the energy is.`,
     `What's one practice you'll do this week — specifically the most uncomfortable one?`,
     `Who in your life embodies your ${tip("growth-edge", "growth edge")}? What do you feel around them?`,
-    `Which core need is most depleted right now? What's one concrete action?`
+    `Which Core Human Need is most depleted right now? What's one concrete action?`
   ].map((t, i) =>
     `        <li class="flex gap-4"><span class="serif text-xl text-amber-200/80 leading-none w-5 shrink-0 text-right">${i + 1}</span><span class="${body}">${t}</span></li>`
   ).join("\n");
@@ -878,7 +887,7 @@ ${section("2", "Who are you pretending not to be?", tip("shadow", "The Shadow"),
 
 ${section("3", "How much of yourself do you have available right now?", tip("bandwidth", "Bandwidth"),
   `      <p class="${body} mb-4">Every archetype can be lived from five different places — from fully contracted, ego-protective, and fear-driven, all the way to expansive, integrated, and in service of something larger than yourself.</p>
-      <p class="${body} mb-4">Bandwidth is the measure of where you are on that spectrum right now. Not in general — this week, today, in this season of your life. It's determined by how well your ${tip("core-needs", "core human needs")} are being met: belonging, autonomy, competence, self-esteem, trust, and purpose.</p>
+      <p class="${body} mb-4">Bandwidth is the measure of where you are on that spectrum right now. Not in general — this week, today, in this season of your life. It's determined by how well your ${tip("core-needs", "Core Human Needs")} are being met: belonging, autonomy, competence, self-esteem, trust, and purpose.</p>
       <p class="${body}">When your needs are depleted, your Bandwidth contracts. When they're resourced, it expands. The same archetype behaves very differently at different levels of Bandwidth.</p>`,
   outLink("/explore/bandwidth/", "Understand Bandwidth →"))}
 
@@ -902,6 +911,40 @@ ${integration}
     </section>`;
 }
 
+// ---- Pairings Lexicon (/explore/pairings/) — all 66 named Pairings ----------
+// Reinforces the locked terminology: a Pairing is the equation (Sage × Creator);
+// a Blend is the result (The Inventor).
+function pairingsLexiconMain() {
+  const keys = Object.keys(DATA.BLEND_NAMES).sort();
+  const cards = keys.map((k) => {
+    const [ka, kb] = k.split("|");
+    const a = DATA.ARCHETYPES.find((x) => x.key === ka);
+    const b = DATA.ARCHETYPES.find((x) => x.key === kb);
+    const ha = DATA.HUE(DATA.ARCHETYPES.indexOf(a));
+    const hb = DATA.HUE(DATA.ARCHETYPES.indexOf(b));
+    const name = DATA.BLEND_NAMES[k];
+    const tx = DATA.BLEND_TEXTURES[k] || "";
+    return `        <div class="card rounded-xl px-4 py-4">
+          <p class="serif text-lg text-amber-100 mb-1.5">${name}</p>
+          <p class="text-xs text-violet-300/60 mb-1.5 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:hsl(${ha},62%,56%)"></span>${a.name}<span class="text-violet-300/40">×</span><span class="w-2 h-2 rounded-full" style="background:hsl(${hb},62%,56%)"></span>${b.name}</p>
+          ${tx ? `<p class="text-sm text-violet-200/75 italic">${tx}</p>` : ""}
+        </div>`;
+  }).join("\n");
+  return `    <section class="pt-16 pb-8 md:pt-24 max-w-3xl">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">THE ${keys.length} PAIRINGS</p>
+      <h1 class="serif text-4xl md:text-6xl mb-5">The Pairings Lexicon</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed">A <strong>Pairing</strong> is the equation — two archetypes combined. The <strong>Blend</strong> is the result: the named pattern that emerges, present in neither archetype alone. There is one for every pair of the twelve — ${keys.length} in all. Your results name the three that arise from your top three voices.</p>
+    </section>
+    <section class="py-10 border-t border-violet-300/10">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+${cards}
+      </div>
+    </section>
+    <section class="py-14 text-center border-t border-violet-300/10">
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Find your three — Your Mandala</a>
+    </section>`;
+}
+
 // ---- Integration Guide (/integration-guide/) — verbatim from Notion "Integration Guide — Page Copy (v1)" ----
 // The final Explore item (below a divider). Bold lines are the section breaks — no
 // visible headers. Key terms carry tooltips via the shared component; the five
@@ -914,7 +957,7 @@ function integrationGuideMain() {
     `Which shadow archetype are you most triggered by in others right now? That's where the energy is.`,
     `What's one practice you'll do this week — specifically the most uncomfortable one?`,
     `Who in your life embodies your ${tip("growth-edge", "growth edge")}? What do you feel around them?`,
-    `Which ${tip("core-needs", "core need")} is most depleted right now? What's one concrete action?`
+    `Which ${tip("core-needs", "Core Human Need")} is most depleted right now? What's one concrete action?`
   ].map((t, i) =>
     `        <li class="flex gap-4"><span class="serif text-2xl text-amber-200/80 leading-none w-6 shrink-0 text-right">${i + 1}</span><span class="${body}">${t}</span></li>`
   ).join("\n");
@@ -931,7 +974,7 @@ function integrationGuideMain() {
     <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
       <p class="${lead}">Start here: locate yourself.</p>
       <p class="${body} mb-4">Before anything else, find where you are right now. Not in general — this week, today, in this season.</p>
-      <p class="${body} mb-4">Your archetypes are relatively stable. Your ${tip("bandwidth", "Bandwidth")} is not. The same voice that speaks generously from an ${tip("ascended", "Ascended")} place can turn defensive and grasping when your core needs are depleted. Knowing your archetype tells you the engine. Bandwidth tells you how much fuel is in the tank.</p>
+      <p class="${body} mb-4">Your archetypes are relatively stable. Your ${tip("bandwidth", "Bandwidth")} is not. The same voice that speaks generously from an ${tip("ascended", "Ascended")} place can turn defensive and grasping when your Core Human Needs are depleted. Knowing your archetype tells you the engine. Bandwidth tells you how much fuel is in the tank.</p>
       <p class="${body}">Ask yourself: <em>right now, am I contracted around protecting myself, or do I have enough to extend outward?</em> That one question orients everything else.</p>
     </section>
 
@@ -967,7 +1010,7 @@ ${questions}
     <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
       <p class="${lead}">The Threshold is not failure.</p>
       <p class="${body} mb-4">If you're in a descent — burned out, defensive, grasping, unable to access your better self — you are not failing. You are at the ${tip("threshold", "Threshold")}. Something old is ending. Something new hasn't formed yet.</p>
-      <p class="${body}">The work at the Threshold isn't to climb immediately. It's to name what's happening, tend your core needs, and trust the crossing. The phoenix doesn't will itself back to life. It burns first. Give yourself that.</p>
+      <p class="${body}">The work at the Threshold isn't to climb immediately. It's to name what's happening, tend your Core Human Needs, and trust the crossing. The phoenix doesn't will itself back to life. It burns first. Give yourself that.</p>
     </section>
 
     <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
@@ -1016,7 +1059,7 @@ function stampIndex() {
 
 write("explore/index.html", page({
   title: "Explore the System — The Art of Soulcraft",
-  description: "You are not one of twelve types — you are all twelve, some louder than others. Explore the twelve archetypes, the five Bandwidth stages, the four Temperaments, and the six Core Needs behind Your Mandala.",
+  description: "You are not one of twelve types — you are all twelve, some louder than others. Explore the twelve archetypes, the five Bandwidth stages, the four Temperaments, and the six Core Human Needs behind Your Mandala.",
   canonical: "https://artofsoulcraft.com/explore/",
   active: "explore",
   main: overviewMain()
@@ -1039,7 +1082,7 @@ write("explore/temperaments/index.html", page({
 }));
 
 write("explore/core-needs/index.html", page({
-  title: "Core Needs — the fuel behind your Bandwidth | The Art of Soulcraft",
+  title: "Core Human Needs — the fuel behind your Bandwidth | The Art of Soulcraft",
   description: "The six Core Human Needs — autonomy, competence, relatedness, self-esteem, trust, purpose — that fuel your capacity. Drawn from Self-Determination Theory (Deci & Ryan) and Elena Aguilar's synthesis.",
   canonical: "https://artofsoulcraft.com/explore/core-needs/",
   active: "explore",
@@ -1060,6 +1103,14 @@ write("explore/shadow/index.html", page({
   canonical: "https://artofsoulcraft.com/explore/shadow/",
   active: "explore",
   main: shadowMain()
+}));
+
+write("explore/pairings/index.html", page({
+  title: "The Pairings Lexicon — all 66 | The Art of Soulcraft",
+  description: "All 66 Pairings — the named pattern (the Blend) that emerges when two of the twelve archetypes combine. One for every pair of the twelve.",
+  canonical: "https://artofsoulcraft.com/explore/pairings/",
+  active: "explore",
+  main: pairingsLexiconMain()
 }));
 
 write("about/index.html", page({
