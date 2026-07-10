@@ -254,7 +254,10 @@ function Mandala({ ranked, topCount = 3, forPrint = false, shadow = false }) {
             const nudge = anchor === "start" ? 5 : anchor === "end" ? -5 : 0;
             return (React.createElement("g", { key: a.key },
                 React.createElement("circle", { cx: x, cy: y, r: isTop ? 11 : 6, fill: `hsl(${HUE(i)},62%,56%)`, stroke: isTop ? nodeStrokeTop : nodeStrokeOther, strokeWidth: isTop ? 2.2 : 0.8 }),
-                React.createElement("text", { x: lx + nudge, y: ly + 3, textAnchor: anchor, fontSize: isTop ? "11.5" : "9.5", fontWeight: isTop ? "600" : "400", fill: isTop ? labelFillTop : labelFillOther, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.04em" } }, a.name)));
+                // Each name label links to its Explore page (underline on hover only,
+                // via the shared .arch-link rule; keeps its current fill colour).
+                React.createElement("a", { href: `/explore/${a.key}/`, "aria-label": a.name },
+                    React.createElement("text", { className: "arch-link", x: lx + nudge, y: ly + 3, textAnchor: anchor, fontSize: isTop ? "11.5" : "9.5", fontWeight: isTop ? "600" : "400", fill: isTop ? labelFillTop : labelFillOther, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", letterSpacing: "0.04em", cursor: "pointer" } }, a.name))));
         }),
         React.createElement("circle", { cx: c, cy: c, r: "30", fill: "url(#ctrGlow)" }),
         React.createElement("circle", { cx: c, cy: c, r: "6.5", fill: "rgb(255,252,240)" }),
@@ -1083,7 +1086,10 @@ function TwelveWithin() {
                 // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (unlocked only) \u2550\u2550
                 showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "5rem" } },
                     sectionHeader("Your Quietest Voices", "YOUR SHADOW MANDALA"),
-                    // Toggle pair right under the serif header, before the shame card \u2014
+                    // The three quietest archetype names \u2014 same treatment as the light
+                    // mandala's Sage \u00b7 Creator \u00b7 Mystic title (dot-separated serif, clickable).
+                    React.createElement("h2", { className: "text-4xl text-center mb-2", style: serif }, shadowThree.flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00b7 ", archLink(r)])),
+                    // Toggle pair right under the names, before the shame card \u2014
                     // mirrors the light section (pills sit directly under the header).
                     mandalaToggle("toggle-shadow"),
                     // Shame-prevention intro \u2014 REQUIRED before the wheel or naming the bottom three.
