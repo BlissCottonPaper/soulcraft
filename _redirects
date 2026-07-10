@@ -12,6 +12,9 @@
 # The "My Results" magic link lands on /results?token=… — the app reads the token
 # from the query string and restores the saved reading. Same SPA, scoped path.
 /results  /index.html   200
+# Stripe returns to /results/{result_id}?payment=success|cancelled after checkout.
+# Serve the app for that sub-path too so it can read the result_id + payment status.
+/results/*  /index.html   200
 
 # "Embodiments" was renamed to "Temperaments" (locked July 2026). Keep the old
 # path working for any existing links.
