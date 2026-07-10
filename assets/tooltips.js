@@ -118,7 +118,7 @@
     },
     "quietest-voice": {
       title: "Quietest Voice",
-      def: "Your lowest-ranked archetype — the one that speaks softest in you. Often a blind spot; sometimes an invitation. It tends to show up as your strongest reactions to people who lead with it."
+      def: "Your lowest-ranked archetype — the energy most likely to appear as a strong reaction to others rather than as a recognized part of yourself."
     }
   };
 });
