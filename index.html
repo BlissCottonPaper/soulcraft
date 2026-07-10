@@ -24,6 +24,10 @@
   body { margin: 0; background: #100c22; }
   @media screen { #root { zoom: 1.12; } }
   .arch-link:hover { text-decoration: underline !important; }
+  /* FIX 3 — mobile only: keep the three loudest names on one line (desktop stays text-4xl). */
+  @media (max-width: 767px) {
+    .loud-names { font-size: 1.35rem !important; line-height: 1.2 !important; letter-spacing: -0.01em; }
+  }
 </style>
 <!-- Shared nav/footer/chrome CSS baked from /assets/site-chrome.js by
      /build/generate.js (stampIndex). Do not hand-edit between the SC markers —
@@ -441,7 +445,12 @@ function TwelveWithin() {
     const nextAfterAssessment = () => (purchaseIntent && !isSample) ? "checkout" : "results";
     // The sample is the demo of the best version of the product — the full tier with
     // BOTH mandalas already revealed.
-    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("reveal"); setIsSample(true); setShadowUnlocked(true); setScreen("results"); };
+    const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("reveal"); setIsSample(true); setShadowUnlocked(true); setScreen("results");
+        // The intro's "Show a sample" link sits near the bottom of a tall screen, so
+        // the browser keeps that scroll offset when results render — landing below the
+        // mandala. Reset to the top of the mandala section so it's the first thing seen.
+        setTimeout(() => { const el = document.getElementById("your-mandala"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); else window.scrollTo(0, 0); }, 80);
+    };
     // Render one saved result (from a magic link) exactly as it appeared when finished.
     const restoreOne = (r) => {
         setRestored({ tier: normTier(r.tier), mode: r.mode, archetypeScores: r.archetypeScores || {}, temperamentScores: r.temperamentScores || {}, descriptorPicks: r.descriptorPicks || [] });
@@ -894,7 +903,7 @@ function TwelveWithin() {
         React.createElement("h3", { className: "text-2xl", style: { ...serif, color: "#efe9ff" } }, title));
     // A simple in-page toggle pair (one placed above each wheel) — plain anchor
     // links that jump between the two mandala sections. No sticky/fixed/z-index.
-    const mandalaToggle = (key) => React.createElement("div", { key: key, className: "flex justify-center gap-2 mb-4 print:hidden" },
+    const mandalaToggle = (key) => React.createElement("div", { key: key, className: "flex flex-wrap justify-center gap-2 mb-4 print:hidden" },
         React.createElement("a", { href: "#your-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR MANDALA"),
         React.createElement("a", { href: "#shadow-mandala", className: "rounded-full border border-indigo-300/40 px-4 py-1.5 text-xs tracking-[0.15em] text-indigo-200/85 hover:border-indigo-300/80 hover:text-indigo-100 transition-colors", style: sans }, "YOUR SHADOW MANDALA"));
     return (React.createElement("div", { className: "min-h-screen w-full text-violet-50", style: { background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" } },
@@ -1073,7 +1082,7 @@ function TwelveWithin() {
                     React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
                     React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, "YOUR MANDALA"),
                     React.createElement("h3", { className: "text-2xl mb-2", style: { ...serif, color: "#efe9ff" } }, "Your Loudest Voices"),
-                    React.createElement("h2", { className: "text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00B7 ", archLink(r)]))),
+                    React.createElement("h2", { className: "loud-names text-4xl", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00B7 ", archLink(r)]))),
                 // Time signature retained in data (timeSig) but no longer displayed.
                 topTie && React.createElement("p", { className: "text-center text-amber-200/80 text-sm mt-1 mb-1", style: sans },
                     joinNames(topTie.map((r) => r.name)), " are tied for your loudest voice \u2014 the order shown is only by wheel position, not by strength."),
