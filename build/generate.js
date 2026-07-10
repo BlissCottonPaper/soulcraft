@@ -89,7 +89,7 @@ function overviewMain() {
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">EXPLORE THE SYSTEM</p>
       <h1 class="serif text-4xl md:text-6xl leading-tight mb-5">You are not one of twelve types.<br class="hidden md:block" /> You are all twelve.</h1>
       <p class="text-violet-200/85 text-lg leading-relaxed max-w-2xl mx-auto mb-3">Some speak louder than others. Each of the twelve can serve the self at others' expense, or serve the whole at the ego's expense — a hall of mirrors that shows you every side of yourself, where to grow, and what to avoid.</p>
-      <p class="text-violet-300/60 italic serif text-lg mb-8">A mirror, not a fortune. For reflection, never prediction.</p>
+      <p class="text-violet-300/60 italic serif text-lg mb-8">For reflection and action, never prediction.</p>
       <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the assessment → Your Mandala</a>
     </section>
 
@@ -136,7 +136,7 @@ ${DATA.TEMPERAMENTS.map((ch) => `        <div class="card rounded-2xl px-5 py-5"
       <p class="text-violet-300/55 text-sm mt-4">Drawn from Self-Determination Theory (Deci &amp; Ryan), Elena Aguilar's Core Human Needs synthesis, and the work of Gabor Maté.</p>
     </section>
 
-    <section class="py-12 border-t border-violet-300/10">
+    <section id="pairings" class="py-12 border-t border-violet-300/10 scroll-mt-20">
       <h2 class="serif text-3xl md:text-4xl mb-2">Pairings</h2>
       <p class="text-violet-300/75 max-w-2xl mb-4">What emerges when two archetypes combine — both stay present and distinct; nothing dissolves into a third thing. Your top two voices name a Pairing: the Creator and the Mystic together read as <span class="text-amber-100">${magician}</span>; the Explorer and the Creator, <span class="text-amber-100">${cartographer}</span>.</p>
       <p class="text-violet-300/60 text-sm max-w-2xl">There are ${pairCount} in all — one for every pair of the twelve. Your results name the three that arise from your top three voices.</p>
@@ -902,6 +902,86 @@ ${integration}
     </section>`;
 }
 
+// ---- Integration Guide (/integration-guide/) — verbatim from Notion "Integration Guide — Page Copy (v1)" ----
+// The final Explore item (below a divider). Bold lines are the section breaks — no
+// visible headers. Key terms carry tooltips via the shared component; the five
+// weekly questions render as a styled numbered list. Coaching CTA → email for now.
+function integrationGuideMain() {
+  const body = "text-violet-200/85 text-lg leading-relaxed";
+  const lead = "text-lg text-violet-50 font-semibold mb-4";
+  const questions = [
+    `Where are you on the Bandwidth scale right now — not in general, but this week?`,
+    `Which shadow archetype are you most triggered by in others right now? That's where the energy is.`,
+    `What's one practice you'll do this week — specifically the most uncomfortable one?`,
+    `Who in your life embodies your ${tip("growth-edge", "growth edge")}? What do you feel around them?`,
+    `Which ${tip("core-needs", "core need")} is most depleted right now? What's one concrete action?`
+  ].map((t, i) =>
+    `        <li class="flex gap-4"><span class="serif text-2xl text-amber-200/80 leading-none w-6 shrink-0 text-right">${i + 1}</span><span class="${body}">${t}</span></li>`
+  ).join("\n");
+
+  return `    <section class="pt-16 pb-6 md:pt-24 max-w-2xl mx-auto text-center">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">INTEGRATION GUIDE</p>
+      <p class="serif text-3xl md:text-4xl leading-snug text-violet-50">Knowing yourself is the beginning, not the end.</p>
+    </section>
+
+    <section class="py-8 max-w-2xl mx-auto">
+      <p class="${body}">Your ${tip("mandala", "Mandala")} shows you the pattern. The Integration Guide is what you do with it — not once, but as an ongoing practice. The system is only useful if it changes how you move through your days.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">Start here: locate yourself.</p>
+      <p class="${body} mb-4">Before anything else, find where you are right now. Not in general — this week, today, in this season.</p>
+      <p class="${body} mb-4">Your archetypes are relatively stable. Your ${tip("bandwidth", "Bandwidth")} is not. The same voice that speaks generously from an ${tip("ascended", "Ascended")} place can turn defensive and grasping when your core needs are depleted. Knowing your archetype tells you the engine. Bandwidth tells you how much fuel is in the tank.</p>
+      <p class="${body}">Ask yourself: <em>right now, am I contracted around protecting myself, or do I have enough to extend outward?</em> That one question orients everything else.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">The five questions — return to these weekly.</p>
+      <p class="${body} mb-5">These aren't one-time reflections. They're a practice. The value compounds over time.</p>
+      <ol class="space-y-4 mb-5">
+${questions}
+      </ol>
+      <p class="${body}">Don't answer all five at once. One is enough. The point isn't completion — it's contact.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">The daily mechanic — one rung at a time.</p>
+      <p class="${body} mb-4">When you notice an archetype running a moment — your Warrior tightening in a conversation, your Caregiver over-functioning, your Rebel digging in — don't try to leap to your ${tip("transcendent", "Transcendent")} stage. Just ask:</p>
+      <p class="${body} mb-4"><em>What would one rung up look like right now?</em></p>
+      <p class="${body}">Not “be the Guardian.” Just: what would the Champion do here, instead of the Mercenary? That's the practice. Small. Repeatable. Real.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">Your shadow is information, not accusation.</p>
+      <p class="${body} mb-4">The qualities you find most irritating, most incomprehensible, or most invisible in others are almost always pointing somewhere in you. Not because you're the same as the person triggering you — but because the energy lives in you too, unintegrated, unnamed, waiting.</p>
+      <p class="${body}">When you feel a strong reaction, pause before responding. Ask: <em>which of my ${tip("quietest-voice", "quietest voices")} is being activated right now?</em> You don't have to act on it. Just name it. Naming it begins to integrate it.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">Your growth edge is the long game.</p>
+      <p class="${body} mb-4">Your growth edge — the archetype directly opposite your loudest voice — is not a quick fix. It's a lifelong invitation. You don't develop it by abandoning what you are. You develop it by pursuing what you already love <em>through</em> the channel of your growth edge.</p>
+      <p class="${body} mb-4">A Sage whose growth edge is the Lover doesn't stop seeking truth. They learn to let truth land in the heart, not just the mind. A Warrior whose growth edge is the Mystic doesn't stop protecting. They learn to sense what's worth protecting before the threat arrives.</p>
+      <p class="${body}">One small step toward your growth edge this week. That's all.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">The Threshold is not failure.</p>
+      <p class="${body} mb-4">If you're in a descent — burned out, defensive, grasping, unable to access your better self — you are not failing. You are at the ${tip("threshold", "Threshold")}. Something old is ending. Something new hasn't formed yet.</p>
+      <p class="${body}">The work at the Threshold isn't to climb immediately. It's to name what's happening, tend your core needs, and trust the crossing. The phoenix doesn't will itself back to life. It burns first. Give yourself that.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">The destination.</p>
+      <p class="${body} mb-4">At the center of your Mandala is a white dot. It represents what every tradition has pointed toward: all twelve voices operating without ego driving any of them. In full service. In full concert.</p>
+      <p class="${body}">You don't arrive there by becoming someone else. You arrive by finally, fully becoming yourself — voice by voice, crossing by crossing, one rung at a time.</p>
+    </section>
+
+    <section class="py-14 border-t border-violet-300/10 text-center max-w-2xl mx-auto">
+      <p class="text-violet-200/85 text-lg italic serif mb-6">Ready to go deeper? The coaching curriculum takes this practice into a structured eight-session journey.</p>
+      <a href="mailto:hello@artofsoulcraft.com" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Learn more →</a>
+    </section>`;
+}
+
 // ---- Emit ------------------------------------------------------------------
 function write(rel, html) {
   const abs = path.join(ROOT, rel);
@@ -1020,6 +1100,14 @@ write("my-results/index.html", page({
   canonical: "https://artofsoulcraft.com/my-results/",
   active: "results",
   main: myResultsMain()
+}));
+
+write("integration-guide/index.html", page({
+  title: "Integration Guide — The Art of Soulcraft",
+  description: "Knowing yourself is the beginning, not the end. A weekly practice for putting Your Mandala to work — locating your Bandwidth, five questions to return to, the daily one-rung-up mechanic, shadow, growth edge, and the Threshold.",
+  canonical: "https://artofsoulcraft.com/integration-guide/",
+  active: "explore",
+  main: integrationGuideMain()
 }));
 
 write("privacy/index.html", page({

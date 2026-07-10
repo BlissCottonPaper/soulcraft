@@ -115,6 +115,10 @@
     axis: {
       title: "The Axis / Axis Questions",
       def: "Six fundamental questions that organize the wheel. Each archetype lives at one end of one question — and your growth edge lives at the other end of the same question. The question your archetype is built around answering is its Lifelong Question."
+    },
+    "quietest-voice": {
+      title: "Quietest Voice",
+      def: "Your lowest-ranked archetype — the energy most likely to appear as a strong reaction to others rather than as a recognized part of yourself."
     }
   };
 });

@@ -83,6 +83,7 @@ Set these in the Pages project's **Settings → Environment variables** (and the
 | `STRIPE_PRICE_MANDALA` | Stripe Price ID for **Your Mandala** ($19). |
 | `STRIPE_PRICE_SHADOW` | Stripe Price ID for the **Shadow Mandala** add-on ($15). |
 | `STRIPE_PRICE_FULL` | Stripe Price ID for the **Full** upfront bundle ($34). |
+| `STRIPE_PRICE_COMPATIBILITY` | Stripe Price ID for the **Mandala Compatibility Report** ($19). Product is wired for checkout; the invite flow isn't built yet. |
 | `PROMO_CODES` | Comma-separated list of free-access promo codes (matched case-insensitively). A valid code, redeemed via `/api/redeem-promo`, grants full access — it stamps `full_purchased` and `shadow_unlocked` on the results row and bypasses Stripe entirely. Validated server-side only; the list is never sent to the client. |
 
 ---

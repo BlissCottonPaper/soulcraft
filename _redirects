@@ -20,3 +20,9 @@
 # path working for any existing links.
 /explore/embodiments/  /explore/temperaments/  301
 /explore/embodiments   /explore/temperaments/  301
+
+# The Overview page is retired — its role is now covered by How It Works. Redirect
+# any lingering links to /explore/overview there. (The /explore/ hub page itself
+# still exists to host the #the-twelve and #pairings anchors used in the nav.)
+/explore/overview/  /how-it-works/  301
+/explore/overview   /how-it-works/  301
