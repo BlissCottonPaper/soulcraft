@@ -109,21 +109,6 @@ const parseShadow = (s) => {
     const m = s.match(/^In shadow:\s*([\s\S]*?)\s*Integrated:\s*([\s\S]*)$/);
     return m ? { shadow: m[1], integrated: m[2] } : { shadow: s, integrated: "" };
 };
-// Load Stripe.js on demand — only when someone actually opens the Shadow unlock
-// checkout — so it never touches initial page load. Resolves with window.Stripe.
-let _stripeJsPromise = null;
-function loadStripeJs() {
-    if (typeof window !== "undefined" && window.Stripe) return Promise.resolve(window.Stripe);
-    if (_stripeJsPromise) return _stripeJsPromise;
-    _stripeJsPromise = new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = "https://js.stripe.com/v3/";
-        s.onload = () => resolve(window.Stripe);
-        s.onerror = () => reject(new Error("Stripe.js failed to load"));
-        document.head.appendChild(s);
-    });
-    return _stripeJsPromise;
-}
 // Archetype names in the results link to their Explore page. Inherits the
 // surrounding color/size so it still reads as styled text; underlines on hover.
 const archLink = (r, extraStyle) => React.createElement("a", { key: "al-" + r.key, href: `/explore/${r.key}/`, className: "arch-link", style: Object.assign({ color: "inherit", textDecoration: "none" }, extraStyle || {}) }, r.name);
@@ -417,6 +402,9 @@ function TwelveWithin() {
     const [unlocking, setUnlocking] = useState(false);   // Stripe checkout in progress
     const [unlockError, setUnlockError] = useState("");
     const [devCode, setDevCode] = useState("");          // internal-testing bypass code
+    const [promoCode, setPromoCode] = useState("");      // customer-facing free-access promo code
+    const [promoError, setPromoError] = useState("");
+    const [promoBusy, setPromoBusy] = useState(false);
     const [session, setSession] = useState(0);
     const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
     const [pairIdx, setPairIdx] = useState(0);
@@ -522,7 +510,6 @@ function TwelveWithin() {
     // result, so re-renders don't trigger duplicate saves, but a genuine
     // new attempt (session changes) is allowed to save again.
     const savedForSession = useRef(null);
-    const checkoutRef = useRef(null); // holds the live Stripe embedded-checkout instance
     const [savedResultId, setSavedResultId] = useState(null);
     const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
     const [emailInput, setEmailInput] = useState("");
@@ -607,63 +594,73 @@ function TwelveWithin() {
             .catch(() => {});
     };
 
-    // --- Shadow unlock: the $15 in-session upsell. Opens Stripe embedded checkout in
-    // an on-page overlay; on a server-verified payment the shadow reveals immediately
-    // below the existing results — no reload, no new URL. Requires the Stripe env
-    // config (see functions/api/create-checkout.js). ---
+    // --- Shadow unlock: the $15 upsell. Creates a Stripe hosted-checkout session
+    // on the server and redirects to it; Stripe returns to /results/{id}?payment=…
+    // where the webhook has already flagged shadow_unlocked. No Stripe key or
+    // publishable key ever touches the client. ---
     const unlockShadow = async () => {
+        if (!savedResultId) { setUnlockError("Your reading isn't saved yet — give it a second and try again."); return; }
         setUnlocking(true); setUnlockError("");
-        let data;
+        // Snapshot the current reading so the /results/{id}?payment=success return can
+        // re-render it after the full-page round-trip to Stripe (no result-by-id fetch,
+        // no privacy exposure — the data was already the visitor's own).
+        try {
+            localStorage.setItem("soulcraft_pending", JSON.stringify({
+                resultId: savedResultId,
+                tier: tier,
+                mode: TIERS[tier].pairMode,
+                archetypeScores: Object.fromEntries(ranked.map((r) => [r.key, r.score])),
+                temperamentScores: Object.fromEntries(TEMPERAMENTS.map((ch) => [ch.key, chScores[ch.key] || 0])),
+                descriptorPicks: picks,
+            }));
+        } catch (e) {}
         try {
             const res = await fetch("/api/create-checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ product: "shadow", resultId: savedResultId || null }),
+                body: JSON.stringify({ result_id: savedResultId, purchase_type: "shadow" }),
             });
-            data = await res.json().catch(() => ({}));
-            if (!res.ok || !data.clientSecret || !data.publishableKey) {
-                setUnlockError((data && data.error) || "Checkout isn't available just yet. Please try again in a moment.");
-                setUnlocking(false);
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.url) {
+                window.location.href = data.url; // hand off to Stripe's hosted checkout
                 return;
             }
+            setUnlockError((data && data.error) || "Checkout isn't available just yet. Please try again in a moment.");
+            setUnlocking(false);
         } catch (e) {
             setUnlockError("We couldn't start checkout — please check your connection and try again.");
             setUnlocking(false);
-            return;
-        }
-        try {
-            const Stripe = await loadStripeJs();
-            const stripe = Stripe(data.publishableKey);
-            const checkout = await stripe.initEmbeddedCheckout({
-                clientSecret: data.clientSecret,
-                onComplete: async () => {
-                    // Never trust the client alone — confirm the session is paid server-side.
-                    let paid = false;
-                    try {
-                        const v = await fetch("/api/checkout-status?session_id=" + encodeURIComponent(data.sessionId));
-                        const vd = await v.json().catch(() => ({}));
-                        paid = !!vd.paid;
-                    } catch (e) {}
-                    try { checkout.destroy(); } catch (e) {}
-                    checkoutRef.current = null;
-                    setUnlocking(false);
-                    if (paid) {
-                        setShadowUnlocked(true);
-                        setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 60);
-                    } else {
-                        setUnlockError("Your payment didn't complete — nothing was charged. You can try again anytime.");
-                    }
-                },
-            });
-            checkoutRef.current = checkout;
-            // Mount once the overlay is in the DOM (it renders when `unlocking` is true).
-            setTimeout(() => { try { checkout.mount("#shadow-checkout-modal"); } catch (e) { setUnlockError("Checkout couldn't open. Please try again."); setUnlocking(false); } }, 0);
-        } catch (e) {
-            setUnlockError("Checkout couldn't open. Please try again.");
-            setUnlocking(false);
         }
     };
-    const cancelUnlock = () => { try { if (checkoutRef.current) checkoutRef.current.destroy(); } catch (e) {} checkoutRef.current = null; setUnlocking(false); };
+    // Customer-facing promo code: a valid code (validated server-side against the
+    // PROMO_CODES env var — never listed client-side) unlocks full access for free,
+    // bypassing Stripe. The server stamps full_purchased + shadow_unlocked on the row;
+    // we reveal the Shadow Mandala immediately. An invalid code shows an inline note and
+    // leaves the normal $15 checkout untouched.
+    const applyPromo = async () => {
+        const code = promoCode.trim();
+        if (!code) { setPromoError("Enter a code, or continue to checkout."); return; }
+        if (!savedResultId) { setPromoError("Your reading isn't saved yet — give it a second and try again."); return; }
+        setPromoBusy(true); setPromoError("");
+        try {
+            const res = await fetch("/api/redeem-promo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ result_id: savedResultId, code }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (data && data.ok) {
+                setPromoError("");
+                setShadowUnlocked(true);
+                setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 60);
+            } else {
+                setPromoError((data && data.error) || "That code isn't valid — try again or continue to checkout.");
+            }
+        } catch (e) {
+            setPromoError("We couldn't check that code — please check your connection and try again.");
+        }
+        setPromoBusy(false);
+    };
     // Internal-testing bypass: entering SHADOW-DEV reveals the shadow without payment.
     // For our own QA of the shadow experience before Stripe is live — not a customer path.
     const applyDevCode = () => {
@@ -675,6 +672,50 @@ function TwelveWithin() {
             setUnlockError("That testing code isn't valid.");
         }
     };
+
+    // --- Stripe return: /results/{result_id}?payment=success|cancelled. Re-render the
+    // reading from the snapshot saved before redirect, then confirm the unlock with the
+    // server (the webhook sets shadow_unlocked; we poll briefly in case it lands a beat
+    // after the redirect). Runs once. ---
+    useEffect(() => {
+        let m = null;
+        try { m = window.location.pathname.match(/^\/results\/([^\/?#]+)/); } catch (e) {}
+        const payment = new URLSearchParams(window.location.search).get("payment");
+        if (!m || !payment) return;
+        const resultId = m[1];
+        const clearUrl = () => { try { window.history.replaceState({}, "", "/"); } catch (e) {} };
+        let snap = null;
+        try { snap = JSON.parse(localStorage.getItem("soulcraft_pending") || "null"); } catch (e) {}
+        try { localStorage.removeItem("soulcraft_pending"); } catch (e) {}
+
+        // Cancelled → show their reading again (no shadow), no charge.
+        if (payment !== "success") {
+            if (snap && snap.resultId === resultId) restoreOne({ ...snap, shadowUnlocked: false });
+            setUnlockError("Checkout cancelled — nothing was charged. You can unlock anytime.");
+            clearUrl();
+            return;
+        }
+
+        // Success → render the reading, then confirm the flag server-side and reveal.
+        if (snap && snap.resultId === resultId) restoreOne({ ...snap, shadowUnlocked: false });
+        clearUrl();
+        let tries = 0;
+        const poll = () => {
+            fetch("/api/checkout-status?result_id=" + encodeURIComponent(resultId))
+                .then((r) => r.json()).catch(() => ({}))
+                .then((st) => {
+                    if (st && (st.shadow_unlocked || st.full_purchased)) {
+                        setShadowUnlocked(true);
+                        setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 80);
+                    } else if (tries++ < 6) {
+                        setTimeout(poll, 900);
+                    } else {
+                        setUnlockError("Payment received — your Shadow Mandala is unlocking. Refresh in a moment if it hasn't appeared.");
+                    }
+                });
+        };
+        poll();
+    }, []);
 
     // --- Magic link: on first load, restore from the URL token. Two shapes:
     //   /results?token=T           → the token maps to a USER; load all their saved
@@ -1262,18 +1303,20 @@ function TwelveWithin() {
                 // and one button. No price on the card \u2014 that appears at Stripe checkout.
                 showShadowCTA && React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-6 py-8 mt-14 mb-2 text-center", style: { background: "rgba(80,90,180,0.06)" } },
                     React.createElement("p", { className: "text-[17px] leading-relaxed text-violet-100 mb-6 max-w-md mx-auto", style: serif }, "Your shadow has always gone unnoticed. It is waiting for you to discover it."),
-                    React.createElement("button", { onClick: unlockShadow, disabled: unlocking, className: "inline-block rounded-xl px-7 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60", style: sans }, unlocking ? "Opening checkout\u2026" : "Unlock your Shadow Mandala"),
+                    React.createElement("button", { onClick: unlockShadow, disabled: unlocking, className: "inline-block rounded-xl px-7 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60", style: sans }, unlocking ? "Redirecting to checkout\u2026" : "Unlock your Shadow Mandala \u2014 $15"),
                     unlockError && React.createElement("p", { className: "text-sm text-violet-300/70 mt-4 max-w-sm mx-auto", style: sans }, unlockError),
+                    // Promo / free-access code \u2014 understated, below the pricing. A valid code
+                    // (checked server-side against PROMO_CODES) unlocks full access for free.
+                    React.createElement("div", { className: "mt-6 pt-5 border-t border-indigo-300/15 max-w-xs mx-auto" },
+                        React.createElement("label", { htmlFor: "promo-code", className: "block text-[13px] text-violet-300/70 mb-2", style: sans }, "Have a code? Enter it here."),
+                        React.createElement("div", { className: "flex items-center gap-2" },
+                            React.createElement("input", { id: "promo-code", type: "text", value: promoCode, onChange: (e) => setPromoCode(e.target.value), onKeyDown: (e) => { if (e.key === "Enter") applyPromo(); }, placeholder: "Code", "aria-label": "Promo code", disabled: promoBusy, className: "flex-1 rounded-lg bg-black/20 border border-violet-300/20 px-3 py-2 text-sm text-violet-100 outline-none focus:border-amber-200/50", style: sans }),
+                            React.createElement("button", { onClick: applyPromo, disabled: promoBusy, className: "rounded-lg border border-violet-300/25 px-4 py-2 text-sm text-violet-200/80 hover:border-amber-200/60 hover:text-amber-100 transition-colors disabled:opacity-60", style: sans }, promoBusy ? "\u2026" : "Apply")),
+                        promoError && React.createElement("p", { className: "text-xs text-violet-300/70 mt-2", style: sans }, promoError)),
                     // Internal-testing bypass (SHADOW-DEV) \u2014 small, muted, near the button.
                     React.createElement("div", { className: "mt-5 flex items-center justify-center gap-2" },
                         React.createElement("input", { type: "text", value: devCode, onChange: (e) => setDevCode(e.target.value), onKeyDown: (e) => { if (e.key === "Enter") applyDevCode(); }, placeholder: "Testing code", "aria-label": "Testing code", className: "w-36 rounded-lg bg-black/20 border border-violet-300/20 px-3 py-1.5 text-xs text-violet-100 outline-none focus:border-amber-200/50", style: sans }),
                         React.createElement("button", { onClick: applyDevCode, className: "rounded-lg border border-violet-300/25 px-3 py-1.5 text-xs text-violet-200/80 hover:border-amber-200/60 hover:text-amber-100 transition-colors", style: sans }, "Apply"))),
-                // Embedded Stripe checkout mounts here (a centered overlay) while unlocking.
-                unlocking && React.createElement("div", { id: "shadow-checkout-overlay", className: "fixed inset-0 z-50 flex items-start justify-center overflow-auto py-10 px-4", style: { background: "rgba(8,6,20,0.75)" } },
-                    React.createElement("div", { className: "w-full max-w-xl" },
-                        React.createElement("div", { className: "flex justify-end mb-2" },
-                            React.createElement("button", { onClick: cancelUnlock, className: "text-violet-200/70 hover:text-violet-50 text-sm", style: sans }, "\u2715 Close")),
-                        React.createElement("div", { id: "shadow-checkout-modal", className: "rounded-xl bg-white p-1 min-h-[3rem]" }))),
 
                 React.createElement("div", { className: "grid gap-3" },
                     React.createElement(Btn, { primary: true, onClick: () => {

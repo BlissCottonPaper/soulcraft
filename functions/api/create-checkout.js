@@ -1,29 +1,25 @@
 // ============================================================
 // /functions/api/create-checkout.js
 // ============================================================
-// Creates a Stripe *embedded* Checkout Session so the payment happens on-page,
-// inside the results view — the shadow unlock reveals in the same session with
-// no reload and no new URL (see index.html's unlockShadow / embedded checkout,
-// which uses redirect_on_completion:'never' + onComplete).
+// Creates a Stripe *hosted* Checkout session (redirect flow) for one of the
+// three one-time purchases and hands the browser back a { url } to send the
+// visitor to. No Stripe keys or price IDs ever reach the client — everything
+// lives in Cloudflare Pages env vars and this function talks to Stripe.
 //
-// Three products, priced in cents:
-//   shadow  — $15  — the in-session upsell that unlocks the Shadow Mandala on top
-//                    of an existing "Your Mandala" reading.
-//   mandala — $19  — Your Mandala on its own.
-//   full    — $34  — Your Mandala + Shadow Mandala, bought upfront.
-// The Shadow Mandala is never sold on its own — "shadow" is only ever an add-on
-// to a Mandala the buyer already has.
+//   purchase_type  price env var          what it buys
+//   ------------   -------------------     -------------------------------------
+//   mandala        STRIPE_PRICE_MANDALA    Your Mandala — $19
+//   shadow         STRIPE_PRICE_SHADOW     Shadow Mandala add-on — $15
+//   full           STRIPE_PRICE_FULL       Full (both mandalas) upfront — $34
 //
-// Uses inline price_data, so the only Stripe config needed is the two keys:
-//   STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY  (set in the Pages dashboard).
-// Without them this returns a soft error and the UI simply says checkout isn't
-// available yet — nothing breaks.
+// result_id and purchase_type ride along as Stripe metadata so the webhook
+// (stripe-webhook.js) can stamp the right flags on the results row after payment.
 // ============================================================
 
-const PRODUCTS = {
-  shadow:  { amount: 1500, name: "Shadow Mandala unlock" },
-  mandala: { amount: 1900, name: "Your Mandala" },
-  full:    { amount: 3400, name: "Full — Your Mandala + Shadow Mandala" },
+const PRICE_ENV = {
+  mandala: "STRIPE_PRICE_MANDALA",
+  shadow: "STRIPE_PRICE_SHADOW",
+  full: "STRIPE_PRICE_FULL",
 };
 
 function json(obj, status) {
@@ -33,26 +29,37 @@ function json(obj, status) {
 export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json().catch(() => ({}));
-    const product = PRODUCTS[body.product] ? body.product : null;
-    if (!product) return json({ error: "Unknown product." }, 400);
+    const resultId = body.result_id;
+    const purchaseType = body.purchase_type;
 
-    if (!env.STRIPE_SECRET_KEY || !env.STRIPE_PUBLISHABLE_KEY) {
-      // Payment not wired yet — tell the UI plainly; it shows a gentle message.
-      return json({ error: "Checkout isn't available yet — payment isn't configured." });
+    if (!resultId || typeof resultId !== "string") {
+      return json({ error: "Missing result_id." }, 400);
+    }
+    if (!PRICE_ENV[purchaseType]) {
+      return json({ error: "Invalid purchase_type (expected 'mandala', 'shadow', or 'full')." }, 400);
+    }
+    if (!env.STRIPE_SECRET_KEY) {
+      return json({ error: "Checkout isn't available yet — payment isn't configured." }, 503);
     }
 
-    const p = PRODUCTS[product];
-    // Stripe's API takes form-encoded params. Build the nested line_items keys by hand.
+    const priceId = env[PRICE_ENV[purchaseType]];
+    if (!priceId) {
+      return json({ error: `Price isn't configured for '${purchaseType}' (${PRICE_ENV[purchaseType]}).` }, 503);
+    }
+
+    // Stripe's API is form-encoded. Reference a pre-made Price by id (never an amount).
     const form = new URLSearchParams();
-    form.set("ui_mode", "embedded");
     form.set("mode", "payment");
-    form.set("redirect_on_completion", "never"); // stay on the page; reveal shadow in-session
+    form.set("line_items[0][price]", priceId);
     form.set("line_items[0][quantity]", "1");
-    form.set("line_items[0][price_data][currency]", "usd");
-    form.set("line_items[0][price_data][unit_amount]", String(p.amount));
-    form.set("line_items[0][price_data][product_data][name]", p.name);
-    form.set("metadata[product]", product);
-    if (body.resultId) form.set("metadata[result_id]", String(body.resultId));
+    form.set("success_url", `https://artofsoulcraft.com/results/${resultId}?payment=success`);
+    form.set("cancel_url", `https://artofsoulcraft.com/results/${resultId}?payment=cancelled`);
+    form.set("client_reference_id", resultId);
+    form.set("metadata[result_id]", resultId);
+    form.set("metadata[purchase_type]", purchaseType);
+    // Mirror the metadata onto the PaymentIntent too, so it's queryable from either object.
+    form.set("payment_intent_data[metadata][result_id]", resultId);
+    form.set("payment_intent_data[metadata][purchase_type]", purchaseType);
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -63,16 +70,12 @@ export async function onRequestPost({ request, env }) {
       body: form.toString(),
     });
     const session = await res.json().catch(() => ({}));
-    if (!res.ok || !session.client_secret) {
+    if (!res.ok || !session.url) {
       const detail = session && session.error && session.error.message;
       return json({ error: detail || "Stripe couldn't start checkout." }, 502);
     }
 
-    return json({
-      clientSecret: session.client_secret,
-      sessionId: session.id,
-      publishableKey: env.STRIPE_PUBLISHABLE_KEY,
-    });
+    return json({ url: session.url });
   } catch (err) {
     return json({ error: "Server error", detail: err.message }, 500);
   }
