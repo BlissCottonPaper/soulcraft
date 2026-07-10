@@ -60,10 +60,19 @@ ${main}
 </main>
 ${CHROME.footerHtml()}
 <script src="/assets/site-chrome.js"></script>
+<script src="/assets/tooltips.js"></script>
+<script src="/assets/tooltip.js"></script>
 </body>
 </html>
 `;
 }
+
+// A tooltip trigger for the reusable popover component (/assets/tooltip.js). The
+// definition text comes from /assets/tooltips.js, keyed by `term` — never inlined
+// here. Apply per the master rules: first use where the term isn't the page's focus;
+// never on the term's own Explore page; the five Bandwidth stage names everywhere.
+const tip = (term, label) =>
+  `<span class="tooltip-trigger" data-term="${term}">${label}</span>`;
 
 // ---- Overview (/explore/) --------------------------------------------------
 function overviewMain() {
@@ -606,7 +615,7 @@ function archetypeMain(key) {
 
   const ladder = DATA.STAGE_NAMES.map((sn, s) =>
     `        <div class="flex gap-4 items-start py-3" style="border-top:1px solid rgba(196,181,253,0.10)">
-          <div class="w-16 shrink-0"><div class="h-6 rounded" style="background:hsl(${hue},48%,${DATA.STAGE_LIGHT[s]}%)"></div><p class="text-[10px] text-violet-300/60 mt-1">${sn}</p></div>
+          <div class="w-16 shrink-0"><div class="h-6 rounded" style="background:hsl(${hue},48%,${DATA.STAGE_LIGHT[s]}%)"></div><p class="text-[10px] text-violet-300/60 mt-1">${tip(sn.toLowerCase(), sn)}</p></div>
           <div><p class="serif text-lg" style="color:${accent}">${a.stages[s]}</p><p class="text-violet-200/75 text-sm leading-relaxed">${c.stages[s]}</p></div>
         </div>`
   ).join("\n");
@@ -646,6 +655,7 @@ function archetypeMain(key) {
         <span>Core wound: <span class="text-violet-100">${c.coreWoundShort}</span></span>
         <span>Growth edge: <a href="/explore/${oppo.key}/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">${a.opposite}</a> <a href="/explore/growth-edge/" class="text-violet-300/50 hover:text-amber-100 text-xs underline underline-offset-2">what's this?</a></span>
       </div>
+      <p class="text-violet-300/55 text-[13px] mt-3 max-w-2xl">The question this ${tip("axis", "axis")} asks: <span class="italic text-violet-300/70">${DATA.axisQuestion(key)}</span></p>
     </section>
 
     <section class="py-8 border-t border-violet-300/10">
@@ -743,6 +753,155 @@ ${axisRows}
     </section>`;
 }
 
+// ---- About (/about/) — verbatim from Notion "About Page — Final Copy (v1)" ----
+// The Beginner's door: the philosophical front page. No visible subheadings — the
+// --- dividers in the source render as thin rules / whitespace; bold lead lines are
+// copy, not headers. "Mandala" gets a tooltip on first use (never re-tipped after).
+function aboutMain() {
+  const q = [
+    "Do you trust what you feel, or what you can prove?",
+    "Where does your loyalty belong — to those who need you, or to the call of what's next?",
+    "Do you find belonging by moving toward the group, or by refusing to disappear into it?",
+    "Is the structure serving life, or has life started serving the structure?",
+    "Is the world fundamentally safe, or fundamentally dangerous — and what does your answer cost you?",
+    "Does meaning come from what you make, or from what you receive?"
+  ].map((t, i) =>
+    `        <li class="flex gap-4"><span class="serif text-2xl text-amber-200/80 leading-none w-6 shrink-0 text-right">${i + 1}</span><span class="text-violet-200/85 text-lg leading-relaxed">${t}</span></li>`
+  ).join("\n");
+  const lead = "text-lg text-violet-50 font-semibold mb-4";
+  const body = "text-violet-200/85 text-lg leading-relaxed";
+  return `    <section class="pt-16 pb-6 md:pt-24 max-w-2xl mx-auto text-center">
+      <p class="serif text-3xl md:text-4xl leading-snug text-violet-50">There are twelve voices inside you.<br />Three are speaking right now.<br />The others are waiting.</p>
+    </section>
+
+    <section class="py-8 max-w-2xl mx-auto">
+      <blockquote class="serif text-2xl md:text-[1.75rem] italic text-violet-100 leading-snug text-center px-2">“Until you make the unconscious conscious, it will direct your life and you will call it fate.”</blockquote>
+      <p class="text-center text-[11px] tracking-[0.2em] text-violet-300/50 mt-3">— CARL JUNG</p>
+      <p class="${body} mt-8">Soulcraft is the practice of making the unconscious conscious — understanding the patterns driving you so you can choose, rather than just react.</p>
+      <p class="${body} mt-4">You already know yourself better than any system can tell you. What you may not know is <em>why</em> — why certain things light you up and others leave you hollow, why some people exhaust you and others feel like home, why you keep returning to the same patterns even when you can see them clearly.</p>
+      <p class="${body} mt-4">Soulcraft doesn't answer that question for you. It gives you a map — and a guide for what to do with what you find.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">You are a community of twelve.</p>
+      <p class="${body} mb-4">Three speak loudly. Three speak softly. Six fill the space between.</p>
+      <p class="${body} mb-4">The assessment produces something called a ${tip("mandala", "Mandala")} — Sanskrit for <em>the cosmos</em>, used across traditions as a map of wholeness. Yours shows which voices are loudest, which are quietest, and how they relate to each other.</p>
+      <p class="${body}">The work isn't to become a different person. The work is to become a wise steward of all twelve — knowing when to call on which voice, and what happens when one of them goes too long unheard.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">Your quietest voice isn't just unfamiliar.</p>
+      <p class="${body} mb-4">It's often the energy you find most irritating, most incomprehensible, or most invisible in others.</p>
+      <p class="${body}">Pay attention to your strongest reactions to people who move through the world differently than you do. That reaction has something to tell you. The quality that baffles or frustrates you most in someone else is frequently a voice inside you that hasn't been given room to speak.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">Everyone hits a wall.</p>
+      <p class="${body} mb-4">Sometimes it's burnout — the kind where your body stops before your mind will. You loved the work, you were going all in, and then one day you couldn't go near it. Mental exhaustion. Physical shutdown. The kind where everything your body is saying is: <em>done.</em></p>
+      <p class="${body} mb-4">Sometimes it's subtler. A relationship that ran its course. An identity you outgrew. A version of yourself that worked for years and then simply stopped.</p>
+      <p class="${body} mb-4">In every case, something had to end before something new could form. The old way had to stop working — completely — before you could see what came next. Like the phoenix, we emerge from the ashes. But first, we have to burn. You can't transcend what you haven't descended through.</p>
+      <p class="${body}">Soulcraft doesn't rush you through it. It tells you what it is — so you can guide yourself through it.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">Six questions organize everything.</p>
+      <ol class="space-y-4 mb-5">
+${q}
+      </ol>
+      <p class="${body}">Every archetype lives at one end of one of these questions. Your loudest voices tell you which ones you've already answered. Your quietest voices hold the other ends. Your growth lives somewhere in that distance.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">At the center of the Mandala is a white dot.</p>
+      <p class="${body} mb-4">It represents what every tradition has pointed toward in its own language: the place where all twelve voices operate without ego driving any of them. In full service. In full concert. No one voice dominating the rest.</p>
+      <p class="${body} mb-4">Jung called it individuation. Maslow placed it above self-actualization and called it self-transcendence. The Bhagavad Gita called it selfless action.</p>
+      <p class="${body}">You don't arrive there by becoming someone else. You arrive by finally, fully becoming yourself.</p>
+    </section>
+
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">This is not a personality test.</p>
+      <p class="${body}">It won't tell you what you are. It will show you what's already true — and what's waiting to be heard.</p>
+    </section>
+
+    <section class="py-14 border-t border-violet-300/10 text-center">
+      <p class="serif text-3xl md:text-4xl text-violet-50 mb-6">Find your voices.</p>
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the assessment →</a>
+    </section>`;
+}
+
+// ---- How It Works (/how-it-works/) — verbatim from Notion "How It Works — Page Copy (v1)" ----
+// The intermediate reader's map. Bold numbered questions ARE the headers; the italic
+// concept name below each carries that concept's tooltip. Each section links out to the
+// relevant Explore page. Integration questions render as a styled numbered list.
+function howItWorksMain() {
+  const body = "text-violet-200/85 text-lg leading-relaxed";
+  const outLink = (href, label) =>
+    `      <p class="mt-4"><a href="${href}" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">${label}</a></p>`;
+  const section = (n, question, subtitle, inner, link) =>
+    `    <section class="py-9 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <div class="flex gap-4 mb-3">
+        <span class="serif text-3xl text-amber-200/80 leading-none shrink-0">${n}</span>
+        <div>
+          <h2 class="serif text-2xl md:text-3xl text-violet-50 leading-snug">${question}</h2>
+          <p class="serif italic text-lg text-amber-200/70 mt-0.5">${subtitle}</p>
+        </div>
+      </div>
+${inner}
+${link}
+    </section>`;
+
+  const integration = [
+    `Where are you on the Bandwidth scale right now — not in general, but this week?`,
+    `Which shadow archetype are you most triggered by in others right now? That's where the energy is.`,
+    `What's one practice you'll do this week — specifically the most uncomfortable one?`,
+    `Who in your life embodies your ${tip("growth-edge", "growth edge")}? What do you feel around them?`,
+    `Which core need is most depleted right now? What's one concrete action?`
+  ].map((t, i) =>
+    `        <li class="flex gap-4"><span class="serif text-xl text-amber-200/80 leading-none w-5 shrink-0 text-right">${i + 1}</span><span class="${body}">${t}</span></li>`
+  ).join("\n");
+
+  return `    <section class="pt-16 pb-8 md:pt-24 max-w-2xl mx-auto text-center">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">HOW IT WORKS</p>
+      <h1 class="serif text-4xl md:text-5xl mb-5 leading-tight">Five questions.<br />Five layers. One picture.</h1>
+      <p class="${body}">Soulcraft isn't a single test with a single answer. It's a system of lenses — each one showing you something the others can't. Here's how they fit together.</p>
+    </section>
+
+${section("1", "Who are you, at your core?", tip("mandala", "The Mandala"),
+  `      <p class="${body} mb-4">At the heart of Soulcraft are twelve archetypes — twelve fundamental patterns of human motivation. You carry all twelve. But three speak louder than the rest, and three are so quiet you may not recognize them in yourself at all.</p>
+      <p class="${body}">The assessment doesn't ask you to choose who you are. It asks you to choose, repeatedly, between two things that feel true — and your pattern of choices reveals what's actually driving you. The result is your Mandala: a visual map of your twelve voices, ranked from loudest to quietest.</p>`,
+  outLink("/explore/#the-twelve", "Explore the twelve archetypes →"))}
+
+${section("2", "Who are you pretending not to be?", tip("shadow", "The Shadow"),
+  `      <p class="${body} mb-4">Your quietest archetypes aren't absent. They're unintegrated — the parts of you that haven't been given room to develop. They tend to show up sideways: as your strongest reactions to other people, as the qualities you find most irritating or incomprehensible in others.</p>
+      <p class="${body}">The ${tip("shadow-mandala", "Shadow Mandala")} shows you these voices. Not to shame you. To show you where the energy is — and what becomes available when you stop fighting it.</p>`,
+  outLink("/explore/shadow/", "Learn about shadow work →"))}
+
+${section("3", "How much of yourself do you have available right now?", tip("bandwidth", "Bandwidth"),
+  `      <p class="${body} mb-4">Every archetype can be lived from five different places — from fully contracted, ego-protective, and fear-driven, all the way to expansive, integrated, and in service of something larger than yourself.</p>
+      <p class="${body} mb-4">Bandwidth is the measure of where you are on that spectrum right now. Not in general — this week, today, in this season of your life. It's determined by how well your ${tip("core-needs", "core human needs")} are being met: belonging, autonomy, competence, self-esteem, trust, and purpose.</p>
+      <p class="${body}">When your needs are depleted, your Bandwidth contracts. When they're resourced, it expands. The same archetype behaves very differently at different levels of Bandwidth.</p>`,
+  outLink("/explore/bandwidth/", "Understand Bandwidth →"))}
+
+${section("4", "How do you show up when you engage the world?", tip("temperament", "Temperament"),
+  `      <p class="${body} mb-4">Your archetypes tell you <em>what</em> drives you. Your Temperament tells you <em>how</em> that drive moves through you.</p>
+      <p class="${body} mb-4">There are four: ${tip("heart", "Heart")}, ${tip("mind", "Mind")}, ${tip("body", "Body")}, and ${tip("soul", "Soul")}. Your dominant Temperament is your first natural impulse — the way you instinctively take in a situation before deliberate thought kicks in. It's the difference between someone who feels the weight of a room before a word is spoken (Heart), someone who needs to understand before they can act (Mind), someone who reaches for action while others are still processing (Body), and someone whose first question is always <em>what does this mean</em> (Soul).</p>
+      <p class="${body}">You didn't choose your Temperament. But you can develop the quieter ones — and that development changes everything.</p>`,
+  outLink("/explore/temperaments/", "Explore the four Temperaments →"))}
+
+${section("5", "What do you do with all of this?", tip("integration", "Integration"),
+  `      <p class="${body} mb-4">Knowing yourself is the beginning, not the end. The work is integration: bringing the unconscious into consciousness, developing the quieter voices, learning to move through the ${tip("threshold", "Threshold")} — the crossing from one version of yourself to the next — with less resistance and more intention.</p>
+      <p class="${body} mb-4">Soulcraft gives you five questions to return to regularly. Not once. Weekly, as a practice:</p>
+      <ol class="space-y-3 mb-1">
+${integration}
+      </ol>
+      <p class="${body} mt-5">This is how the map becomes a guide.</p>`,
+  "")}
+
+    <section class="py-14 border-t border-violet-300/10 text-center">
+      <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the assessment →</a>
+    </section>`;
+}
+
 // ---- Emit ------------------------------------------------------------------
 function write(rel, html) {
   const abs = path.join(ROOT, rel);
@@ -821,6 +980,22 @@ write("explore/shadow/index.html", page({
   canonical: "https://artofsoulcraft.com/explore/shadow/",
   active: "explore",
   main: shadowMain()
+}));
+
+write("about/index.html", page({
+  title: "About — The Art of Soulcraft",
+  description: "There are twelve voices inside you — three speaking now, the others waiting. Soulcraft is the practice of making the unconscious conscious: a map of wholeness, and a guide for what to do with what you find.",
+  canonical: "https://artofsoulcraft.com/about/",
+  active: "about",
+  main: aboutMain()
+}));
+
+write("how-it-works/index.html", page({
+  title: "How It Works — The Art of Soulcraft",
+  description: "Five questions, five layers, one picture. How the Mandala, Shadow, Bandwidth, Temperament, and Integration fit together — the reader's map to the whole Soulcraft system.",
+  canonical: "https://artofsoulcraft.com/how-it-works/",
+  active: "how-it-works",
+  main: howItWorksMain()
 }));
 
 write("pricing/index.html", page({
