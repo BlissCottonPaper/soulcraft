@@ -202,7 +202,7 @@
             '<div class="sc-foot-row"><a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/terms/">Terms</a></div>' +
           '</div>' +
         '</div>' +
-        '<p class="sc-foot-tagline">A map, not a fortune. Wherever you stand today, take one rung up.</p>' +
+        '<p class="sc-foot-tagline">You are not one of twelve types. You are all twelve.</p>' +
       '</div></footer>';
   }
 
