@@ -198,8 +198,12 @@
         '<div class="sc-foot-top">' +
           '<p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p>' +
           '<div class="sc-foot-links">' +
-            '<div class="sc-foot-row"><a href="/contact/">Work With Us</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/support/">Support</a></div>' +
-            '<div class="sc-foot-row"><a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/terms/">Terms</a></div>' +
+            '<div class="sc-foot-row">' +
+              '<a href="/contact/">Work With Us</a><span class="sc-foot-sep" aria-hidden="true">·</span>' +
+              '<a href="/support/">Support</a><span class="sc-foot-sep" aria-hidden="true">·</span>' +
+              '<a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span>' +
+              '<a href="/terms/">Terms</a>' +
+            '</div>' +
           '</div>' +
         '</div>' +
         '<p class="sc-foot-tagline">You are not one of twelve types. You are all twelve.</p>' +
