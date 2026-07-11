@@ -11,8 +11,8 @@
 // Returns JSON:
 //   {
 //     completedAssessments,               // all-time, real (finished) readings only
-//     byTier: { free, reveal, full },     // partition of completed readings
-//     shadowAddOnPurchases,               // standalone $15 Shadow unlocks
+//     byTier: { free, full },             // partition of completed readings
+//     shadowAddOnPurchases,               // retired $15 Shadow unlocks (historical)
 //     promoCodeUses,                      // free-access redemptions (e.g. WHITEDOT)
 //     assessmentsLast7Days,
 //     assessmentsLast30Days,
@@ -23,12 +23,11 @@
 // assessment and seeds placeholder rows with empty scores):
 //   • "completed" = a results row whose archetype_scores is real, i.e. not the
 //     '{}' placeholder a paid/redeemed-but-unfinished gate leaves behind.
-//   • byTier partitions completed rows: free (tier='free'), full
-//     (full_purchased=1), reveal (everything else paid — the $19 Your Mandala).
-//   • shadowAddOnPurchases counts the standalone $15 unlock only: shadow_unlocked
-//     without full_purchased and without a promo redemption (both of those also
-//     set shadow_unlocked). Counted across ALL rows — a purchase is a purchase
-//     even if the buyer never finished the questions.
+//   • byTier partitions completed rows into the two live tiers: free (tier='free')
+//     and full (everything else — the $29 Full is the only paid reading).
+//   • shadowAddOnPurchases counts the retired standalone $15 shadow unlock:
+//     shadow_unlocked without full_purchased and without a promo redemption. Kept
+//     for historical rows; it no longer grows now that Full includes the shadow.
 //   • promoCodeUses counts promo_redeemed=1 across all rows (same reasoning).
 //
 // Needs: env.ADMIN_KEY and the D1 binding env.DB.
@@ -75,8 +74,7 @@ export async function onRequestGet({ request, env }) {
         `SELECT
            SUM(CASE WHEN ${DONE} THEN 1 ELSE 0 END)                                          AS completed,
            SUM(CASE WHEN ${DONE} AND tier = 'free' THEN 1 ELSE 0 END)                        AS tier_free,
-           SUM(CASE WHEN ${DONE} AND tier <> 'free' AND full_purchased = 0 THEN 1 ELSE 0 END) AS tier_reveal,
-           SUM(CASE WHEN ${DONE} AND full_purchased = 1 THEN 1 ELSE 0 END)                    AS tier_full,
+           SUM(CASE WHEN ${DONE} AND tier <> 'free' THEN 1 ELSE 0 END)                       AS tier_full,
            SUM(CASE WHEN shadow_unlocked = 1 AND full_purchased = 0 AND promo_redeemed = 0 THEN 1 ELSE 0 END) AS shadow_addon,
            SUM(CASE WHEN promo_redeemed = 1 THEN 1 ELSE 0 END)                               AS promo_uses,
            SUM(CASE WHEN ${DONE} AND created_at >= ?1 THEN 1 ELSE 0 END)                     AS last7,
@@ -94,7 +92,6 @@ export async function onRequestGet({ request, env }) {
       completedAssessments: n(row && row.completed),
       byTier: {
         free: n(row && row.tier_free),
-        reveal: n(row && row.tier_reveal),
         full: n(row && row.tier_full),
       },
       shadowAddOnPurchases: n(row && row.shadow_addon),

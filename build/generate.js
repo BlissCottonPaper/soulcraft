@@ -368,21 +368,20 @@ function pricingMain() {
     </section>
     <section class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 max-w-3xl mx-auto">
       <div class="card rounded-2xl px-6 py-7 flex flex-col">
-        <h2 class="serif text-2xl mb-1">Your Mandala</h2><p class="text-4xl mb-4">$19</p>
-        <p class="text-violet-300/75 text-sm mb-6">The full assessment — your three most expressive voices, their pairings, your Temperament radar, and the complete report.</p>
-        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Begin Your Mandala</a>
+        <h2 class="serif text-2xl mb-1">Free</h2><p class="text-4xl mb-4">$0</p>
+        <p class="text-violet-300/75 text-sm mb-6">A first taste — your single loudest archetype, the voice that leads. No payment, ever.</p>
+        <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Start free</a>
       </div>
       <div class="card rounded-2xl px-6 py-7 flex flex-col" style="border-color: rgba(253,230,138,0.4);">
         <h2 class="serif text-2xl mb-1">Full</h2>
         <p class="text-violet-300/60 text-sm -mt-0.5 mb-1">Your Mandala + Shadow Mandala</p>
-        <p class="text-4xl mb-4">$34</p>
-        <p class="text-violet-300/75 text-sm mb-3">Both mandalas together — your most expressive voices <em>and</em> your quieter ones: the three you've been carrying quietly, their shadow pairings, and what becomes possible when you claim them.</p>
-        <p class="text-[13px] text-violet-300/55 mb-6 border-t border-violet-300/10 pt-3">Or start with Your Mandala for $19 and unlock your shadow at any time for $15 more.</p>
+        <p class="text-4xl mb-4">$29</p>
+        <p class="text-violet-300/75 text-sm mb-6">The complete reading — your three most expressive voices, their pairings, your Temperament radar, the full 1–12 ranking, <em>and</em> your Shadow Mandala: the three quieter voices you've been carrying, their shadow pairings, and what becomes possible when you claim them.</p>
         <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Begin the Full reading</a>
       </div>
     </section>
     <section class="pb-8 text-center max-w-3xl mx-auto">
-      <p class="text-violet-300/55 text-sm">Not sure yet? A <a href="/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">free single-archetype result</a> shows your loudest voice at no charge.</p>
+      <p class="text-violet-300/55 text-sm">Pay once — no subscriptions. The Full reading is a single $29 payment, taken before your assessment begins.</p>
     </section>
     <section class="pb-16 text-center">
       <p class="text-violet-300/60 text-sm">Curious first? <a href="/explore/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Explore the system</a> before you begin.</p>
@@ -1131,7 +1130,7 @@ write("how-it-works/index.html", page({
 
 write("pricing/index.html", page({
   title: "Pricing — The Art of Soulcraft",
-  description: "Pricing: a free single-archetype result, Your Mandala ($19), and the Full reading with both mandalas ($34). No subscriptions — pay once.",
+  description: "Pricing: a free single-archetype result, and the Full reading with both mandalas ($29). No subscriptions — pay once.",
   canonical: "https://artofsoulcraft.com/pricing/",
   active: "pricing",
   main: pricingMain()

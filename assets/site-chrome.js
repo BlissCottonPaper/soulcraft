@@ -44,12 +44,9 @@
   // Standard GA4 tag, injected once into <head> from here so it lives on EVERY
   // page (the assessment root and all generated Explore pages both load this
   // script). Loading via site-chrome keeps a single source of truth for the tag.
-  //
-  // ⚠️ ACTION REQUIRED: paste the property's real GA4 Measurement ID below.
-  // Until GA_MEASUREMENT_ID is a real "G-XXXXXXXXXX" value (the placeholder
-  // below still contains X's), nothing loads and no requests are sent — so a
-  // half-configured build never phones home to a bogus property.
-  var GA_MEASUREMENT_ID = "G-XXXXXXXXXX"; // TODO(analytics): replace with real GA4 Measurement ID for artofsoulcraft.com
+  // The gaConfigured() guard means a build with the placeholder ("G-XXXXXXXXXX")
+  // stays inert — it never phones home to a bogus property.
+  var GA_MEASUREMENT_ID = "G-MP4JG19LTW"; // GA4 Measurement ID for artofsoulcraft.com
 
   function gaConfigured() {
     return /^G-[A-Z0-9]+$/.test(GA_MEASUREMENT_ID) && GA_MEASUREMENT_ID.indexOf("XXXX") === -1;

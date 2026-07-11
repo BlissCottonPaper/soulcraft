@@ -8,11 +8,10 @@
 // Register this endpoint in the Stripe dashboard:
 //   https://artofsoulcraft.com/api/stripe-webhook   (event: checkout.session.completed)
 //
-// Mapping (per spec):
-//   purchase_type 'mandala'       -> no D1 flag change (save-results already stored
-//                                    the reading; the $19 buys the reading itself)
-//   purchase_type 'shadow'        -> shadow_unlocked = 1
+// Mapping:
 //   purchase_type 'full'          -> full_purchased = 1 AND shadow_unlocked = 1
+//                                    (the $29 Full is the only paid reading; it
+//                                    includes the Shadow Mandala)
 //   purchase_type 'compatibility' -> no D1 flag change yet (product wired; the
 //                                    Compatibility invite flow isn't built)
 //
@@ -100,28 +99,11 @@ export async function onRequestPost({ request, env }) {
           await env.DB.prepare(
             `INSERT INTO results
                (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, created_at)
-             VALUES (?, 'reveal', 'quick', '{}', '{}', 0, 1, 1, ?)
+             VALUES (?, 'full', 'quick', '{}', '{}', 0, 1, 1, ?)
              ON CONFLICT(id) DO UPDATE SET full_purchased = 1, shadow_unlocked = 1`
           ).bind(resultId, now).run();
-        } else if (purchaseType === "shadow") {
-          await env.DB.prepare(
-            `INSERT INTO results
-               (id, tier, mode, archetype_scores, channel_scores, is_public, shadow_unlocked, created_at)
-             VALUES (?, 'reveal', 'quick', '{}', '{}', 0, 1, ?)
-             ON CONFLICT(id) DO UPDATE SET shadow_unlocked = 1`
-          ).bind(resultId, now).run();
-        } else if (purchaseType === "mandala") {
-          // $19 Your Mandala buys the reading itself but sets no unlock flags. With
-          // the gate before the assessment, still seed the paid row so the scores
-          // have a home when the assessment finishes. No-op if it already exists.
-          await env.DB.prepare(
-            `INSERT INTO results
-               (id, tier, mode, archetype_scores, channel_scores, is_public, created_at)
-             VALUES (?, 'reveal', 'quick', '{}', '{}', 0, ?)
-             ON CONFLICT(id) DO NOTHING`
-          ).bind(resultId, now).run();
         }
-        // 'compatibility' ($19, invite flow TBD) intentionally sets no flags here.
+        // 'compatibility' (invite flow TBD) intentionally sets no flags here.
       } catch (e) {
         // Log-and-500 so Stripe retries the webhook rather than dropping the payment.
         return new Response(JSON.stringify({ error: "Database update failed", detail: e.message }), {

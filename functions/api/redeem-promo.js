@@ -67,7 +67,7 @@ export async function onRequestPost({ request, env }) {
       .prepare(
         `INSERT INTO results
            (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, promo_redeemed, created_at)
-         VALUES (?, 'reveal', 'quick', '{}', '{}', 0, 1, 1, 1, ?)
+         VALUES (?, 'full', 'quick', '{}', '{}', 0, 1, 1, 1, ?)
          ON CONFLICT(id) DO UPDATE SET
            full_purchased = 1, shadow_unlocked = 1, promo_redeemed = 1`
       )
