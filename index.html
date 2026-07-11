@@ -6,6 +6,18 @@
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <title>The Art of Soulcraft</title>
+<meta name="description" content="You are not one of twelve types — you are all twelve, some louder than others. Discover your Mandala: the archetypal voices that drive you." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="The Art of Soulcraft — Your Mandala" />
+<meta property="og:description" content="You are not one of twelve types — you are all twelve, some louder than others. Discover the archetypal voices that drive you." />
+<meta property="og:url" content="https://artofsoulcraft.com/" />
+<meta property="og:image" content="https://artofsoulcraft.com/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="The Art of Soulcraft — Your Mandala" />
+<meta name="twitter:description" content="You are not one of twelve types — you are all twelve, some louder than others. Discover the archetypal voices that drive you." />
+<meta name="twitter:image" content="https://artofsoulcraft.com/og-image.png" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -770,18 +782,30 @@ function TwelveWithin() {
         setPromoBusy(false);
     };
 
-    // --- Share your Mandala (Task 3) -----------------------------------------
-    // A quiet nudge under the wheel. The canonical link is always the "return to
-    // your Mandala" URL, so a recipient who follows it lands where the sharer is.
-    const SHARE_URL = "https://artofsoulcraft.com/?return=mandala";
+    // --- Share your Mandala ---------------------------------------------------
+    // A quiet nudge under the wheel. Sharing points to a real, read-only public
+    // page at /r/{resultId} — so recipients see THIS person's Mandala, not their
+    // own. Sharing is the opt-in that makes the reading public: the act of hitting
+    // a share button flips is_public=1 (fired once, in the background, so
+    // navigator.share stays a synchronous user gesture). Before a reading is saved
+    // we fall back to the "return to your Mandala" URL.
+    const publishedRef = useRef(null);
+    const shareUrl = () => (savedResultId ? ("https://artofsoulcraft.com/r/" + savedResultId) : "https://artofsoulcraft.com/?return=mandala");
+    const ensurePublished = () => {
+        if (!savedResultId || isSample || publishedRef.current === savedResultId) return;
+        publishedRef.current = savedResultId;
+        fetch("/api/make-public", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ result_id: savedResultId }) }).catch(() => {});
+    };
     const copyShareLink = async () => {
+        ensurePublished();
+        const url = shareUrl();
         try {
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(SHARE_URL);
+                await navigator.clipboard.writeText(url);
             } else {
                 // Fallback for browsers without the async clipboard API.
                 const ta = document.createElement("textarea");
-                ta.value = SHARE_URL; ta.style.position = "fixed"; ta.style.opacity = "0";
+                ta.value = url; ta.style.position = "fixed"; ta.style.opacity = "0";
                 document.body.appendChild(ta); ta.focus(); ta.select();
                 document.execCommand("copy"); document.body.removeChild(ta);
             }
@@ -793,7 +817,8 @@ function TwelveWithin() {
     // post, so we open the OS share sheet (Web Share API) where the user picks the
     // app. If Web Share isn't available (most desktop browsers), fall back to copy.
     const shareMandala = async () => {
-        const payload = { title: "The Art of Soulcraft", text: "My Mandala — my twelve archetypal voices, mapped.", url: SHARE_URL };
+        ensurePublished();
+        const payload = { title: "The Art of Soulcraft", text: "My Mandala — my three loudest archetypal voices.", url: shareUrl() };
         try {
             if (navigator.share) { await navigator.share(payload); return; }
         } catch (e) { if (e && e.name === "AbortError") return; /* user dismissed */ }
