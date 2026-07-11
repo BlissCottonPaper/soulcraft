@@ -76,6 +76,33 @@ function newToken() {
   return toHex(bytes);
 }
 
+// --- Self-healing schema (so registration/login work even if migration 0002
+// was never run against the live D1). D1 has no "ADD COLUMN IF NOT EXISTS", so
+// each ALTER is attempted and its "duplicate column name" error is swallowed;
+// CREATE ... IF NOT EXISTS is naturally idempotent. Memoized per isolate so the
+// ~dozen statements run at most once per cold start, not on every request. ---
+let schemaEnsured = false;
+export async function ensureSchema(env) {
+  if (schemaEnsured || !env || !env.DB) return;
+  const statements = [
+    "CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL)",
+    "CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)",
+    "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)",
+    "ALTER TABLE users ADD COLUMN password_hash TEXT",
+    "ALTER TABLE users ADD COLUMN companion_active INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN companion_tier TEXT",
+    "ALTER TABLE users ADD COLUMN subscription_id TEXT",
+    "ALTER TABLE results ADD COLUMN stripe_customer_id TEXT",
+    "ALTER TABLE results ADD COLUMN companion_active INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE results ADD COLUMN companion_tier TEXT",
+    "ALTER TABLE results ADD COLUMN subscription_id TEXT",
+  ];
+  for (const sql of statements) {
+    try { await env.DB.prepare(sql).run(); } catch (e) { /* already exists — expected, ignore */ }
+  }
+  schemaEnsured = true;
+}
+
 // Create a session row and return the RAW token (goes in the cookie) + expiry.
 export async function createSession(env, userId) {
   const token = newToken();

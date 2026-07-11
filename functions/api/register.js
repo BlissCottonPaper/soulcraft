@@ -15,7 +15,7 @@
 // Needs the D1 binding env.DB.
 // ============================================================
 
-import { hashPassword, createSession, sessionCookie } from "./_auth.js";
+import { hashPassword, createSession, sessionCookie, ensureSchema } from "./_auth.js";
 
 function json(obj, status, extraHeaders) {
   const headers = { "Content-Type": "application/json" };
@@ -28,6 +28,8 @@ function uuid() { return crypto.randomUUID(); }
 export async function onRequestPost({ request, env }) {
   try {
     if (!env.DB) return json({ error: "Accounts aren't available yet." }, 503);
+    // Make sure the accounts schema exists (self-heals if migration 0002 wasn't run).
+    await ensureSchema(env);
     const body = await request.json().catch(() => ({}));
     const email = (body.email || "").trim().toLowerCase();
     const password = typeof body.password === "string" ? body.password : "";
