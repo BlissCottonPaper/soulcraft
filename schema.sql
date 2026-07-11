@@ -7,13 +7,28 @@
 -- or run: wrangler d1 execute soulcraft-db --file=schema.sql
 -- ============================================================
 
--- One row per person who has ever entered an email.
--- The email IS the account — no password, ever.
+-- One row per person. The email is still enough on its own (magic-link
+-- retrieval, no password required), but an account can also set a password
+-- (password_hash) to log in directly. The companion_* / subscription_id
+-- columns track the Mira reflection companion.
 CREATE TABLE users (
   id TEXT PRIMARY KEY,                 -- uuid, generated at signup
   email TEXT UNIQUE NOT NULL,
+  password_hash TEXT,                  -- PBKDF2 hash (see functions/api/_auth.js); NULL for email-only users
   stripe_customer_id TEXT,             -- set the first time they touch Stripe
+  companion_active INTEGER NOT NULL DEFAULT 0,  -- 1 once a Mira subscription (trial or paid) is live
+  companion_tier TEXT,                 -- 'monthly' | 'quarterly' | 'yearly' | NULL
+  subscription_id TEXT,                -- Stripe subscription id backing Mira, if any
   created_at INTEGER NOT NULL          -- unix timestamp
+);
+
+-- One row per active login session. The cookie carries the raw token; we store
+-- ONLY its SHA-256 hash, so a leaked table can't be replayed as a login.
+CREATE TABLE sessions (
+  token_hash TEXT PRIMARY KEY,         -- SHA-256 hex of the cookie token
+  user_id TEXT NOT NULL REFERENCES users(id),
+  created_at INTEGER NOT NULL,         -- unix timestamp
+  expires_at INTEGER NOT NULL          -- unix timestamp, 30 days out
 );
 
 -- One row per completed assessment. Separate from `users` on purpose:
@@ -49,6 +64,11 @@ CREATE TABLE results (
                                         -- a Stripe payment. Promo and a paid Full both set
                                         -- full_purchased=1 / shadow_unlocked=1, so this flag
                                         -- is the only thing that tells them apart in stats.
+  stripe_customer_id TEXT,             -- the Stripe customer that paid the $29 (webhook stamps it);
+                                        -- reused by the Mira interstitial to start a trial on the same card
+  companion_active INTEGER NOT NULL DEFAULT 0, -- Mira decision made at the post-purchase interstitial,
+  companion_tier TEXT,                 -- before an account may exist. Propagated onto the user row
+  subscription_id TEXT,                -- the moment the result is linked (email save / login).
   created_at INTEGER NOT NULL
 );
 
@@ -93,3 +113,5 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_results_user_id ON results(user_id);
 CREATE INDEX idx_magic_links_user_id ON magic_links(user_id);
 CREATE INDEX idx_codes_source ON codes(source);
+CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX idx_sessions_expires ON sessions(expires_at);

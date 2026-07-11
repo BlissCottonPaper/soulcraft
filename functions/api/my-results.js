@@ -14,28 +14,38 @@
 // an upgrade of an earlier one.
 // ============================================================
 
+import { getSessionUser } from "./_auth.js";
+
 export async function onRequestGet({ request, env }) {
   try {
     const url = new URL(request.url);
     const token = url.searchParams.get("token");
 
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Missing token" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Two ways to prove who's asking:
+    //   1) a magic-link token (email retrieval, no account needed), or
+    //   2) a logged-in session cookie (the account page's "View Your Mandala").
+    let userId = null;
+    if (token) {
+      const now = Math.floor(Date.now() / 1000);
+      const linkRow = await env.DB
+        .prepare("SELECT * FROM magic_links WHERE token = ?")
+        .bind(token)
+        .first();
+      if (!linkRow || linkRow.expires_at < now) {
+        return new Response(JSON.stringify({ error: "Invalid or expired link" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      userId = linkRow.user_id;
+    } else {
+      const sessionUser = await getSessionUser(request, env);
+      if (sessionUser) userId = sessionUser.id;
     }
 
-    const now = Math.floor(Date.now() / 1000);
-
-    const linkRow = await env.DB
-      .prepare("SELECT * FROM magic_links WHERE token = ?")
-      .bind(token)
-      .first();
-
-    if (!linkRow || linkRow.expires_at < now) {
-      return new Response(JSON.stringify({ error: "Invalid or expired link" }), {
-        status: 401,
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Missing token" }), {
+        status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -43,10 +53,11 @@ export async function onRequestGet({ request, env }) {
     // Every result ever saved under this user — every Free attempt,
     // every Triad, every Full, every upgrade — oldest first, so a
     // future "you six months ago vs. you today" view can just take
-    // the first and last entries.
+    // the first and last entries. Skip placeholder rows a paid gate
+    // left behind before the assessment was answered.
     const { results: rows } = await env.DB
-      .prepare("SELECT * FROM results WHERE user_id = ? ORDER BY created_at ASC")
-      .bind(linkRow.user_id)
+      .prepare("SELECT * FROM results WHERE user_id = ? AND archetype_scores <> '{}' AND archetype_scores <> '' ORDER BY created_at ASC")
+      .bind(userId)
       .all();
 
     const history = rows.map((r) => ({

@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#171230" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
 <title>The Art of Soulcraft</title>
 <meta name="description" content="You are not one of twelve types — you are all twelve, some louder than others. Discover your Mandala: the archetypal voices that drive you." />
 <meta property="og:type" content="website" />
@@ -363,6 +366,15 @@ function Radar({ scores, size, forPrint }) {
 // Case copy for a uniformly loud or uniformly quiet profile (all four raw 3-4, or all 1-2).
 const ALL_LOUD_COPY = "You move fluidly between all four temperaments. Integration, not dominance, is your signature — you adapt how you show up to what the moment actually needs. Your intentional practice is developing the discipline to choose deliberately rather than flow automatically.";
 const ALL_QUIET_COPY = "All four temperaments are available to you as growth edges — none dominates yet, which means you have significant untapped range across all four. Each one is an invitation.";
+// The five integration questions — shown on the results page and the print report
+// (and mirrored in the emailed report). Return to them weekly, not once.
+const INTEGRATION_QUESTIONS = [
+    "Where are you on the Bandwidth scale right now — not in general, but this week?",
+    "Which shadow archetype are you most triggered by in others right now? That's where the energy is.",
+    "What's one practice you'll do this week — specifically the most uncomfortable one?",
+    "Who in your life embodies your growth edge? What do you feel around them?",
+    "Which Core Human Need is most depleted right now? What's one concrete action?",
+];
 // The archetype × temperament prose (The 48 + Crossing Practices) lives in
 // /assets/temperament-prose.js as the global TEMPERAMENT_PROSE, shared with the
 // Explore pages. For one archetype, return EVERY answered temperament (loudest first):
@@ -472,7 +484,7 @@ function TwelveWithin() {
             setScreen("checkout");
         }
     };
-    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); setPickList(null); setShadowUnlocked(false); setUnlocking(false); setUnlockError(""); setPurchaseIntent(null); setPromoError(""); setPromoCode(""); };
+    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); setPickList(null); setShadowUnlocked(false); setUnlocking(false); setUnlockError(""); setPurchaseIntent(null); setPromoError(""); setPromoCode(""); setPaidFull(false); setMiraDone(false); setMiraBusy(false); setMiraError(""); setMiraActivated(null); };
     // The payment gate now runs BEFORE the assessment (paid tiers pay at the gate,
     // then answer questions), so finishing the assessment always lands on results.
     const nextAfterAssessment = () => "results";
@@ -570,6 +582,16 @@ function TwelveWithin() {
     const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
     const [emailInput, setEmailInput] = useState("");
     const [emailSent, setEmailSent] = useState(false);
+    // --- Mira post-purchase interstitial (Task 4) ---
+    // Only after a real $29 payment (never promo/free/restored/sample). paidFull
+    // is set on the Stripe payment-success return. The interstitial gates the
+    // results view once; miraDone dismisses it (either a chosen tier or "just the
+    // profile"), after which the results render normally.
+    const [paidFull, setPaidFull] = useState(false);
+    const [miraDone, setMiraDone] = useState(false);
+    const [miraBusy, setMiraBusy] = useState(false);
+    const [miraError, setMiraError] = useState("");
+    const [miraActivated, setMiraActivated] = useState(null); // null | 'tier' | 'skipped'
 
     useEffect(() => {
         // Save the moment results are shown. The payment gate already ran before the
@@ -751,6 +773,35 @@ function TwelveWithin() {
     };
     // The upfront checkout gate: buy the $29 Full reading BEFORE the assessment.
     const startCheckout = () => goToCheckout("full");
+
+    // --- Mira post-purchase interstitial handlers (Task 4) ---
+    // A paid tier starts a 30-day free trial on the card already used for the $29,
+    // via /api/create-subscription (which reuses the saved Stripe customer/card).
+    // "Just the profile" leaves companion_active = 0. Either way, continueToResults
+    // dismisses the interstitial and reveals the reading.
+    const chooseMiraTier = async (miraTier) => {
+        if (!savedResultId) { setMiraError("Something went wrong — you can activate Mira from your account anytime."); return; }
+        setMiraBusy(true); setMiraError("");
+        try {
+            const res = await fetch("/api/create-subscription", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({ result_id: savedResultId, tier: miraTier }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.ok) {
+                setMiraActivated("tier");
+            } else {
+                setMiraError((data && data.error) || "We couldn't start your Mira trial. You can activate it from your account anytime.");
+            }
+        } catch (e) {
+            setMiraError("We couldn't reach the server. You can activate Mira from your account anytime.");
+        }
+        setMiraBusy(false);
+    };
+    const skipMira = () => { setMiraActivated("skipped"); };
+    const continueToResults = () => { setMiraDone(true); };
     // Customer-facing promo code (entered at the gate): a valid code (validated
     // server-side against PROMO_CODES — never listed client-side) grants full access
     // for free, bypassing Stripe, then begins the assessment.
@@ -851,6 +902,7 @@ function TwelveWithin() {
         const t = normTier(snap && snap.tier);
         setTier(t); setMode(TIERS[t].pairMode);
         setPurchaseIntent("full");
+        setPaidFull(true); // a real $29 payment → the Mira interstitial is offered at results
         setSavedResultId(resultId);
         setShadowUnlocked(true); // Full includes the Shadow Mandala
         beginAssessment();
@@ -952,6 +1004,40 @@ function TwelveWithin() {
         try { window.history.replaceState({}, "", "/"); } catch (e) {}
     }, []);
 
+    // --- View my Mandala (Task 3): the account page links here for a logged-in
+    // owner. /api/my-results authenticates via the session cookie (no token) and
+    // returns their whole saved history — restore one, or offer a picker. Runs
+    // once. ---
+    useEffect(() => {
+        let params;
+        try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+        if (params.get("view") !== "mine") return;
+        const clearUrl = () => { try { window.history.replaceState({}, "", "/"); } catch (e) {} };
+        setVerifyStatus("verifying");
+        fetch("/api/my-results", { credentials: "same-origin" })
+            .then(async (res) => {
+                let data = {};
+                try { data = await res.json(); } catch (e) {}
+                const hist = (data && data.history) || [];
+                if (res.ok && hist.length === 1) {
+                    restoreOne(hist[0]);
+                } else if (res.ok && hist.length > 1) {
+                    setPickList(hist);
+                    setVerifyStatus("ok");
+                    setScreen("pick-results");
+                } else if (res.status === 400 || res.status === 401) {
+                    // Not logged in (session gone) → send them to log in.
+                    try { window.location.replace("/login/?next=/account/"); } catch (e) { setScreen("intro"); }
+                    return;
+                } else {
+                    setVerifyStatus("ok");
+                    setScreen("intro");
+                }
+                clearUrl();
+            })
+            .catch(() => { setVerifyStatus("ok"); setScreen("intro"); clearUrl(); });
+    }, []);
+
     const maxScore = Math.max(...ranked.map((r) => r.score), 1);
     const hourOf = (r) => (r.i === 0 ? 12 : r.i);
     const timeSig = ranked.length ? `${hourOf(ranked[0])}:${String(ranked[1].i * 5).padStart(2, "0")}` : "";
@@ -972,6 +1058,9 @@ function TwelveWithin() {
     // reading (the $29 Full always includes it) and the sample — never on Free.
     const showShadow = tier === "full" && shadowUnlocked && ranked.length >= 12;
     const shadowThree = ranked.length >= 12 ? [ranked[11], ranked[10], ranked[9]] : [];
+    // Show the Mira interstitial once, at the top of the results, only for a real
+    // $29 purchase (Task 4). It gates the reading behind the companion offer.
+    const showMiraOffer = paidFull && !isSample && !restored && !miraDone && screen === "results";
     const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
     const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
     const sans = { fontFamily: "'Source Sans 3', system-ui, sans-serif" };
@@ -1163,7 +1252,38 @@ function TwelveWithin() {
                         promoError && React.createElement("p", { className: "text-xs text-violet-300/70 mt-2", style: sans }, promoError)),
                     React.createElement("button", { onClick: restart, className: "block mx-auto mt-8 text-violet-300/50 hover:text-amber-100 text-sm underline underline-offset-4", style: sans }, "Start over"));
             })(),
-            screen === "results" && (React.createElement("div", null,
+            // ═══ Mira post-purchase interstitial (Task 4) — shown once, before the
+            // reading, only after a real $29 payment. Both a chosen tier and "just the
+            // profile" lead to continueToResults, which reveals the Mandala below. ═══
+            showMiraOffer && (() => {
+                if (miraActivated) {
+                    const msg = miraActivated === "tier"
+                        ? "Mira activated — you'll be reminded before your trial ends."
+                        : "You can activate Mira anytime from your account.";
+                    return React.createElement("div", { className: "text-center max-w-md mx-auto py-12" },
+                        React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-4", style: sans }, "YOUR RESULTS ARE READY"),
+                        React.createElement("p", { className: "text-violet-100 text-xl leading-relaxed mb-8", style: serif }, msg),
+                        React.createElement("button", { onClick: continueToResults, className: "rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors", style: sans }, "See Your Mandala →"));
+                }
+                const cards = [
+                    { tier: "monthly", name: "Monthly", price: "$8/month", note: "after your free month", save: null },
+                    { tier: "quarterly", name: "Quarterly", price: "$21/quarter", note: "after your free month", save: "save 12%" },
+                    { tier: "yearly", name: "Yearly", price: "$72/year", note: "after your free month", save: "save 25%" },
+                ];
+                return React.createElement("div", { className: "max-w-xl mx-auto py-8" },
+                    React.createElement("h2", { className: "text-4xl text-center mb-3", style: serif }, "Your results are ready."),
+                    React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed text-center mb-8", style: sans }, "Your $29 includes one free month of Mira — a mirror that reflects what you're not looking at, using your own twelve voices as the lens. Choose how you'd like to continue after your free month."),
+                    React.createElement("div", { className: "space-y-3 mb-5" }, cards.map((c) =>
+                        React.createElement("button", { key: c.tier, disabled: miraBusy, onClick: () => chooseMiraTier(c.tier), className: "w-full text-left rounded-2xl border border-violet-300/25 hover:border-amber-200/60 px-5 py-4 transition-colors disabled:opacity-60 flex items-center justify-between gap-4", style: { background: "rgba(255,250,240,0.03)" } },
+                            React.createElement("span", null,
+                                React.createElement("span", { className: "block text-xl", style: serif }, c.name, c.save ? React.createElement("span", { className: "text-amber-200/80 text-sm ml-2", style: sans }, "· " + c.save) : null),
+                                React.createElement("span", { className: "block text-violet-300/70 text-sm", style: sans }, c.note)),
+                            React.createElement("span", { className: "text-2xl shrink-0", style: serif }, c.price)))),
+                    miraError && React.createElement("p", { className: "text-sm text-violet-300/80 text-center mb-4", style: sans }, miraError),
+                    React.createElement("button", { onClick: skipMira, disabled: miraBusy, className: "block w-full text-center rounded-xl px-5 py-3 border border-violet-300/20 text-violet-200/75 hover:text-amber-100 hover:border-amber-200/40 transition-colors disabled:opacity-60", style: sans }, "Just the profile for now"),
+                    miraBusy && React.createElement("p", { className: "text-center text-violet-300/60 text-sm mt-4", style: sans }, "Setting up your free month…"));
+            })(),
+            screen === "results" && !showMiraOffer && (React.createElement("div", null,
                 // Light mandala section header — a named entry point mirroring the shadow
                 // section (gold rule + eyebrow + serif). The #your-mandala anchor lives
                 // here so a toggle lands above the whole title sequence.
@@ -1201,24 +1321,20 @@ function TwelveWithin() {
                             React.createElement("path", { d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" })))),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
 // ===== PRINT PAGE 1 - Your Mandala =====
-                    React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px", boxSizing: "border-box" } },
-                        React.createElement("div", { className: "flex justify-between items-baseline mb-8" },
+                    React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "18px 20px", boxSizing: "border-box" } },
+                        React.createElement("div", { className: "flex justify-between items-baseline mb-5" },
                             React.createElement("span", { className: "text-[10px] tracking-[0.25em]", style: sans }, isSample ? "SAMPLE MANDALA" : "YOUR MANDALA"),
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
                         React.createElement("h1", { className: "text-4xl text-center mb-1", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" · ")),
-                        React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
-                            React.createElement("div", { id: "png-mandala-light", style: { width: "5.6in", maxWidth: "100%" } },
+                        React.createElement("div", { className: "flex justify-center mb-2", style: { width: "100%" } },
+                            React.createElement("div", { id: "png-mandala-light", style: { width: "5.2in", maxWidth: "100%" } },
                                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true }))),
-                        React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "Until the unconscious becomes conscious, it will direct your life — and you'll call it fate.")),
-
-                    // ===== PRINT PAGE 2 - Top Three + Blends + Edges =====
-                    TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
-                        // Compact definitions key — a quick reference for the terms used
-                        // throughout the deep sections that follow. Subtle divider above,
-                        // two columns, small text.
-                        React.createElement("div", { style: { borderTop: "2px solid #ddd", paddingTop: "10px", marginBottom: "22px", pageBreakInside: "avoid" } },
-                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: { ...sans, color: "#6b6580" } }, "KEY TO YOUR REPORT"),
-                            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 22px" } },
+                        React.createElement("p", { className: "text-center text-xs italic mb-1", style: serif }, "Until the unconscious becomes conscious, it will direct your life — and you'll call it fate."),
+                        // KEY TO YOUR REPORT — below the Mandala on page 1 (moved from page 2),
+                        // tightened so page 1 still fits on a single sheet.
+                        React.createElement("div", { style: { borderTop: "1px solid #ddd", paddingTop: "8px", marginTop: "12px", pageBreakInside: "avoid" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1.5", style: { ...sans, color: "#6b6580" } }, "KEY TO YOUR REPORT"),
+                            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px 22px" } },
                                 [
                                     ["Mandala", "Your map of all twelve archetypal voices — which speak loudest, which are quietest, and how they relate."],
                                     ["Bandwidth", "How much of yourself you have available right now — from contracted and fear-driven to expansive and in service of others."],
@@ -1227,9 +1343,13 @@ function TwelveWithin() {
                                     ["Temperament", "Your first natural impulse — Heart, Mind, Body, or Soul."],
                                     ["Pairings", "The named pattern that emerges when two of your archetypes combine."],
                                     ["Shadow", "The disowned parts of you — usually your quietest voices — that surface as strong reactions to others."],
-                                ].map(([term, def]) => React.createElement("p", { key: term, style: { ...sans, fontSize: "10.5px", lineHeight: "1.35", color: "#4a4560", marginBottom: "4px" } },
-                                    React.createElement("span", { style: { fontWeight: 700, color: "#2a2340" } }, term + ": "), def)))),
-                        TIERS[tier].topCount >= 3 && React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "32px" } },
+                                ].map(([term, def]) => React.createElement("p", { key: term, style: { ...sans, fontSize: "9.5px", lineHeight: "1.3", color: "#4a4560", marginBottom: "3px" } },
+                                    React.createElement("span", { style: { fontWeight: 700, color: "#2a2340" } }, term + ": "), def))))),
+
+                    // ===== PRINT PAGE 2 - Top Three + Blends + Edges =====
+                    TIERS[tier].showBlends && React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "24px", boxSizing: "border-box" } },
+                        // (KEY TO YOUR REPORT moved to page 1, below the Mandala.)
+                        TIERS[tier].topCount >= 3 && React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "18px" } },
                             React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR LOUDEST VOICES, IN DEPTH"),
                             React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" } },
                                 ranked.slice(0, 3).map((r, n) => {
@@ -1240,6 +1360,19 @@ function TwelveWithin() {
                                         React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "11.5px", fontStyle: "italic", color: `hsl(${hue},35%,46%)`, marginBottom: "5px" } }, longsPhrase(r)),
                                         React.createElement("div", null, [4, 3, 2, 1, 0].map((st) => React.createElement("p", { key: st, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "12.5px", lineHeight: "1.3", color: st === 2 ? `hsl(${hue},60%,32%)` : `hsl(${hue},30%,52%)`, fontWeight: st === 2 ? "700" : "400", marginBottom: "1px" } }, r.stages[st]))));
                                 }))),
+                        // Bandwidth stage reference — the five expressions every archetype moves
+                        // through, from selfless to selfish. Placed right after the loudest-voices
+                        // cards (whose ladders use these very stages).
+                        React.createElement("div", { style: { pageBreakInside: "avoid", marginBottom: "18px" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "THE BANDWIDTH STAGES"),
+                            [
+                                ["Transcendent", "The ego becomes transparent. Energy flows outward freely from abundance, in service of others or the whole."],
+                                ["Ascended", "The ego is a tool, not a master. Increasingly conscious, choosing rather than reacting, operating from growing abundance."],
+                                ["Base", "The default gear. The ego runs largely on autopilot. Where conscious work begins."],
+                                ["Descended", "The ego defending its story. Fear has bent the gift. The longing is still there but anxious and grasping."],
+                                ["Devolved", "The ego fully in control, driving the life unconsciously. All energy goes toward ego protection. The original gift is unrecognizable."],
+                            ].map(([term, def]) => React.createElement("p", { key: term, style: { ...sans, fontSize: "11px", lineHeight: "1.35", color: "#4a4560", marginBottom: "3px" } },
+                                React.createElement("span", { style: { fontWeight: 700, color: "#2a2340" } }, term + " — "), def))),
                         React.createElement("p", { className: "text-[10px] tracking-[0.25em]", style: sans }, "YOUR PAIRINGS"),
                         React.createElement("h3", { className: "text-xl mb-3", style: { ...serif, color: "#2a2340" } }, "Your Archetypal Pairings"),
                         [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
@@ -1346,7 +1479,16 @@ function TwelveWithin() {
                             React.createElement("span", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", width: "94px", fontSize: "12px", fontWeight: "600", color: `hsl(${HUE(r.i)},55%,40%)`, flexShrink: 0 } }, r.name),
                             React.createElement("div", { style: { flex: "1 1 0%", height: "9px", borderRadius: "5px", background: "#eee", overflow: "hidden" } },
                                 React.createElement("div", { style: { height: "100%", borderRadius: "5px", width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},60%,52%)` } })))),
-                        React.createElement("p", { className: "text-center text-xs italic mt-6", style: { ...serif, color: "#8a86a0" } }, "Generated __PRINTDATE__ · artofsoulcraft.com"))),
+                        React.createElement("p", { className: "text-center text-xs italic mt-6", style: { ...serif, color: "#8a86a0" } }, "Generated __PRINTDATE__ · artofsoulcraft.com")),
+                    // ===== PRINT PAGE - Five Questions for Integration =====
+                    React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "44px 24px 24px", boxSizing: "border-box" } },
+                        React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-1", style: sans }, "FOR INTEGRATION"),
+                        React.createElement("h2", { className: "text-2xl mb-1", style: serif }, "Five Questions"),
+                        React.createElement("p", { className: "text-xs mb-5", style: { ...sans, color: "#6b6580", lineHeight: "1.4" } }, "Return to these weekly — not once. The value compounds over time. Don't answer all five at once; one is enough. The point isn't completion, it's contact."),
+                        INTEGRATION_QUESTIONS.map((q, i) => React.createElement("div", { key: i, style: { display: "flex", gap: "12px", marginBottom: "14px", pageBreakInside: "avoid" } },
+                            React.createElement("span", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.5rem", color: "#9a7a1e", width: "22px", flexShrink: 0, lineHeight: "1.2" } }, (i + 1) + "."),
+                            React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "13.5px", lineHeight: "1.5", color: "#2a2340" } }, q))),
+                        React.createElement("p", { className: "text-center text-xs italic mt-8", style: { ...serif, color: "#8a86a0" } }, "For reflection and action, never prediction. — The Art of Soulcraft"))),
                 // \u2550\u2550 SECTION \u2014 Your Pattern: your top three, in depth (altitude ladders) \u2550\u2550
                 sectionHeader("Your Loudest Voices", "IN DEPTH"),
                 ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
@@ -1494,6 +1636,15 @@ function TwelveWithin() {
                 // (The $15 shadow add-on and its promo field are retired: Full ($29)
                 // now includes the Shadow Mandala, and the promo code is entered at the
                 // pre-assessment gate.)
+
+                // ══ SECTION — Five Questions for Integration (all tiers) ══
+                sectionHeader("Five Questions", "FOR INTEGRATION"),
+                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-6 mb-8", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[14px] text-violet-200/80 mb-5 leading-relaxed", style: sans }, "Return to these weekly — not once. The value compounds over time. Don't answer all five at once; one is enough. The point isn't completion, it's contact."),
+                    React.createElement("ol", { className: "space-y-4" }, INTEGRATION_QUESTIONS.map((q, i) => React.createElement("li", { key: i, className: "flex gap-3.5" },
+                        React.createElement("span", { className: "text-2xl leading-none w-6 shrink-0 text-right text-amber-200/80", style: serif }, i + 1),
+                        React.createElement("span", { className: "text-[15px] text-violet-100 leading-relaxed", style: sans }, q)))),
+                    React.createElement("p", { className: "text-center text-violet-300/55 text-sm italic mt-6", style: serif }, "For reflection and action, never prediction. — The Art of Soulcraft")),
 
                 React.createElement("div", { className: "grid gap-3" },
                     React.createElement(Btn, { primary: true, onClick: () => {

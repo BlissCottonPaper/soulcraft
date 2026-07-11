@@ -62,6 +62,14 @@ export async function onRequestPost({ request, env }) {
     // Mirror the metadata onto the PaymentIntent too, so it's queryable from either object.
     form.set("payment_intent_data[metadata][result_id]", resultId);
     form.set("payment_intent_data[metadata][purchase_type]", purchaseType);
+    // Create a Customer for the payment and SAVE the card off-session, so the
+    // post-purchase Mira interstitial can start a trialing subscription on the
+    // very same card without asking for it again (see create-subscription.js).
+    // Only the $29 Full flows into Mira; Compatibility has no companion offer.
+    if (purchaseType === "full") {
+      form.set("customer_creation", "always");
+      form.set("payment_intent_data[setup_future_usage]", "off_session");
+    }
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",

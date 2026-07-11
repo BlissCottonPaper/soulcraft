@@ -96,12 +96,19 @@ export async function onRequestPost({ request, env }) {
         // fills in, and never clobber real data when the row already exists.
         const now = Math.floor(Date.now() / 1000);
         if (purchaseType === "full") {
+          // Capture the Stripe customer id created for this payment (customer_creation
+          // = always). The post-purchase Mira interstitial reuses it — and the saved
+          // card — to open a trialing subscription (create-subscription.js).
+          const customerId = typeof session.customer === "string" ? session.customer : (session.customer && session.customer.id) || null;
           await env.DB.prepare(
             `INSERT INTO results
-               (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, created_at)
-             VALUES (?, 'full', 'quick', '{}', '{}', 0, 1, 1, ?)
-             ON CONFLICT(id) DO UPDATE SET full_purchased = 1, shadow_unlocked = 1`
-          ).bind(resultId, now).run();
+               (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, stripe_customer_id, created_at)
+             VALUES (?, 'full', 'quick', '{}', '{}', 0, 1, 1, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET
+               full_purchased = 1,
+               shadow_unlocked = 1,
+               stripe_customer_id = COALESCE(excluded.stripe_customer_id, results.stripe_customer_id)`
+          ).bind(resultId, customerId, now).run();
         }
         // 'compatibility' (invite flow TBD) intentionally sets no flags here.
       } catch (e) {
