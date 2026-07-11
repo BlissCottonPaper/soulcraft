@@ -80,11 +80,10 @@ Set these in the Pages project's **Settings → Environment variables** (and the
 | `RESEND_API_KEY` | Resend API key used to send the magic-link / results emails. |
 | `STRIPE_SECRET_KEY` | Stripe secret key (`sk_…`) used server-side to create Checkout sessions. |
 | `STRIPE_WEBHOOK_SECRET` | Stripe signing secret (`whsec_…`) used to verify webhook signatures in `stripe-webhook.js`. |
-| `STRIPE_PRICE_MANDALA` | Stripe Price ID for **Your Mandala** ($19). |
-| `STRIPE_PRICE_SHADOW` | Stripe Price ID for the **Shadow Mandala** add-on ($15). |
-| `STRIPE_PRICE_FULL` | Stripe Price ID for the **Full** upfront bundle ($34). |
-| `STRIPE_PRICE_COMPATIBILITY` | Stripe Price ID for the **Mandala Compatibility Report** ($19). Product is wired for checkout; the invite flow isn't built yet. |
+| `STRIPE_PRICE_FULL` | Stripe Price ID for the **Full** reading ($29) — the single paid tier (Your Mandala + the Shadow Mandala), paid at the upfront gate. |
+| `STRIPE_PRICE_COMPATIBILITY` | Stripe Price ID for the **Mandala Compatibility Report**. Product is wired for checkout; the invite flow isn't built yet. |
 | `PROMO_CODES` | Comma-separated list of free-access promo codes (matched case-insensitively). A valid code, redeemed via `/api/redeem-promo`, grants full access — it stamps `full_purchased` and `shadow_unlocked` on the results row and bypasses Stripe entirely. Validated server-side only; the list is never sent to the client. |
+| `ADMIN_KEY` | Secret key guarding the private stats endpoint `/api/admin/stats`. Requests must send it in the `X-Admin-Key` header; a missing or wrong value returns `401`. Read server-side only. |
 
 ---
 

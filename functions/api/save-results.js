@@ -12,6 +12,8 @@
 // bindings). This file assumes a binding named DB.
 // ============================================================
 
+import { buildReportEmail } from "./_report-email.js";
+
 function uuid() {
   // Cloudflare Workers runtime has crypto.randomUUID() built in natively —
   // no library needed.
@@ -42,6 +44,7 @@ export async function onRequestPost({ request, env }) {
       redeemCode,         // optional — a code from the `codes` table, if this came via a partner gift
       upgradeFromId,      // optional — set when this save is an upgrade of an earlier result, not a fresh retake
       claimResultId,      // optional — set to attach an email to an already-saved (anonymous) result
+      report,             // optional — computed reading content for the emailed report (Email 2)
     } = body;
 
     const now = Math.floor(Date.now() / 1000);
@@ -106,12 +109,28 @@ export async function onRequestPost({ request, env }) {
         finalTier = codeRow.grants_tier;
       }
 
-      resultId = uuid();
+      // With the payment gate now BEFORE the assessment (Task 1), paid tiers
+      // pre-generate the result id at the gate and the webhook/promo materialize a
+      // placeholder row (empty scores + paid flags) before the questions are even
+      // answered. So honor a client-supplied resultId and UPSERT the scores onto
+      // that row — never clobbering the paid flags (full_purchased / shadow_unlocked
+      // / promo_redeemed, which this statement doesn't touch). A free tier sends no
+      // resultId, so we mint one and this is a plain insert.
+      const providedId = typeof body.resultId === "string" && body.resultId ? body.resultId : null;
+      resultId = providedId || uuid();
       await env.DB
         .prepare(
           `INSERT INTO results
            (id, user_id, tier, mode, archetype_scores, channel_scores, descriptor_picks, is_public, upgraded_from_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
+           VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+             user_id = COALESCE(excluded.user_id, results.user_id),
+             tier = excluded.tier,
+             mode = excluded.mode,
+             archetype_scores = excluded.archetype_scores,
+             channel_scores = excluded.channel_scores,
+             descriptor_picks = excluded.descriptor_picks,
+             upgraded_from_id = COALESCE(excluded.upgraded_from_id, results.upgraded_from_id)`
         )
         .bind(
           resultId,
@@ -170,6 +189,31 @@ export async function onRequestPost({ request, env }) {
           magicLinkSent = emailRes.ok;
         } catch (e) {
           magicLinkSent = false;
+        }
+
+        // --- Email 2: the full report (Task 2) ---
+        // Sent alongside the magic link whenever the client supplies the computed
+        // reading. Delivered as a clean, self-contained HTML email rather than a
+        // PDF attachment — see _report-email.js for why the edge runtime can't
+        // faithfully render the print layout to PDF. A failure here never blocks
+        // the magic link; it's best-effort.
+        if (report && typeof report === "object") {
+          try {
+            const { subject, html, text } = buildReportEmail(report, email.trim());
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                from: "The Art of Soulcraft <hello@artofsoulcraft.com>",
+                to: [email.trim()],
+                subject,
+                html,
+                text,
+              }),
+            });
+          } catch (e) {
+            // best-effort — swallow so the primary response still succeeds
+          }
         }
       }
     }

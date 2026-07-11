@@ -1,26 +1,25 @@
 // ============================================================
 // /functions/api/create-checkout.js
 // ============================================================
-// Creates a Stripe *hosted* Checkout session (redirect flow) for one of the
-// three one-time purchases and hands the browser back a { url } to send the
-// visitor to. No Stripe keys or price IDs ever reach the client — everything
-// lives in Cloudflare Pages env vars and this function talks to Stripe.
+// Creates a Stripe *hosted* Checkout session (redirect flow) and hands the
+// browser back a { url } to send the visitor to. No Stripe keys or price IDs
+// ever reach the client — everything lives in Cloudflare Pages env vars and
+// this function talks to Stripe.
 //
 //   purchase_type  price env var               what it buys
 //   ------------   ------------------------     --------------------------------
-//   mandala        STRIPE_PRICE_MANDALA         Your Mandala — $19
-//   shadow         STRIPE_PRICE_SHADOW          Shadow Mandala add-on — $15
-//   full           STRIPE_PRICE_FULL            Full (both mandalas) upfront — $34
-//   compatibility  STRIPE_PRICE_COMPATIBILITY   Mandala Compatibility Report — $19
+//   full           STRIPE_PRICE_FULL            Full reading (both mandalas) — $29
+//   compatibility  STRIPE_PRICE_COMPATIBILITY   Mandala Compatibility Report
 //                                               (product wired; invite flow not built yet)
+//
+// The old $19 Mandala and $15 Shadow add-on products are retired — Full ($29)
+// is now the single paid reading and includes the Shadow Mandala.
 //
 // result_id and purchase_type ride along as Stripe metadata so the webhook
 // (stripe-webhook.js) can stamp the right flags on the results row after payment.
 // ============================================================
 
 const PRICE_ENV = {
-  mandala: "STRIPE_PRICE_MANDALA",
-  shadow: "STRIPE_PRICE_SHADOW",
   full: "STRIPE_PRICE_FULL",
   compatibility: "STRIPE_PRICE_COMPATIBILITY",
 };
@@ -39,7 +38,7 @@ export async function onRequestPost({ request, env }) {
       return json({ error: "Missing result_id." }, 400);
     }
     if (!PRICE_ENV[purchaseType]) {
-      return json({ error: "Invalid purchase_type (expected 'mandala', 'shadow', 'full', or 'compatibility')." }, 400);
+      return json({ error: "Invalid purchase_type (expected 'full' or 'compatibility')." }, 400);
     }
     if (!env.STRIPE_SECRET_KEY) {
       return json({ error: "Checkout isn't available yet — payment isn't configured." }, 503);

@@ -8,11 +8,10 @@
 // Register this endpoint in the Stripe dashboard:
 //   https://artofsoulcraft.com/api/stripe-webhook   (event: checkout.session.completed)
 //
-// Mapping (per spec):
-//   purchase_type 'mandala'       -> no D1 flag change (save-results already stored
-//                                    the reading; the $19 buys the reading itself)
-//   purchase_type 'shadow'        -> shadow_unlocked = 1
+// Mapping:
 //   purchase_type 'full'          -> full_purchased = 1 AND shadow_unlocked = 1
+//                                    (the $29 Full is the only paid reading; it
+//                                    includes the Shadow Mandala)
 //   purchase_type 'compatibility' -> no D1 flag change yet (product wired; the
 //                                    Compatibility invite flow isn't built)
 //
@@ -91,13 +90,20 @@ export async function onRequestPost({ request, env }) {
 
     if (resultId && env.DB) {
       try {
+        // UPSERT, not UPDATE: the payment gate now runs BEFORE the assessment, so
+        // a paid result_id can arrive here before save-results has written any
+        // scores. We seed a placeholder row (empty scores) the assessment later
+        // fills in, and never clobber real data when the row already exists.
+        const now = Math.floor(Date.now() / 1000);
         if (purchaseType === "full") {
-          await env.DB.prepare("UPDATE results SET full_purchased = 1, shadow_unlocked = 1 WHERE id = ?").bind(resultId).run();
-        } else if (purchaseType === "shadow") {
-          await env.DB.prepare("UPDATE results SET shadow_unlocked = 1 WHERE id = ?").bind(resultId).run();
+          await env.DB.prepare(
+            `INSERT INTO results
+               (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, created_at)
+             VALUES (?, 'full', 'quick', '{}', '{}', 0, 1, 1, ?)
+             ON CONFLICT(id) DO UPDATE SET full_purchased = 1, shadow_unlocked = 1`
+          ).bind(resultId, now).run();
         }
-        // 'mandala' ($19 Your Mandala) and 'compatibility' ($19, invite flow TBD)
-        // intentionally set no flags here — acknowledged and ignored.
+        // 'compatibility' (invite flow TBD) intentionally sets no flags here.
       } catch (e) {
         // Log-and-500 so Stripe retries the webhook rather than dropping the payment.
         return new Response(JSON.stringify({ error: "Database update failed", detail: e.message }), {

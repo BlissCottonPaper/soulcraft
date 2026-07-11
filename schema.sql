@@ -44,6 +44,11 @@ CREATE TABLE results (
   full_purchased INTEGER NOT NULL DEFAULT 0,   -- 1 when this reading was bought as the $34
                                         -- Full (both mandalas) upfront, vs Your Mandala
                                         -- ($19) with the shadow unlocked later.
+  promo_redeemed INTEGER NOT NULL DEFAULT 0,   -- 1 when full access was granted by a free
+                                        -- PROMO_CODES redemption (e.g. WHITEDOT) rather than
+                                        -- a Stripe payment. Promo and a paid Full both set
+                                        -- full_purchased=1 / shadow_unlocked=1, so this flag
+                                        -- is the only thing that tells them apart in stats.
   created_at INTEGER NOT NULL
 );
 

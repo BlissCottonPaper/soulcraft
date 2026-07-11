@@ -55,10 +55,23 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: "Free access isn't available right now — please try checkout." }, 500);
     }
 
-    // Same write a completed Full purchase performs via the Stripe webhook.
+    // Same access a completed Full purchase grants, plus promo_redeemed=1 so the
+    // admin stats can tell a free redemption apart from a paid Full (both set the
+    // same two flags). UPSERT rather than UPDATE: with the gate now BEFORE the
+    // assessment, the code can be redeemed before save-results has written any
+    // scores, so the row may not exist yet. We seed a placeholder row (empty
+    // scores) that save-results later fills in, and never clobber real data if
+    // the row already exists.
+    const now = Math.floor(Date.now() / 1000);
     await env.DB
-      .prepare("UPDATE results SET full_purchased = 1, shadow_unlocked = 1 WHERE id = ?")
-      .bind(resultId)
+      .prepare(
+        `INSERT INTO results
+           (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, promo_redeemed, created_at)
+         VALUES (?, 'full', 'quick', '{}', '{}', 0, 1, 1, 1, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           full_purchased = 1, shadow_unlocked = 1, promo_redeemed = 1`
+      )
+      .bind(resultId, now)
       .run();
 
     return json({ ok: true, full_purchased: true, shadow_unlocked: true });
