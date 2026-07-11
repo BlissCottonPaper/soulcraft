@@ -113,9 +113,25 @@ function sectionLabel(t) {
   return '<p style="font:700 10px/1.4 Arial,sans-serif;letter-spacing:.25em;color:#9a94aa;text-transform:uppercase;margin:26px 0 8px">' + esc(t) + "</p>";
 }
 
+// A centered inline image (the rasterized Mandala PNG). `cid` is the Content-ID
+// of a Resend inline attachment; we reference it with src="cid:…" so the image
+// renders in every client (including Gmail, which blocks data: URIs).
+function mandalaImg(cid, alt) {
+  if (!cid) return "";
+  return (
+    '<div style="text-align:center;margin:18px 0 6px">' +
+    '<img src="cid:' + cid + '" alt="' + esc(alt) + '" width="320" ' +
+    'style="width:100%;max-width:320px;height:auto;display:inline-block" />' +
+    "</div>"
+  );
+}
+
 // report = { name, loud[], pairings[], temperament{items,note}, shadow{three,pairings}|null }
-export function buildReportEmail(report, email) {
+// images = { mandala: cid|null, shadow: cid|null } — Content-IDs of inline PNG
+// attachments (optional; the email still reads fine without them).
+export function buildReportEmail(report, email, images) {
   report = report || {};
+  images = images || {};
   const loud = Array.isArray(report.loud) ? report.loud : [];
   const names = loud.map((a) => a.name).filter(Boolean);
   const subject = "Your Mandala — " + (names.length ? names.join(" · ") : "The Art of Soulcraft");
@@ -133,6 +149,9 @@ export function buildReportEmail(report, email) {
     '<h1 style="font:700 26px/1.2 Georgia,serif;color:#241d42;margin:0">' + esc(names.join(" · ")) + "</h1>" +
     (who.length ? '<p style="font:400 13px/1.4 Arial,sans-serif;color:#8a86a0;margin:8px 0 0">' + who.join(" &middot; ") + "</p>" : "") +
     "</div>";
+
+  // The Mandala image — between the header and the loudest voices.
+  body += mandalaImg(images.mandala, "Your Mandala");
 
   // Loudest voices
   if (loud.length) {
@@ -175,6 +194,7 @@ export function buildReportEmail(report, email) {
   if (shadow && Array.isArray(shadow.three) && shadow.three.length) {
     body += sectionLabel("Your Shadow Mandala — Your Quietest Voices");
     body += '<p style="font:400 13px/1.5 Arial,sans-serif;color:#4a4560;margin:0 0 12px">' + esc(SHADOW_INTRO) + "</p>";
+    body += mandalaImg(images.shadow, "Your Shadow Mandala");
     body += shadow.three.map(archetypeBlock).join("");
     const sp = Array.isArray(shadow.pairings) ? shadow.pairings : [];
     if (sp.length) {

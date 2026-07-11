@@ -1,0 +1,8 @@
+{
+  "name": "soulcraft",
+  "private": true,
+  "description": "The Art of Soulcraft — static site + Cloudflare Pages Functions. This package.json exists so Cloudflare Pages installs the runtime dependency the Functions need (@resvg/resvg-wasm, used to rasterize the Mandala SVG to a PNG for the emailed report). There is no build step for the site itself.",
+  "dependencies": {
+    "@resvg/resvg-wasm": "^2.6.2"
+  }
+}
