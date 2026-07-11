@@ -957,17 +957,24 @@ function TwelveWithin() {
         kicker && React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, kicker),
         React.createElement("h3", { className: "text-2xl", style: { ...serif, color: "#efe9ff" } }, title));
     // A toggle pair placed above EACH wheel — anchor links that jump between the two
-    // mandala sections and show which one you're viewing. The pill for THIS toggle's
-    // own section is filled gold with dark text; the other is a gold outline. So the
-    // toggle above the wheel you're looking at always highlights that wheel — above
-    // the light wheel YOUR MANDALA is filled, above the shadow wheel YOUR SHADOW
-    // MANDALA is filled. `current` is which section this instance sits above.
-    const togglePill = (active) => "rounded-full px-4 py-1.5 text-xs tracking-[0.15em] transition-colors " + (active
-        ? "bg-amber-200 text-[#1b1430] font-semibold border border-amber-200"
-        : "border border-amber-200/50 text-amber-200/85 hover:border-amber-200/90 hover:text-amber-100");
+    // mandala sections and show which one you're viewing. Each pill carries its own
+    // colour — gold for YOUR MANDALA, indigo (the shadow section's palette) for YOUR
+    // SHADOW MANDALA — so the fill also tells the two apart at a glance. The pill for
+    // THIS toggle's own section is filled with its colour + dark text; the other is an
+    // outline in its colour. So the toggle above the wheel you're looking at always
+    // highlights that wheel. `current` is which section this instance sits above.
+    const togglePill = (active, tone) => {
+        const base = "rounded-full px-4 py-1.5 text-xs tracking-[0.15em] transition-colors ";
+        if (tone === "indigo") return base + (active
+            ? "bg-indigo-300 text-[#1b1430] font-semibold border border-indigo-300"
+            : "border border-indigo-300/50 text-indigo-200/85 hover:border-indigo-300/90 hover:text-indigo-100");
+        return base + (active
+            ? "bg-amber-200 text-[#1b1430] font-semibold border border-amber-200"
+            : "border border-amber-200/50 text-amber-200/85 hover:border-amber-200/90 hover:text-amber-100");
+    };
     const mandalaToggle = (key, current) => React.createElement("div", { key: key, className: "flex flex-wrap justify-center gap-2 mb-4 print:hidden" },
-        React.createElement("a", { href: "#your-mandala", className: togglePill(current === "light"), style: sans }, "YOUR MANDALA"),
-        React.createElement("a", { href: "#shadow-mandala", className: togglePill(current === "shadow"), style: sans }, "YOUR SHADOW MANDALA"));
+        React.createElement("a", { href: "#your-mandala", className: togglePill(current === "light", "gold"), style: sans }, "YOUR MANDALA"),
+        React.createElement("a", { href: "#shadow-mandala", className: togglePill(current === "shadow", "indigo"), style: sans }, "YOUR SHADOW MANDALA"));
     return (React.createElement("div", { className: "min-h-screen w-full text-violet-50", style: { background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" } },
         React.createElement("div", { className: "max-w-md md:max-w-3xl mx-auto px-5 md:px-12 pb-16 pt-10 print:max-w-full print:px-0" },
             React.createElement("style", null, `
