@@ -413,7 +413,6 @@ function TwelveWithin() {
     const [promoError, setPromoError] = useState("");
     const [promoBusy, setPromoBusy] = useState(false);
     const [shareCopied, setShareCopied] = useState(false); // brief "Copied!" after copy-link (Task 3)
-    const [activeMandala, setActiveMandala] = useState("light"); // which mandala toggle pill is filled (light | shadow)
     const [session, setSession] = useState(0);
     const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
     const [pairIdx, setPairIdx] = useState(0);
@@ -957,16 +956,18 @@ function TwelveWithin() {
         React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
         kicker && React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, kicker),
         React.createElement("h3", { className: "text-2xl", style: { ...serif, color: "#efe9ff" } }, title));
-    // A simple in-page toggle pair (one placed above each wheel) — anchor links that
-    // jump between the two mandala sections AND show which one you're viewing: the
-    // active pill is filled gold with dark text, the other is a gold outline. Clicking
-    // either fills it and un-fills the other. Same on mobile and desktop.
+    // A toggle pair placed above EACH wheel — anchor links that jump between the two
+    // mandala sections and show which one you're viewing. The pill for THIS toggle's
+    // own section is filled gold with dark text; the other is a gold outline. So the
+    // toggle above the wheel you're looking at always highlights that wheel — above
+    // the light wheel YOUR MANDALA is filled, above the shadow wheel YOUR SHADOW
+    // MANDALA is filled. `current` is which section this instance sits above.
     const togglePill = (active) => "rounded-full px-4 py-1.5 text-xs tracking-[0.15em] transition-colors " + (active
         ? "bg-amber-200 text-[#1b1430] font-semibold border border-amber-200"
         : "border border-amber-200/50 text-amber-200/85 hover:border-amber-200/90 hover:text-amber-100");
-    const mandalaToggle = (key) => React.createElement("div", { key: key, className: "flex flex-wrap justify-center gap-2 mb-4 print:hidden" },
-        React.createElement("a", { href: "#your-mandala", onClick: () => setActiveMandala("light"), className: togglePill(activeMandala === "light"), style: sans }, "YOUR MANDALA"),
-        React.createElement("a", { href: "#shadow-mandala", onClick: () => setActiveMandala("shadow"), className: togglePill(activeMandala === "shadow"), style: sans }, "YOUR SHADOW MANDALA"));
+    const mandalaToggle = (key, current) => React.createElement("div", { key: key, className: "flex flex-wrap justify-center gap-2 mb-4 print:hidden" },
+        React.createElement("a", { href: "#your-mandala", className: togglePill(current === "light"), style: sans }, "YOUR MANDALA"),
+        React.createElement("a", { href: "#shadow-mandala", className: togglePill(current === "shadow"), style: sans }, "YOUR SHADOW MANDALA"));
     return (React.createElement("div", { className: "min-h-screen w-full text-violet-50", style: { background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" } },
         React.createElement("div", { className: "max-w-md md:max-w-3xl mx-auto px-5 md:px-12 pb-16 pt-10 print:max-w-full print:px-0" },
             React.createElement("style", null, `
@@ -1143,7 +1144,7 @@ function TwelveWithin() {
                 topTie && React.createElement("p", { className: "text-center text-amber-200/80 text-sm mt-1 mb-1", style: sans },
                     joinNames(topTie.map((r) => r.name)), " are tied for your loudest voice \u2014 the order shown is only by wheel position, not by strength."),
                 // Toggle pair just above the light wheel (mirrored above the shadow wheel).
-                showShadow && mandalaToggle("toggle-light"),
+                showShadow && mandalaToggle("toggle-light", "light"),
                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount }),
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three pairings \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
@@ -1420,7 +1421,7 @@ function TwelveWithin() {
                     React.createElement("h2", { className: "loud-names text-4xl text-center mb-2", style: serif }, shadowThree.flatMap((r, i) => i === 0 ? [archLink(r)] : [" \u00b7 ", archLink(r)])),
                     // Toggle pair right under the names, before the shame card \u2014
                     // mirrors the light section (pills sit directly under the header).
-                    mandalaToggle("toggle-shadow"),
+                    mandalaToggle("toggle-shadow", "shadow"),
                     // Shame-prevention intro \u2014 REQUIRED before the wheel or naming the bottom three.
                     React.createElement("div", { className: "rounded-2xl border border-indigo-300/25 px-5 py-5 mb-6", style: { background: "rgba(80,90,180,0.06)" } },
                         React.createElement("p", { className: "text-[16px] leading-relaxed mb-3", style: { ...sans, color: "rgba(199,210,254,0.95)", fontWeight: 600 } }, "Your shadow isn't what's wrong with you. It's what you haven't claimed yet."),
