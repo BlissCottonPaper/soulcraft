@@ -14,6 +14,32 @@
 
 import { buildReportEmail } from "./_report-email.js";
 import { svgToPngBase64 } from "./_svg-png.js";
+import { getSessionUser } from "./_auth.js";
+
+// Copy any companion (Mira) decision made at the post-purchase interstitial —
+// stored on the RESULT row before an account may have existed — onto the user
+// the result is now linked to. Only fills gaps; never downgrades a user who
+// already has companion state.
+async function propagateCompanion(env, resultId, userId) {
+  try {
+    const r = await env.DB
+      .prepare("SELECT companion_active, companion_tier, subscription_id, stripe_customer_id FROM results WHERE id = ?")
+      .bind(resultId)
+      .first();
+    if (!r || Number(r.companion_active) !== 1) return;
+    await env.DB
+      .prepare(
+        `UPDATE users SET
+           companion_active = 1,
+           companion_tier = COALESCE(companion_tier, ?),
+           subscription_id = COALESCE(subscription_id, ?),
+           stripe_customer_id = COALESCE(stripe_customer_id, ?)
+         WHERE id = ?`
+      )
+      .bind(r.companion_tier || null, r.subscription_id || null, r.stripe_customer_id || null, userId)
+      .run();
+  } catch (e) { /* best-effort */ }
+}
 
 function uuid() {
   // Cloudflare Workers runtime has crypto.randomUUID() built in natively —
@@ -68,6 +94,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
           .bind(userId, cleanEmail, now)
           .run();
       }
+    }
+
+    // No email supplied, but the visitor is logged in → link the result to their
+    // account (Task 3f: "after assessment if logged in, link result to user_id").
+    if (!userId) {
+      try {
+        const sessionUser = await getSessionUser(request, env);
+        if (sessionUser) userId = sessionUser.id;
+      } catch (e) { /* not logged in — save anonymously */ }
     }
 
     let resultId;
@@ -153,6 +188,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
           .bind(resultId, redeemCode)
           .run();
       }
+    }
+
+    // If this result is now attached to a user, carry any companion (Mira)
+    // decision made at the post-purchase interstitial onto that account (3f).
+    if (userId && resultId) {
+      await propagateCompanion(env, resultId, userId);
     }
 
     // --- If we have an email, generate and send a magic link ---

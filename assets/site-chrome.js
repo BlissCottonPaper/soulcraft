@@ -31,7 +31,9 @@
       chrome.wireDropdown();
       chrome.wireMobile();
       chrome.applyResultToken();
+      chrome.applyAuthNav();
       chrome.injectAnalytics();
+      chrome.registerServiceWorker();
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
     else run();
@@ -308,6 +310,73 @@
     });
   }
 
+  // --- Auth-aware nav (Task 3g) ---------------------------------------------
+  // The baked nav is the logged-OUT default (real markup, crawlable). At runtime
+  // we ask /api/me and, once, append the right affordance: "My Account" + "Log
+  // Out" when signed in, "Log In" when signed out. The existing "My Results"
+  // (magic-link) link stays for non-registered users either way.
+  function doLogout() {
+    fetch("/api/logout", { method: "POST", credentials: "same-origin" })
+      .then(function () { window.location.href = "/"; })
+      .catch(function () { window.location.href = "/"; });
+  }
+
+  function renderAuthNav(authed) {
+    if (typeof document === "undefined") return;
+    var links = document.querySelector("#site-header .sc-links");
+    if (links && !links.querySelector(".sc-auth")) {
+      if (authed) {
+        var a = document.createElement("a");
+        a.className = "sc-link sc-auth"; a.href = "/account/"; a.textContent = "My Account";
+        links.appendChild(a);
+        var b = document.createElement("button");
+        b.className = "sc-link sc-auth"; b.type = "button"; b.textContent = "Log Out";
+        b.addEventListener("click", doLogout);
+        links.appendChild(b);
+      } else {
+        var l = document.createElement("a");
+        l.className = "sc-link sc-auth"; l.href = "/login/"; l.textContent = "Log In";
+        links.appendChild(l);
+      }
+    }
+    var mobile = document.getElementById("sc-mobile-menu");
+    if (mobile && !mobile.querySelector(".sc-auth")) {
+      if (authed) {
+        mobile.insertAdjacentHTML("beforeend",
+          '<div class="sc-m-divider" role="separator"></div>' +
+          '<a class="sc-auth" href="/account/">My Account</a>' +
+          '<a class="sc-auth" href="#" role="button">Log Out</a>');
+        var ml = mobile.querySelectorAll(".sc-auth");
+        var last = ml[ml.length - 1];
+        if (last) last.addEventListener("click", function (e) { e.preventDefault(); doLogout(); });
+      } else {
+        mobile.insertAdjacentHTML("beforeend",
+          '<div class="sc-m-divider" role="separator"></div>' +
+          '<a class="sc-auth" href="/login/">Log In</a>');
+      }
+    }
+  }
+
+  function applyAuthNav() {
+    if (typeof document === "undefined") return;
+    fetch("/api/me", { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { renderAuthNav(!!(d && d.authenticated)); })
+      .catch(function () { renderAuthNav(false); });
+  }
+
+  // --- PWA service worker (Task 5) ------------------------------------------
+  // Registered once from the shared chrome so it lives on every page. The worker
+  // itself only caches a few static assets and never touches HTML or /api/*
+  // (see /service-worker.js), so installing it can't make the app go stale.
+  function registerServiceWorker() {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    if (typeof window === "undefined" || window.location.protocol === "file:") return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/service-worker.js").catch(function () { /* non-fatal */ });
+    });
+  }
+
   return {
     CSS: CSS,
     headerHtml: headerHtml,
@@ -317,6 +386,8 @@
     wireMobile: wireMobile,
     readResultToken: readResultToken,
     applyResultToken: applyResultToken,
-    injectAnalytics: injectAnalytics
+    applyAuthNav: applyAuthNav,
+    injectAnalytics: injectAnalytics,
+    registerServiceWorker: registerServiceWorker
   };
 });

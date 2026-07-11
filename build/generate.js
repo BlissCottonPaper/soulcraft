@@ -31,6 +31,9 @@ function page({ title, description, canonical, active, main }) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#171230" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
 <title>${title}</title>
 <meta name="description" content="${description}" />
 <link rel="canonical" href="${canonical}" />
@@ -91,7 +94,7 @@ const SIX_QUESTIONS = [
   { a: "everyman", b: "rebel", parable: `Rosa Parks didn't refuse to give up her seat because she was a firebrand. She refused because she was tired — tired in the way the Everyman gets tired of disappearing. The belonging she wanted was real belonging, not the performed belonging of compliance. One act of refusal became the clearest expression of what belonging actually requires.`, attr: `Rosa Parks, Montgomery, Alabama, December 1, 1955.` },
   { a: "ruler", b: "trickster", parable: `The Church's structure existed for real reasons — order, meaning, the protection of truth as they understood it. Galileo's disruption existed for real reasons too — the structure had stopped serving truth and started serving itself. Neither side was simply wrong. The question was never about who was right. It was about what the structure was for.`, attr: `Galileo Galilei, Inquisition, 1633.` },
   { a: "warrior", b: "innocent", parable: `Fred Rogers went on television in 1969 and told children the world was safe and they were loved — during Vietnam, during assassinations, during riots. Every Warrior instinct said the world was dangerous and children needed to be hardened. Rogers said: what if we tried the other thing? His entire life was the answer to the axis question — and the cost was that some people never stopped doubting him.`, attr: `Fred Rogers, Mister Rogers' Neighborhood, 1968–2001.` },
-  { a: "creator", b: "mystic", parable: `Igor Stravinsky said: “Inspiration comes from work. Just as appetite comes with eating, so work brings inspiration.” He didn't wait for the mystery. He worked until the mystery arrived. Michelangelo said the opposite: the sculpture already exists inside the marble — he just removes what isn't it. Both men made things that outlasted them. Neither agreed on where the meaning came from.`, attr: `Stravinsky quote, widely cited — verify exact wording before print. Michelangelo quote, widely attributed.` }
+  { a: "creator", b: "mystic", parable: `Igor Stravinsky said: “Inspiration comes from work. Just as appetite comes with eating, so work brings inspiration.” He didn't wait for the mystery. He worked until the mystery arrived. Michelangelo said the opposite: the sculpture already exists inside the marble — he just removes what isn't it. Both men made things that outlasted them. Neither agreed on where the meaning came from.`, attr: `Stravinsky quote, widely cited. Michelangelo quote, widely attributed.` }
 ];
 
 // ---- Overview (/explore/) --------------------------------------------------
@@ -538,7 +541,7 @@ function temperamentsMain() {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 ${cards}
       </div>
-      <p class="text-violet-300/60 text-sm mt-4 max-w-3xl"><strong class="text-violet-200/80">Named at Base only.</strong> An Temperament is formally named at each archetype's Base expression — not at every stage, and not for every Pairing. Where richer language helps ("a Creator led by the Soul is close to what people call an artist"), it lives as prose, not new taxonomy.</p>
+      <p class="text-violet-300/60 text-sm mt-4 max-w-3xl"><strong class="text-violet-200/80">Named at Base only.</strong> A Temperament is formally named at each archetype's Base expression — not at every stage, and not for every Pairing. Where richer language helps ("a Creator led by the Soul is close to what people call an artist"), it lives as prose, not new taxonomy.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
@@ -1033,6 +1036,190 @@ ${questions}
     </section>`;
 }
 
+// ---- Account system pages (login / register / account) ---------------------
+// These carry the same baked chrome as every other static page, plus a small
+// inline script that talks to the Pages Functions (/api/login, /api/register,
+// /api/me, /api/logout, /api/create-portal). The account page is protected
+// client-side: on load it asks /api/me and redirects to /login when signed out.
+function authFieldCss() {
+  return `<style>
+  .auth-wrap{max-width:26rem;margin:0 auto;padding:3.5rem 0 4rem;}
+  .auth-card{background:rgba(255,250,240,0.03);border:1px solid rgba(196,181,253,0.18);border-radius:1rem;padding:2rem 1.75rem;}
+  .auth-label{display:block;font-size:13px;letter-spacing:.02em;color:rgba(224,218,246,0.8);margin:0 0 .35rem;}
+  .auth-input{width:100%;box-sizing:border-box;background:rgba(0,0,0,0.22);border:1px solid rgba(196,181,253,0.22);border-radius:.6rem;padding:.7rem .85rem;color:#f5f3ff;font-size:15px;outline:none;}
+  .auth-input:focus{border-color:rgba(253,230,138,0.55);}
+  .auth-btn{width:100%;margin-top:.4rem;border:0;border-radius:.7rem;padding:.85rem 1rem;background:rgba(253,230,138,0.92);color:#1b1430;font-weight:600;font-size:15px;cursor:pointer;transition:background .15s;}
+  .auth-btn:hover{background:#fde8b0;} .auth-btn:disabled{opacity:.6;cursor:default;}
+  .auth-alt{text-align:center;font-size:14px;color:rgba(196,181,253,0.7);margin-top:1.25rem;}
+  .auth-alt a{color:#fde8b0;text-decoration:none;} .auth-alt a:hover{text-decoration:underline;}
+  .auth-err{font-size:14px;color:#fca5a5;margin:.25rem 0 0;min-height:1.1rem;}
+  .acct-row{border:1px solid rgba(196,181,253,0.16);border-radius:.9rem;padding:1.15rem 1.25rem;margin-bottom:1rem;background:rgba(255,250,240,0.025);}
+  .acct-h{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.35rem;color:#efe9ff;margin:0 0 .3rem;}
+  .acct-p{font-size:14.5px;line-height:1.55;color:rgba(224,218,246,0.82);margin:0;}
+  .acct-link{display:inline-block;margin-top:.65rem;color:#fde8b0;text-decoration:none;font-weight:600;font-size:14.5px;}
+  .acct-link:hover{text-decoration:underline;}
+  .acct-disclaimer{font-size:12.5px;line-height:1.6;color:rgba(196,181,253,0.55);border-top:1px solid rgba(196,181,253,0.12);margin-top:1.5rem;padding-top:1.25rem;}
+  </style>`;
+}
+
+function loginMain() {
+  return `${authFieldCss()}
+<div class="auth-wrap">
+  <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Welcome back</h1>
+  <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Log in to your Soulcraft account.</p>
+  <div class="auth-card">
+    <form id="login-form" novalidate>
+      <label class="auth-label" for="email">Email</label>
+      <input class="auth-input" id="email" name="email" type="email" autocomplete="email" required style="margin-bottom:1rem;" />
+      <label class="auth-label" for="password">Password</label>
+      <input class="auth-input" id="password" name="password" type="password" autocomplete="current-password" required />
+      <p class="auth-err" id="err" role="alert"></p>
+      <button class="auth-btn" id="submit" type="submit">Log in</button>
+    </form>
+  </div>
+  <p class="auth-alt">New here? <a href="/register/">Create an account</a></p>
+  <p class="auth-alt" style="margin-top:.4rem;">Just want your saved reading? <a href="/my-results/">Email me a link instead</a></p>
+</div>
+<script>
+(function(){
+  var params=new URLSearchParams(location.search);
+  var next=params.get("next")||"/account/";
+  // Already signed in → skip straight to the account page.
+  fetch("/api/me",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(d){
+    if(d&&d.authenticated){location.replace(next);}
+  }).catch(function(){});
+  var form=document.getElementById("login-form"),err=document.getElementById("err"),btn=document.getElementById("submit");
+  form.addEventListener("submit",function(e){
+    e.preventDefault();err.textContent="";btn.disabled=true;btn.textContent="Logging in…";
+    var email=document.getElementById("email").value.trim();
+    var password=document.getElementById("password").value;
+    fetch("/api/login",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})})
+      .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+      .then(function(res){
+        if(res.ok&&res.d&&res.d.ok){location.replace(next);return;}
+        err.textContent=(res.d&&res.d.error)||"That didn't work — please try again.";
+        btn.disabled=false;btn.textContent="Log in";
+      })
+      .catch(function(){err.textContent="We couldn't reach the server. Please try again.";btn.disabled=false;btn.textContent="Log in";});
+  });
+})();
+</script>`;
+}
+
+function registerMain() {
+  return `${authFieldCss()}
+<div class="auth-wrap">
+  <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Create your account</h1>
+  <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Keep your Mandala, and — soon — meet Mira.</p>
+  <div class="auth-card">
+    <form id="reg-form" novalidate>
+      <label class="auth-label" for="email">Email</label>
+      <input class="auth-input" id="email" name="email" type="email" autocomplete="email" required style="margin-bottom:1rem;" />
+      <label class="auth-label" for="password">Password</label>
+      <input class="auth-input" id="password" name="password" type="password" autocomplete="new-password" required minlength="8" />
+      <p style="font-size:12.5px;color:rgba(196,181,253,0.55);margin:.4rem 0 0;">At least 8 characters.</p>
+      <p class="auth-err" id="err" role="alert"></p>
+      <button class="auth-btn" id="submit" type="submit">Create account</button>
+    </form>
+  </div>
+  <p class="auth-alt">Already have an account? <a href="/login/">Log in</a></p>
+</div>
+<script>
+(function(){
+  fetch("/api/me",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(d){
+    if(d&&d.authenticated){location.replace("/account/");}
+  }).catch(function(){});
+  var form=document.getElementById("reg-form"),err=document.getElementById("err"),btn=document.getElementById("submit");
+  form.addEventListener("submit",function(e){
+    e.preventDefault();err.textContent="";
+    var email=document.getElementById("email").value.trim();
+    var password=document.getElementById("password").value;
+    if(password.length<8){err.textContent="Please choose a password of at least 8 characters.";return;}
+    btn.disabled=true;btn.textContent="Creating…";
+    fetch("/api/register",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})})
+      .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+      .then(function(res){
+        if(res.ok&&res.d&&res.d.ok){location.replace("/account/");return;}
+        err.textContent=(res.d&&res.d.error)||"That didn't work — please try again.";
+        btn.disabled=false;btn.textContent="Create account";
+      })
+      .catch(function(){err.textContent="We couldn't reach the server. Please try again.";btn.disabled=false;btn.textContent="Create account";});
+  });
+})();
+</script>`;
+}
+
+function accountMain() {
+  const disclaimer = "Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust.";
+  return `${authFieldCss()}
+<div class="auth-wrap" style="max-width:34rem;">
+  <div id="acct-loading" style="text-align:center;padding:4rem 0;color:rgba(196,181,253,0.7);">Loading your account…</div>
+  <div id="acct-body" style="display:none;">
+    <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .3rem;color:#f5f3ff;">Your account</h1>
+    <p style="text-align:center;color:rgba(224,218,246,0.7);font-size:14.5px;margin:0 0 2rem;" id="acct-email"></p>
+
+    <div class="acct-row" id="acct-results"></div>
+
+    <div class="acct-row" id="acct-mira"></div>
+
+    <div class="acct-row" id="acct-billing" style="display:none;">
+      <h2 class="acct-h">Billing</h2>
+      <p class="acct-p">Update your card, change plan, or cancel anytime.</p>
+      <a class="acct-link" href="#" id="acct-portal">Manage subscription →</a>
+      <p class="auth-err" id="portal-err"></p>
+    </div>
+
+    <p class="acct-disclaimer">${disclaimer}</p>
+
+    <p style="text-align:center;margin-top:1.75rem;">
+      <button id="acct-logout" style="background:none;border:1px solid rgba(196,181,253,0.25);border-radius:.6rem;padding:.55rem 1.25rem;color:rgba(224,218,246,0.85);font-size:14px;cursor:pointer;">Log out</button>
+    </p>
+  </div>
+</div>
+<script>
+(function(){
+  var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c];});};
+  fetch("/api/me",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(d){
+    if(!d||!d.authenticated){location.replace("/login/?next=/account/");return;}
+    document.getElementById("acct-loading").style.display="none";
+    document.getElementById("acct-body").style.display="block";
+    document.getElementById("acct-email").textContent=d.email||"";
+
+    // Results
+    var rEl=document.getElementById("acct-results");
+    if(d.has_results){
+      rEl.innerHTML='<h2 class="acct-h">Your Mandala</h2><p class="acct-p">Your saved reading'+(d.result_count>1?"s ("+d.result_count+")":"")+' — open the most recent below.</p><a class="acct-link" href="/?view=mine">View Your Mandala →</a>';
+    }else{
+      rEl.innerHTML='<h2 class="acct-h">Your Mandala</h2><p class="acct-p">You haven\\'t taken the assessment yet. Your reading will live here once you do.</p><a class="acct-link" href="/">Take the assessment →</a>';
+    }
+
+    // Mira companion
+    var mEl=document.getElementById("acct-mira");
+    if(d.companion_active){
+      mEl.innerHTML='<h2 class="acct-h">Mira</h2><p class="acct-p">Your personal Soulcraft companion is active'+(d.companion_tier?' ('+esc(d.companion_tier)+' plan)':'')+'.</p><a class="acct-link" href="/companion/">Open Mira →</a>';
+      document.getElementById("acct-billing").style.display="block";
+    }else{
+      mEl.innerHTML='<h2 class="acct-h">Mira is coming soon</h2><p class="acct-p">Mira — your personal Soulcraft companion. A mirror that reflects what you\\'re not looking at, using your own twelve voices as the lens.</p>';
+    }
+
+    // Billing portal
+    var portal=document.getElementById("acct-portal");
+    if(portal){portal.addEventListener("click",function(e){
+      e.preventDefault();var pe=document.getElementById("portal-err");pe.textContent="";portal.textContent="Opening…";
+      fetch("/api/create-portal",{method:"POST",credentials:"same-origin"}).then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});}).then(function(res){
+        if(res.ok&&res.j&&res.j.url){location.href=res.j.url;return;}
+        pe.textContent=(res.j&&res.j.error)||"Couldn't open billing right now.";portal.textContent="Manage subscription →";
+      }).catch(function(){pe.textContent="Couldn't reach the server.";portal.textContent="Manage subscription →";});
+    });}
+
+    document.getElementById("acct-logout").addEventListener("click",function(){
+      fetch("/api/logout",{method:"POST",credentials:"same-origin"}).then(function(){location.replace("/");}).catch(function(){location.replace("/");});
+    });
+  }).catch(function(){location.replace("/login/?next=/account/");});
+})();
+</script>`;
+}
+
 // ---- Emit ------------------------------------------------------------------
 function write(rel, html) {
   const abs = path.join(ROOT, rel);
@@ -1196,6 +1383,31 @@ Object.keys(CONTENT).forEach((key) => {
     main: archetypeMain(key)
   }));
 });
+
+// ---- Account system pages --------------------------------------------------
+write("login/index.html", page({
+  title: "Log in — The Art of Soulcraft",
+  description: "Log in to your Art of Soulcraft account to see Your Mandala and manage Mira, your personal reflection companion.",
+  canonical: "https://artofsoulcraft.com/login/",
+  active: "results",
+  main: loginMain()
+}));
+
+write("register/index.html", page({
+  title: "Create your account — The Art of Soulcraft",
+  description: "Create an Art of Soulcraft account to keep Your Mandala and meet Mira, your personal reflection companion.",
+  canonical: "https://artofsoulcraft.com/register/",
+  active: "results",
+  main: registerMain()
+}));
+
+write("account/index.html", page({
+  title: "Your account — The Art of Soulcraft",
+  description: "Your Art of Soulcraft account — Your Mandala, Mira, and your subscription.",
+  canonical: "https://artofsoulcraft.com/account/",
+  active: "results",
+  main: accountMain()
+}));
 
 stampIndex();
 

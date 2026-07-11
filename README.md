@@ -84,6 +84,10 @@ Set these in the Pages project's **Settings → Environment variables** (and the
 | `STRIPE_PRICE_COMPATIBILITY` | Stripe Price ID for the **Mandala Compatibility Report**. Product is wired for checkout; the invite flow isn't built yet. |
 | `PROMO_CODES` | Comma-separated list of free-access promo codes (matched case-insensitively). A valid code, redeemed via `/api/redeem-promo`, grants full access — it stamps `full_purchased` and `shadow_unlocked` on the results row and bypasses Stripe entirely. Validated server-side only; the list is never sent to the client. |
 | `ADMIN_KEY` | Secret key guarding the private stats endpoint `/api/admin/stats` (and the `/admin` page, which forwards the key you type in the `X-Admin-Key` header). A missing or wrong value returns `401`. Read server-side only. |
+| `ANTHROPIC_API_KEY` | Anthropic API key (from [console.anthropic.com](https://console.anthropic.com)) used server-side by the **Mira** reflection companion. Read server-side only. |
+| `STRIPE_PRICE_MIRA_MONTHLY` | Stripe Price ID for the **Mira** monthly subscription ($8/mo). Current value: `price_1Ts8FnAJykR1Zg42Rayru3jS`. |
+| `STRIPE_PRICE_MIRA_QUARTERLY` | Stripe Price ID for the **Mira** quarterly subscription ($21/quarter). Current value: `price_1Ts8FnAJykR1Zg42UWgJriiP`. |
+| `STRIPE_PRICE_MIRA_YEARLY` | Stripe Price ID for the **Mira** yearly subscription ($72/year). Current value: `price_1Ts8FnAJykR1Zg42yVPnULfi`. |
 
 ---
 

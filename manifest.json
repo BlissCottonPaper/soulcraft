@@ -1,0 +1,14 @@
+{
+  "name": "The Art of Soulcraft",
+  "short_name": "Soulcraft",
+  "description": "Your Mandala — your twelve archetypal voices, some louder than others.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#100c22",
+  "theme_color": "#171230",
+  "icons": [
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" }
+  ]
+}
