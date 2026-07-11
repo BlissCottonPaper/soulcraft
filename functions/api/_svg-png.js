@@ -1,21 +1,24 @@
 // ============================================================
 // /functions/api/_svg-png.js   (shared helper — not a route)
 // ============================================================
-// Rasterizes an SVG string to a PNG data URI on the Cloudflare edge runtime,
-// using @resvg/resvg-wasm (a WASM build of the resvg renderer that runs on
-// Workers — no headless browser needed). Used to turn the client-serialized
-// Mandala / Shadow-Mandala SVGs into inline images for the emailed report.
+// Rasterizes an SVG string to a PNG on the Cloudflare edge runtime, using the
+// resvg renderer compiled to WASM (runs on Workers — no headless browser).
+// Used to turn the client-serialized Mandala / Shadow-Mandala SVGs into inline
+// images for the emailed report.
 //
-// The WASM binary ships via the npm dependency (see root package.json) and is
-// imported as a WebAssembly.Module — the standard Cloudflare Workers pattern.
-// initWasm() must run exactly once per isolate; we memoize it.
+// resvg is VENDORED into the repo (functions/api/_resvg.mjs is the wasm-bindgen
+// JS glue from @resvg/resvg-wasm@2.6.2; _resvg_bg.wasm is its binary) rather than
+// pulled from npm — so the site keeps its zero-build, direct-upload Cloudflare
+// Pages deploy (a package.json would flip Pages into build mode). The .wasm is
+// imported relatively as a WebAssembly.Module, which Pages Functions support
+// natively. initWasm() must run exactly once per isolate; we memoize it.
 //
 // A subset of Liberation Sans is passed as the font so the archetype labels
 // actually render (resvg draws no text without a registered font).
 // ============================================================
 
-import { Resvg, initWasm } from "@resvg/resvg-wasm";
-import resvgWasm from "@resvg/resvg-wasm/index_bg.wasm";
+import { Resvg, initWasm } from "./_resvg.mjs";
+import resvgWasm from "./_resvg_bg.wasm";
 import { MANDALA_FONT } from "./_mandala-font.js";
 
 let wasmReady = null;
