@@ -411,6 +411,7 @@ function TwelveWithin() {
     const [promoError, setPromoError] = useState("");
     const [promoBusy, setPromoBusy] = useState(false);
     const [shareCopied, setShareCopied] = useState(false); // brief "Copied!" after copy-link (Task 3)
+    const [activeMandala, setActiveMandala] = useState("light"); // which mandala toggle pill is filled (light | shadow)
     const [session, setSession] = useState(0);
     const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
     const [pairIdx, setPairIdx] = useState(0);
@@ -662,7 +663,19 @@ function TwelveWithin() {
                     }),
                 };
             }
-            return { name: null, loud, pairings, temperament, shadow };
+            // Serialize the print-palette Mandala SVGs (dark ink on white — the
+            // right look on a white email background) so the server can rasterize
+            // them to inline PNGs. The shadow SVG only exists when unlocked.
+            const serializeSvg = (id) => {
+                try {
+                    const wrap = document.getElementById(id);
+                    const svg = wrap && wrap.querySelector("svg");
+                    return svg ? new XMLSerializer().serializeToString(svg) : null;
+                } catch (e) { return null; }
+            };
+            const mandalaSvg = serializeSvg("png-mandala-light");
+            const shadowMandalaSvg = shadow ? serializeSvg("png-mandala-shadow") : null;
+            return { name: null, loud, pairings, temperament, shadow, mandalaSvg, shadowMandalaSvg };
         } catch (e) { return null; }
     };
 
@@ -942,11 +955,16 @@ function TwelveWithin() {
         React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
         kicker && React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, kicker),
         React.createElement("h3", { className: "text-2xl", style: { ...serif, color: "#efe9ff" } }, title));
-    // A simple in-page toggle pair (one placed above each wheel) — plain anchor
-    // links that jump between the two mandala sections. No sticky/fixed/z-index.
+    // A simple in-page toggle pair (one placed above each wheel) — anchor links that
+    // jump between the two mandala sections AND show which one you're viewing: the
+    // active pill is filled gold with dark text, the other is a gold outline. Clicking
+    // either fills it and un-fills the other. Same on mobile and desktop.
+    const togglePill = (active) => "rounded-full px-4 py-1.5 text-xs tracking-[0.15em] transition-colors " + (active
+        ? "bg-amber-200 text-[#1b1430] font-semibold border border-amber-200"
+        : "border border-amber-200/50 text-amber-200/85 hover:border-amber-200/90 hover:text-amber-100");
     const mandalaToggle = (key) => React.createElement("div", { key: key, className: "flex flex-wrap justify-center gap-2 mb-4 print:hidden" },
-        React.createElement("a", { href: "#your-mandala", className: "rounded-full border border-amber-200/40 px-4 py-1.5 text-xs tracking-[0.15em] text-amber-200/85 hover:border-amber-200/80 hover:text-amber-100 transition-colors", style: sans }, "YOUR MANDALA"),
-        React.createElement("a", { href: "#shadow-mandala", className: "rounded-full border border-indigo-300/40 px-4 py-1.5 text-xs tracking-[0.15em] text-indigo-200/85 hover:border-indigo-300/80 hover:text-indigo-100 transition-colors", style: sans }, "YOUR SHADOW MANDALA"));
+        React.createElement("a", { href: "#your-mandala", onClick: () => setActiveMandala("light"), className: togglePill(activeMandala === "light"), style: sans }, "YOUR MANDALA"),
+        React.createElement("a", { href: "#shadow-mandala", onClick: () => setActiveMandala("shadow"), className: togglePill(activeMandala === "shadow"), style: sans }, "YOUR SHADOW MANDALA"));
     return (React.createElement("div", { className: "min-h-screen w-full text-violet-50", style: { background: "radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%)" } },
         React.createElement("div", { className: "max-w-md md:max-w-3xl mx-auto px-5 md:px-12 pb-16 pt-10 print:max-w-full print:px-0" },
             React.createElement("style", null, `
@@ -1154,7 +1172,7 @@ function TwelveWithin() {
                             React.createElement("span", { className: "text-[10px] tracking-[0.15em]", style: sans }, "The Art of Soulcraft")),
                         React.createElement("h1", { className: "text-4xl text-center mb-1", style: serif }, ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r) => r.name).join(" · ")),
                         React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
-                            React.createElement("div", { style: { width: "5.6in", maxWidth: "100%" } },
+                            React.createElement("div", { id: "png-mandala-light", style: { width: "5.6in", maxWidth: "100%" } },
                                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true }))),
                         React.createElement("p", { className: "text-center text-xs italic mt-4", style: serif }, "Until the unconscious becomes conscious, it will direct your life — and you'll call it fate.")),
 
@@ -1219,7 +1237,7 @@ function TwelveWithin() {
                         // Condensed shame-prevention framing — two sentences for print.
                         React.createElement("p", { className: "text-center text-xs mb-2", style: { ...sans, color: "#6b6580", maxWidth: "5.5in", margin: "0 auto 10px" } }, "Your shadow isn't what's wrong with you — it's what you haven't claimed yet. You didn't choose your shadow; integrating it doesn't diminish you, it completes you."),
                         React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
-                            React.createElement("div", { style: { width: "5.6in", maxWidth: "100%" } },
+                            React.createElement("div", { id: "png-mandala-shadow", style: { width: "5.6in", maxWidth: "100%" } },
                                 React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true, shadow: true })))),
 
                     // ===== PRINT PAGE 4 - Your Three Quietest Voices, In Depth + Shadow Pairings =====

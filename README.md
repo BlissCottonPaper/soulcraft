@@ -83,7 +83,21 @@ Set these in the Pages project's **Settings → Environment variables** (and the
 | `STRIPE_PRICE_FULL` | Stripe Price ID for the **Full** reading ($29) — the single paid tier (Your Mandala + the Shadow Mandala), paid at the upfront gate. |
 | `STRIPE_PRICE_COMPATIBILITY` | Stripe Price ID for the **Mandala Compatibility Report**. Product is wired for checkout; the invite flow isn't built yet. |
 | `PROMO_CODES` | Comma-separated list of free-access promo codes (matched case-insensitively). A valid code, redeemed via `/api/redeem-promo`, grants full access — it stamps `full_purchased` and `shadow_unlocked` on the results row and bypasses Stripe entirely. Validated server-side only; the list is never sent to the client. |
-| `ADMIN_KEY` | Secret key guarding the private stats endpoint `/api/admin/stats`. Requests must send it in the `X-Admin-Key` header; a missing or wrong value returns `401`. Read server-side only. |
+| `ADMIN_KEY` | Secret key guarding the private stats endpoint `/api/admin/stats` (and the `/admin` page, which forwards the key you type in the `X-Admin-Key` header). A missing or wrong value returns `401`. Read server-side only. |
+
+---
+
+## Dependencies (Pages Functions)
+
+The site itself is static (no build step), but the Pages **Functions** have one runtime dependency, declared in `package.json`:
+
+| Package | Why |
+| --- | --- |
+| `@resvg/resvg-wasm` | Rasterizes the Mandala / Shadow-Mandala SVGs to PNG **server-side, on the edge** (no headless browser) so they can be embedded in the emailed report (`save-results.js` → `_svg-png.js`). |
+
+Cloudflare Pages installs this automatically when it detects `package.json` (leave the project's **build command empty** — there is no site build). The WASM binary is imported as a `WebAssembly.Module` (the standard Workers pattern). A ~12 KB subset of Liberation Sans (SIL OFL, redistributable) is embedded in `functions/api/_mandala-font.js` so resvg can render the archetype labels. The PNG render runs in the background via `waitUntil`, so it never blocks or breaks the save response.
+
+> Note on email clients: the Mandala PNG is embedded as a `data:` URI `<img>` per spec. Apple Mail and most desktop clients render these; **Gmail blocks `data:` image URIs and clips messages over ~102 KB**, so the image may not appear there. If Gmail rendering matters, switch the Resend payload to a CID inline attachment (`attachments: [{ content, filename, content_id }]` + `<img src="cid:…">`) — a localized change in `save-results.js`.
 
 ---
 

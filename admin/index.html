@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Admin — The Art of Soulcraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: #f5f3ff;
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    background: radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%);
+    display: flex; align-items: flex-start; justify-content: center; padding: 4rem 1.25rem;
+  }
+  .wrap { width: 100%; max-width: 30rem; }
+  h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2.25rem; margin: 0 0 .25rem; color: #f5f3ff; }
+  .eyebrow { font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: rgba(253,230,138,0.8); margin: 0 0 1.5rem; }
+  .card { background: rgba(255,250,240,0.03); border: 1px solid rgba(196,181,253,0.18); border-radius: 1rem; padding: 1.5rem; }
+  label { display: block; font-size: 13px; color: rgba(224,218,246,0.7); margin-bottom: .5rem; }
+  .row { display: flex; gap: .5rem; }
+  input[type="password"] {
+    flex: 1; background: rgba(0,0,0,0.2); border: 1px solid rgba(196,181,253,0.25);
+    border-radius: .6rem; padding: .6rem .75rem; font: inherit; color: #f5f3ff; outline: none;
+  }
+  input[type="password"]:focus { border-color: rgba(253,230,138,0.6); }
+  button {
+    background: rgba(253,230,138,0.9); color: #1b1430; border: 0; border-radius: .6rem;
+    padding: .6rem 1.1rem; font: inherit; font-weight: 600; cursor: pointer;
+  }
+  button:hover { background: #fde8b0; }
+  button:disabled { opacity: .6; cursor: default; }
+  .err { color: #fca5a5; font-size: 13px; margin-top: .75rem; min-height: 1.1em; }
+  .stats { margin-top: 1.5rem; display: none; }
+  .stats.show { display: block; }
+  .stat { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding: .7rem 0; border-bottom: 1px solid rgba(196,181,253,0.10); }
+  .stat:last-child { border-bottom: 0; }
+  .stat .k { font-size: 14px; color: rgba(224,218,246,0.8); }
+  .stat .v { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; color: #fde8b0; }
+  .sub { font-size: 12px; color: rgba(196,181,253,0.5); margin-top: 1rem; text-align: right; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">The Art of Soulcraft</p>
+    <h1>Admin</h1>
+    <div class="card">
+      <form id="f" autocomplete="off">
+        <label for="key">Admin key</label>
+        <div class="row">
+          <input type="password" id="key" name="key" aria-label="Admin key" autocomplete="off" />
+          <button type="submit" id="go">Submit</button>
+        </div>
+        <p class="err" id="err" role="alert"></p>
+      </form>
+      <div class="stats" id="stats" aria-live="polite"></div>
+    </div>
+    <p class="sub" id="ts"></p>
+  </div>
+
+  <script>
+    (function () {
+      var form = document.getElementById("f");
+      var keyInput = document.getElementById("key");
+      var go = document.getElementById("go");
+      var err = document.getElementById("err");
+      var statsEl = document.getElementById("stats");
+      var tsEl = document.getElementById("ts");
+      var fmt = function (n) { return (n == null ? 0 : n).toLocaleString("en-US"); };
+
+      function row(k, v) {
+        return '<div class="stat"><span class="k">' + k + '</span><span class="v">' + v + "</span></div>";
+      }
+      function render(d) {
+        var t = d.byTier || {};
+        statsEl.innerHTML =
+          row("Completed assessments", fmt(d.completedAssessments)) +
+          row("Tier · Free", fmt(t.free)) +
+          row("Tier · Full", fmt(t.full)) +
+          row("Promo code uses", fmt(d.promoCodeUses)) +
+          row("Last 7 days", fmt(d.assessmentsLast7Days)) +
+          row("Last 30 days", fmt(d.assessmentsLast30Days)) +
+          row("Emails saved", fmt(d.emailsSaved));
+        statsEl.classList.add("show");
+        if (d.generatedAt) {
+          tsEl.textContent = "as of " + new Date(d.generatedAt * 1000).toLocaleString();
+        }
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var key = keyInput.value;
+        if (!key) { err.textContent = "Enter the admin key."; return; }
+        err.textContent = "";
+        go.disabled = true; go.textContent = "…";
+        statsEl.classList.remove("show");
+        // The key is only ever sent to the server for comparison against the
+        // ADMIN_KEY env var — it is never stored or baked into this page.
+        fetch("/api/admin/stats", { headers: { "X-Admin-Key": key } })
+          .then(function (res) {
+            if (res.status === 401) { throw new Error("Incorrect admin key."); }
+            if (!res.ok) { throw new Error("Couldn't load stats — please try again."); }
+            return res.json();
+          })
+          .then(function (data) { render(data); })
+          .catch(function (ex) { err.textContent = ex.message || "Something went wrong."; })
+          .then(function () { go.disabled = false; go.textContent = "Submit"; });
+      });
+    })();
+  </script>
+</body>
+</html>

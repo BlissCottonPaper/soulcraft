@@ -13,6 +13,7 @@
 // ============================================================
 
 import { buildReportEmail } from "./_report-email.js";
+import { svgToPngDataUri } from "./_svg-png.js";
 
 function uuid() {
   // Cloudflare Workers runtime has crypto.randomUUID() built in natively —
@@ -31,7 +32,7 @@ function json(obj, status) {
   return new Response(JSON.stringify(obj), { status: status || 200, headers: { "Content-Type": "application/json" } });
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const body = await request.json();
     const {
@@ -193,27 +194,40 @@ export async function onRequestPost({ request, env }) {
 
         // --- Email 2: the full report (Task 2) ---
         // Sent alongside the magic link whenever the client supplies the computed
-        // reading. Delivered as a clean, self-contained HTML email rather than a
-        // PDF attachment — see _report-email.js for why the edge runtime can't
-        // faithfully render the print layout to PDF. A failure here never blocks
-        // the magic link; it's best-effort.
+        // reading. Delivered as a clean, self-contained HTML email with the Mandala
+        // (and, for Full, the Shadow Mandala) rasterized server-side to inline PNGs.
+        //
+        // Rendering the SVGs to PNG (resvg-wasm) is CPU-heavy, so the whole Email-2
+        // job runs in the BACKGROUND via waitUntil: it can never delay the response
+        // to the client, and if it exceeds limits it just doesn't send — the primary
+        // save + magic link already succeeded.
         if (report && typeof report === "object") {
-          try {
-            const { subject, html, text } = buildReportEmail(report, email.trim());
-            await fetch("https://api.resend.com/emails", {
-              method: "POST",
-              headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-              body: JSON.stringify({
-                from: "The Art of Soulcraft <hello@artofsoulcraft.com>",
-                to: [email.trim()],
-                subject,
-                html,
-                text,
-              }),
-            });
-          } catch (e) {
-            // best-effort — swallow so the primary response still succeeds
-          }
+          const toAddr = email.trim();
+          const apiKey = env.RESEND_API_KEY;
+          const job = (async () => {
+            try {
+              // Rasterize the client-serialized Mandala SVGs to inline PNG data URIs.
+              const [mandala, shadow] = await Promise.all([
+                svgToPngDataUri(report.mandalaSvg, 640),
+                report.shadowMandalaSvg ? svgToPngDataUri(report.shadowMandalaSvg, 640) : Promise.resolve(null),
+              ]);
+              const { subject, html, text } = buildReportEmail(report, toAddr, { mandala, shadow });
+              await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  from: "The Art of Soulcraft <hello@artofsoulcraft.com>",
+                  to: [toAddr],
+                  subject,
+                  html,
+                  text,
+                }),
+              });
+            } catch (e) {
+              // best-effort — swallow so nothing is surfaced to the client
+            }
+          })();
+          if (typeof waitUntil === "function") waitUntil(job); else await job;
         }
       }
     }
