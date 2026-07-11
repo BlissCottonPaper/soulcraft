@@ -91,13 +91,37 @@ export async function onRequestPost({ request, env }) {
 
     if (resultId && env.DB) {
       try {
+        // UPSERT, not UPDATE: the payment gate now runs BEFORE the assessment, so
+        // a paid result_id can arrive here before save-results has written any
+        // scores. We seed a placeholder row (empty scores) the assessment later
+        // fills in, and never clobber real data when the row already exists.
+        const now = Math.floor(Date.now() / 1000);
         if (purchaseType === "full") {
-          await env.DB.prepare("UPDATE results SET full_purchased = 1, shadow_unlocked = 1 WHERE id = ?").bind(resultId).run();
+          await env.DB.prepare(
+            `INSERT INTO results
+               (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, created_at)
+             VALUES (?, 'reveal', 'quick', '{}', '{}', 0, 1, 1, ?)
+             ON CONFLICT(id) DO UPDATE SET full_purchased = 1, shadow_unlocked = 1`
+          ).bind(resultId, now).run();
         } else if (purchaseType === "shadow") {
-          await env.DB.prepare("UPDATE results SET shadow_unlocked = 1 WHERE id = ?").bind(resultId).run();
+          await env.DB.prepare(
+            `INSERT INTO results
+               (id, tier, mode, archetype_scores, channel_scores, is_public, shadow_unlocked, created_at)
+             VALUES (?, 'reveal', 'quick', '{}', '{}', 0, 1, ?)
+             ON CONFLICT(id) DO UPDATE SET shadow_unlocked = 1`
+          ).bind(resultId, now).run();
+        } else if (purchaseType === "mandala") {
+          // $19 Your Mandala buys the reading itself but sets no unlock flags. With
+          // the gate before the assessment, still seed the paid row so the scores
+          // have a home when the assessment finishes. No-op if it already exists.
+          await env.DB.prepare(
+            `INSERT INTO results
+               (id, tier, mode, archetype_scores, channel_scores, is_public, created_at)
+             VALUES (?, 'reveal', 'quick', '{}', '{}', 0, ?)
+             ON CONFLICT(id) DO NOTHING`
+          ).bind(resultId, now).run();
         }
-        // 'mandala' ($19 Your Mandala) and 'compatibility' ($19, invite flow TBD)
-        // intentionally set no flags here — acknowledged and ignored.
+        // 'compatibility' ($19, invite flow TBD) intentionally sets no flags here.
       } catch (e) {
         // Log-and-500 so Stripe retries the webhook rather than dropping the payment.
         return new Response(JSON.stringify({ error: "Database update failed", detail: e.message }), {

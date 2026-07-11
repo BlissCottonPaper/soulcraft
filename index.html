@@ -413,10 +413,10 @@ function TwelveWithin() {
     const [shadowUnlocked, setShadowUnlocked] = useState(false);
     const [unlocking, setUnlocking] = useState(false);   // Stripe checkout in progress
     const [unlockError, setUnlockError] = useState("");
-    const [devCode, setDevCode] = useState("");          // internal-testing bypass code
     const [promoCode, setPromoCode] = useState("");      // customer-facing free-access promo code
     const [promoError, setPromoError] = useState("");
     const [promoBusy, setPromoBusy] = useState(false);
+    const [shareCopied, setShareCopied] = useState(false); // brief "Copied!" after copy-link (Task 3)
     const [session, setSession] = useState(0);
     const [picks, setPicks] = useState([]); // descriptor keys picked (archetype key per chip)
     const [pairIdx, setPairIdx] = useState(0);
@@ -437,14 +437,40 @@ function TwelveWithin() {
     const [resendRequested, setResendRequested] = useState(false);
     const chips = useMemo(() => shuffle(ARCHETYPES.flatMap((a) => a.descriptors.map((d) => ({ word: d, key: a.key })))), [session]);
     const pairs = useMemo(() => buildPairs(TIERS[tier].pairMode), [tier, session]);
+    // Reset the raw assessment inputs (shared by free start, paid gate, and the
+    // post-payment resume) and mark this attempt unsaved.
+    const resetAssessmentState = () => { setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setUnlockError(""); setPromoError(""); setPromoCode(""); savedForSession.current = null; };
+    // Begin (or resume, after payment) the assessment for the active tier.
+    const beginAssessment = () => { resetAssessmentState(); setSession((s) => s + 1); setScreen("descriptors"); };
     // isFull=true is the $34 "Full" path (Reveal + Shadow); otherwise a paid tier is
     // the $19 "Reveal" (purchase_type "mandala"). Free has no purchase. Payment now
-    // happens AFTER the assessment, at the checkout gate — so nothing is unlocked here.
-    const start = (t, isFull) => { setTier(t); setMode(TIERS[t].pairMode); setSession((s) => s + 1); setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setShadowUnlocked(false); setPurchaseIntent(t === "free" ? null : (isFull ? "full" : "mandala")); setUnlockError(""); setPromoError(""); setPromoCode(""); setScreen("descriptors"); };
+    // happens BEFORE the assessment (Task 1): Free begins the questions immediately,
+    // while Reveal/Full go to the checkout gate first and only begin once paid (or a
+    // valid promo code is entered).
+    const start = (t, isFull) => {
+        setTier(t); setMode(TIERS[t].pairMode);
+        setShadowUnlocked(false);
+        resetAssessmentState();
+        setSession((s) => s + 1);
+        if (t === "free") {
+            setPurchaseIntent(null);
+            setSavedResultId(null);
+            setScreen("descriptors");
+        } else {
+            setPurchaseIntent(isFull ? "full" : "mandala");
+            // Pre-generate the result id so the gate's checkout/promo can reference it
+            // before any questions exist; the row is materialized server-side by the
+            // webhook/promo, and save-results fills in the scores after the assessment.
+            let rid;
+            try { rid = crypto.randomUUID(); } catch (e) { rid = "r-" + Date.now() + "-" + Math.random().toString(16).slice(2); }
+            setSavedResultId(rid);
+            setScreen("checkout");
+        }
+    };
     const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); setPickList(null); setShadowUnlocked(false); setUnlocking(false); setUnlockError(""); setPurchaseIntent(null); setPromoError(""); setPromoCode(""); };
-    // After the assessment, Free reveals results immediately; paid tiers pass through
-    // the checkout gate first. The sample is always shown directly.
-    const nextAfterAssessment = () => (purchaseIntent && !isSample) ? "checkout" : "results";
+    // The payment gate now runs BEFORE the assessment (paid tiers pay at the gate,
+    // then answer questions), so finishing the assessment always lands on results.
+    const nextAfterAssessment = () => "results";
     // The sample is the demo of the best version of the product — the full tier with
     // BOTH mandalas already revealed.
     const showSample = () => { setWins({ ...SAMPLE_WINS }); setPicks([]); setChScores({ heart: 2, mind: 4, body: 1, soul: 3 }); setPairIdx(0); setTier("reveal"); setIsSample(true); setShadowUnlocked(true); setScreen("results");
@@ -541,9 +567,10 @@ function TwelveWithin() {
     const [emailSent, setEmailSent] = useState(false);
 
     useEffect(() => {
-        // Save on reaching the checkout gate (paid tiers, so we have a result_id for
-        // create-checkout) or results (free/reveal). Never the sample or a restored result.
-        if ((screen !== "results" && screen !== "checkout") || isSample || restored) return;
+        // Save the moment results are shown. The payment gate already ran before the
+        // assessment for paid tiers, so there's no longer a "checkout" save. Never the
+        // sample or a restored result.
+        if (screen !== "results" || isSample || restored) return;
         if (savedForSession.current === session) return; // already saved this exact attempt
         savedForSession.current = session;
         setSaveStatus("saving");
@@ -557,6 +584,10 @@ function TwelveWithin() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+                // Paid tiers already have a pre-created (paid) row from the gate — pass
+                // its id so the server fills scores onto it (UPSERT) without clobbering
+                // the paid flags. Free tiers send no id and the server mints a fresh row.
+                resultId: savedResultId || undefined,
                 tier,
                 mode: TIERS[tier].pairMode,
                 archetypeScores,
@@ -606,15 +637,54 @@ function TwelveWithin() {
         } catch (e) {}
     }, [screen, isSample, tier, picks, shadowUnlocked, savedResultId, ranked, radarScores]);
 
+    // Assemble the reading content for the emailed report (Task 2, Email 2). Built
+    // from the same computed values the on-screen/print report uses, so the email
+    // matches what the user sees. Shadow section only when it's actually unlocked.
+    const buildReportPayload = () => {
+        try {
+            const topN = Math.min(3, TIERS[tier].topCount);
+            const loud = ranked.slice(0, topN).map((r) => ({ name: r.name, longing: longsPhrase(r), stages: r.stages }));
+            const mkPairs = (arr) => [[0, 1], [0, 2], [1, 2]].map(([a, b]) => ({
+                title: arr[a].name + " × " + arr[b].name,
+                name: blendName(arr[a], arr[b]) || null,
+                texture: blendTexture(arr[a], arr[b]) || null,
+            }));
+            const pairings = topN >= 3 ? mkPairs(ranked) : [];
+            const prof = temperamentProfile(radarScores);
+            const temperament = {
+                items: prof.axes.map((a) => ({ name: a.name, raw: a.raw })),
+                note: prof.allLoud ? ALL_LOUD_COPY : prof.allQuiet ? ALL_QUIET_COPY : null,
+            };
+            let shadow = null;
+            if (shadowUnlocked && shadowThree && shadowThree.length === 3) {
+                shadow = {
+                    three: shadowThree.map((r) => ({ name: r.name, longing: longsPhrase(r), stages: r.stages })),
+                    pairings: [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
+                        const sh = parseShadow(blendShadowTexture(shadowThree[a], shadowThree[b]));
+                        return {
+                            title: shadowThree[a].name + " × " + shadowThree[b].name,
+                            name: blendName(shadowThree[a], shadowThree[b]) || null,
+                            texture: blendTexture(shadowThree[a], shadowThree[b]) || null,
+                            inShadow: sh ? sh.shadow : null,
+                            integrated: sh ? sh.integrated : null,
+                        };
+                    }),
+                };
+            }
+            return { name: null, loud, pairings, temperament, shadow };
+        } catch (e) { return null; }
+    };
+
     const sendMyEmail = () => {
         if (!emailInput.trim() || !savedResultId) return;
         // CLAIM the already-saved anonymous result (savedResultId) with this email —
         // attaches it to the user and emails a magic link, instead of writing a
-        // second duplicate row.
+        // second duplicate row. `report` rides along so the server can also send
+        // the full-report email (Email 2).
         fetch("/api/save-results", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ claimResultId: savedResultId, email: emailInput.trim() }),
+            body: JSON.stringify({ claimResultId: savedResultId, email: emailInput.trim(), report: buildReportPayload() }),
         })
             .then((res) => res.json())
             .then(() => setEmailSent(true))
@@ -625,8 +695,21 @@ function TwelveWithin() {
     // return can re-render it after the full-page round-trip to Stripe (no
     // result-by-id fetch, no privacy exposure — the data was already the visitor's
     // own). purchaseType tells the return handler what was bought.
-    const snapshotPending = (purchaseType) => {
+    const snapshotPending = (purchaseType, phase) => {
         try {
+            if (phase === "gate") {
+                // Pre-assessment gate: no reading exists yet. Persist just enough to
+                // resume INTO the assessment after the Stripe round-trip.
+                localStorage.setItem("soulcraft_pending", JSON.stringify({
+                    resultId: savedResultId,
+                    tier: tier,
+                    purchaseType: purchaseType,
+                    phase: "gate",
+                }));
+                return;
+            }
+            // Post-results add-on ($15 shadow): snapshot the finished reading so the
+            // return can re-render it exactly, then unlock the shadow.
             localStorage.setItem("soulcraft_pending", JSON.stringify({
                 resultId: savedResultId,
                 tier: tier,
@@ -635,16 +718,17 @@ function TwelveWithin() {
                 temperamentScores: Object.fromEntries(TEMPERAMENTS.map((ch) => [ch.key, radarScores[ch.key] || 0])),
                 descriptorPicks: picks,
                 purchaseType: purchaseType,
+                phase: "addon",
             }));
         } catch (e) {}
     };
     // Kick off a Stripe hosted-checkout session on the server and redirect to it. No
     // Stripe key or publishable key ever touches the client. Used by both the upfront
     // checkout gate (mandala/full) and the $15 shadow add-on.
-    const goToCheckout = async (purchaseType) => {
-        if (!savedResultId) { setUnlockError("Your reading isn't saved yet — give it a second and try again."); return; }
+    const goToCheckout = async (purchaseType, phase) => {
+        if (!savedResultId) { setUnlockError("Something went wrong starting checkout — please start over."); return; }
         setUnlocking(true); setUnlockError("");
-        snapshotPending(purchaseType);
+        snapshotPending(purchaseType, phase);
         try {
             const res = await fetch("/api/create-checkout", {
                 method: "POST",
@@ -663,10 +747,10 @@ function TwelveWithin() {
             setUnlocking(false);
         }
     };
-    // The upfront checkout gate: buy the reading ($19 Reveal / $34 Full) before it's
-    // revealed. The $15 shadow add-on on the results page.
-    const startCheckout = () => goToCheckout(purchaseIntent || "mandala");
-    const unlockShadow = () => goToCheckout("shadow");
+    // The upfront checkout gate: buy the reading ($19 Reveal / $34 Full) BEFORE the
+    // assessment. The $15 shadow add-on lives on the results page (post-reading).
+    const startCheckout = () => goToCheckout(purchaseIntent || "mandala", "gate");
+    const unlockShadow = () => goToCheckout("shadow", "addon");
     // Customer-facing promo code: a valid code (validated server-side against the
     // PROMO_CODES env var — never listed client-side) unlocks full access for free,
     // bypassing Stripe. The server stamps full_purchased + shadow_unlocked on the row;
@@ -686,11 +770,18 @@ function TwelveWithin() {
             const data = await res.json().catch(() => ({}));
             if (data && data.ok) {
                 setPromoError("");
-                // A valid code grants full access (incl. shadow). Reveal the reading —
-                // from the checkout gate, or in place on the results page.
+                // A valid code grants full access (incl. shadow), bypassing Stripe.
                 setShadowUnlocked(true);
-                setScreen("results");
-                setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 80);
+                if (screen === "checkout") {
+                    // At the pre-assessment gate: full access granted — begin the
+                    // questions now. Scores fill onto the promo-stamped row at the end.
+                    setPurchaseIntent("full");
+                    beginAssessment();
+                } else {
+                    // On the results page (the $15 shadow CTA): reveal in place.
+                    setScreen("results");
+                    setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 80);
+                }
             } else {
                 setPromoError((data && data.error) || "That code isn't valid — try again or continue to checkout.");
             }
@@ -699,16 +790,35 @@ function TwelveWithin() {
         }
         setPromoBusy(false);
     };
-    // Internal-testing bypass: entering SHADOW-DEV reveals the shadow without payment.
-    // For our own QA of the shadow experience before Stripe is live — not a customer path.
-    const applyDevCode = () => {
-        if (devCode.trim().toUpperCase() === "SHADOW-DEV") {
-            setUnlockError("");
-            setShadowUnlocked(true);
-            setTimeout(() => { const el = document.getElementById("shadow-mandala"); if (el) el.scrollIntoView({ behavior: "smooth" }); }, 60);
-        } else {
-            setUnlockError("That testing code isn't valid.");
-        }
+
+    // --- Share your Mandala (Task 3) -----------------------------------------
+    // A quiet nudge under the wheel. The canonical link is always the "return to
+    // your Mandala" URL, so a recipient who follows it lands where the sharer is.
+    const SHARE_URL = "https://artofsoulcraft.com/?return=mandala";
+    const copyShareLink = async () => {
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(SHARE_URL);
+            } else {
+                // Fallback for browsers without the async clipboard API.
+                const ta = document.createElement("textarea");
+                ta.value = SHARE_URL; ta.style.position = "fixed"; ta.style.opacity = "0";
+                document.body.appendChild(ta); ta.focus(); ta.select();
+                document.execCommand("copy"); document.body.removeChild(ta);
+            }
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 1800);
+        } catch (e) { /* clipboard blocked — silently no-op */ }
+    };
+    // Instagram / Facebook: there's no reliable web way to deep-link a prefilled
+    // post, so we open the OS share sheet (Web Share API) where the user picks the
+    // app. If Web Share isn't available (most desktop browsers), fall back to copy.
+    const shareMandala = async () => {
+        const payload = { title: "The Art of Soulcraft", text: "My Mandala — my twelve archetypal voices, mapped.", url: SHARE_URL };
+        try {
+            if (navigator.share) { await navigator.share(payload); return; }
+        } catch (e) { if (e && e.name === "AbortError") return; /* user dismissed */ }
+        copyShareLink();
     };
 
     // --- Stripe return: /results/{result_id}?payment=success|cancelled. Re-render the
@@ -728,34 +838,42 @@ function TwelveWithin() {
         const matched = snap && snap.resultId === resultId;
         // "shadow" is the legacy default (older $15 snapshots had no purchaseType).
         const pType = (snap && snap.purchaseType) || "shadow";
-        const upfront = pType === "mandala" || pType === "full";
+        // The pre-assessment gate (Task 1): payment happens BEFORE the questions.
+        const isGate = snap && snap.phase === "gate";
 
+        // ── Gate flow: paid the reading up front, no assessment done yet ──────────
+        if (isGate) {
+            clearUrl();
+            if (payment !== "success") {
+                // Cancelled at the gate → return to tier selection (nothing charged).
+                restart();
+                return;
+            }
+            // Paid → begin the assessment on the pre-created (now paid) result row.
+            const t = normTier(snap.tier || "reveal");
+            setTier(t); setMode(TIERS[t].pairMode);
+            setPurchaseIntent(pType);
+            setSavedResultId(resultId);
+            if (pType === "full") setShadowUnlocked(true); // Full includes the shadow
+            beginAssessment();
+            return;
+        }
+
+        // ── Add-on flow ($15 shadow on the results page): reading already exists ──
         // Cancelled → nothing charged.
         if (payment !== "success") {
             if (matched) restoreOne({ ...snap, shadowUnlocked: false });
-            if (upfront) {
-                // Upfront tiers: don't reveal the paid reading — return to the gate.
-                setPurchaseIntent(pType);
-                setScreen("checkout");
-                setUnlockError("Checkout cancelled — nothing was charged. You can try again when you're ready.");
-            } else {
-                setUnlockError("Checkout cancelled — nothing was charged. You can unlock anytime.");
-            }
+            setUnlockError("Checkout cancelled — nothing was charged. You can unlock anytime.");
             clearUrl();
             return;
         }
 
-        // Success → render the reading. Reaching Stripe's success_url means payment
-        // completed, so the reading is now unlocked.
+        // Success → re-render the reading from the snapshot.
         if (matched) restoreOne({ ...snap, shadowUnlocked: false });
         clearUrl();
 
-        // Reveal ($19 mandala) buys only the twelve-voice reading — no shadow flag to
-        // confirm; the reading is already on screen. The $15 shadow CTA remains for later.
-        if (pType === "mandala") return;
-
-        // Full ($34) and the $15 shadow add-on unlock the Shadow Mandala — confirm the
-        // webhook's flag server-side, polling briefly in case it lands after the redirect.
+        // The $15 shadow add-on unlocks the Shadow Mandala — confirm the webhook's flag
+        // server-side, polling briefly in case it lands after the redirect.
         let tries = 0;
         const poll = () => {
             fetch("/api/checkout-status?result_id=" + encodeURIComponent(resultId))
@@ -1058,16 +1176,16 @@ function TwelveWithin() {
             screen === "checkout" && (() => {
                 const isFullPlan = purchaseIntent === "full";
                 return React.createElement("div", { className: "text-center max-w-md mx-auto" },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-3", style: sans }, "YOUR READING IS READY"),
-                    React.createElement("h2", { className: "text-4xl mb-3", style: serif }, "One step away"),
-                    React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-7", style: sans }, "Your twelve voices are ranked and mapped. Unlock your Mandala to see the full reading."),
+                    React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-3", style: sans }, "BEFORE YOU BEGIN"),
+                    React.createElement("h2", { className: "text-4xl mb-3", style: serif }, "Unlock to begin"),
+                    React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-7", style: sans }, isFullPlan ? "Unlock the Full reading — Your Mandala and your Shadow Mandala. Your questions begin the moment payment completes." : "Unlock Your Mandala — your twelve voices, ranked and mapped. Your questions begin the moment payment completes."),
                     React.createElement("div", { className: "rounded-2xl border border-amber-200/30 px-6 py-6 mb-5", style: { background: "rgba(255,250,240,0.03)" } },
                         React.createElement("p", { className: "text-2xl mb-1", style: serif }, isFullPlan ? "Full" : "Reveal"),
                         React.createElement("p", { className: "text-violet-300/70 text-sm mb-3", style: sans }, isFullPlan ? "Your Mandala + Shadow Mandala" : "Your Mandala — your twelve voices, ranked and mapped"),
                         React.createElement("p", { className: "text-4xl", style: serif }, isFullPlan ? "$34" : "$19"),
                         React.createElement("button", { onClick: startCheckout, disabled: unlocking, className: "w-full mt-5 rounded-xl px-5 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60", style: sans }, unlocking ? "Redirecting to checkout…" : "Continue to checkout →")),
                     unlockError && React.createElement("p", { className: "text-sm text-violet-300/70 mb-3 max-w-sm mx-auto", style: sans }, unlockError),
-                    React.createElement("p", { className: "text-violet-300/50 text-xs mb-6", style: sans }, "You'll see your full reading the moment payment completes."),
+                    React.createElement("p", { className: "text-violet-300/50 text-xs mb-6", style: sans }, "A few minutes of questions, then your full reading."),
                     React.createElement("div", { className: "pt-5 border-t border-violet-300/15 max-w-xs mx-auto" },
                         React.createElement("label", { htmlFor: "promo-code-gate", className: "block text-[13px] text-violet-300/70 mb-2", style: sans }, "Have a code? Enter it here."),
                         React.createElement("div", { className: "flex items-center gap-2" },
@@ -1094,6 +1212,24 @@ function TwelveWithin() {
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three pairings \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
+                // --- Share your Mandala (Task 3): one understated line, small icons.
+                // Not a modal or banner. Instagram/Facebook open the OS share sheet
+                // (Web Share API) on mobile; copy-link falls back everywhere else. ---
+                !isSample && React.createElement("div", { className: "flex items-center justify-center flex-wrap gap-x-3 gap-y-1 -mt-4 mb-10", style: sans },
+                    React.createElement("span", { className: "text-[13px] text-violet-300/55" }, shareCopied ? "Copied!" : "Share your Mandala"),
+                    React.createElement("span", { className: "text-violet-300/35", "aria-hidden": true }, "\u2192"),
+                    React.createElement("button", { onClick: shareMandala, "aria-label": "Share to Instagram", title: "Share to Instagram", className: "text-violet-300/55 hover:text-amber-100 transition-colors p-1" },
+                        React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
+                            React.createElement("rect", { x: 2, y: 2, width: 20, height: 20, rx: 5, ry: 5 }),
+                            React.createElement("path", { d: "M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" }),
+                            React.createElement("line", { x1: 17.5, y1: 6.5, x2: 17.51, y2: 6.5 }))),
+                    React.createElement("button", { onClick: shareMandala, "aria-label": "Share to Facebook", title: "Share to Facebook", className: "text-violet-300/55 hover:text-amber-100 transition-colors p-1" },
+                        React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
+                            React.createElement("path", { d: "M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" }))),
+                    React.createElement("button", { onClick: copyShareLink, "aria-label": "Copy link", title: "Copy link", className: "text-violet-300/55 hover:text-amber-100 transition-colors p-1" },
+                        React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
+                            React.createElement("path", { d: "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" }),
+                            React.createElement("path", { d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" })))),
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
 // ===== PRINT PAGE 1 - Your Mandala =====
                     React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "22px", boxSizing: "border-box" } },
@@ -1400,11 +1536,7 @@ function TwelveWithin() {
                         React.createElement("div", { className: "flex items-center gap-2" },
                             React.createElement("input", { id: "promo-code", type: "text", value: promoCode, onChange: (e) => setPromoCode(e.target.value), onKeyDown: (e) => { if (e.key === "Enter") applyPromo(); }, placeholder: "Code", "aria-label": "Promo code", disabled: promoBusy, className: "flex-1 rounded-lg bg-black/20 border border-violet-300/20 px-3 py-2 text-sm text-violet-100 outline-none focus:border-amber-200/50", style: sans }),
                             React.createElement("button", { onClick: applyPromo, disabled: promoBusy, className: "rounded-lg border border-violet-300/25 px-4 py-2 text-sm text-violet-200/80 hover:border-amber-200/60 hover:text-amber-100 transition-colors disabled:opacity-60", style: sans }, promoBusy ? "\u2026" : "Apply")),
-                        promoError && React.createElement("p", { className: "text-xs text-violet-300/70 mt-2", style: sans }, promoError)),
-                    // Internal-testing bypass (SHADOW-DEV) \u2014 small, muted, near the button.
-                    React.createElement("div", { className: "mt-5 flex items-center justify-center gap-2" },
-                        React.createElement("input", { type: "text", value: devCode, onChange: (e) => setDevCode(e.target.value), onKeyDown: (e) => { if (e.key === "Enter") applyDevCode(); }, placeholder: "Testing code", "aria-label": "Testing code", className: "w-36 rounded-lg bg-black/20 border border-violet-300/20 px-3 py-1.5 text-xs text-violet-100 outline-none focus:border-amber-200/50", style: sans }),
-                        React.createElement("button", { onClick: applyDevCode, className: "rounded-lg border border-violet-300/25 px-3 py-1.5 text-xs text-violet-200/80 hover:border-amber-200/60 hover:text-amber-100 transition-colors", style: sans }, "Apply"))),
+                        promoError && React.createElement("p", { className: "text-xs text-violet-300/70 mt-2", style: sans }, promoError))),
 
                 React.createElement("div", { className: "grid gap-3" },
                     React.createElement(Btn, { primary: true, onClick: () => {

@@ -31,6 +31,7 @@
       chrome.wireDropdown();
       chrome.wireMobile();
       chrome.applyResultToken();
+      chrome.injectAnalytics();
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
     else run();
@@ -38,6 +39,42 @@
   }
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
+
+  // --- Google Analytics 4 (gtag.js) -----------------------------------------
+  // Standard GA4 tag, injected once into <head> from here so it lives on EVERY
+  // page (the assessment root and all generated Explore pages both load this
+  // script). Loading via site-chrome keeps a single source of truth for the tag.
+  //
+  // ⚠️ ACTION REQUIRED: paste the property's real GA4 Measurement ID below.
+  // Until GA_MEASUREMENT_ID is a real "G-XXXXXXXXXX" value (the placeholder
+  // below still contains X's), nothing loads and no requests are sent — so a
+  // half-configured build never phones home to a bogus property.
+  var GA_MEASUREMENT_ID = "G-XXXXXXXXXX"; // TODO(analytics): replace with real GA4 Measurement ID for artofsoulcraft.com
+
+  function gaConfigured() {
+    return /^G-[A-Z0-9]+$/.test(GA_MEASUREMENT_ID) && GA_MEASUREMENT_ID.indexOf("XXXX") === -1;
+  }
+
+  function injectAnalytics() {
+    if (typeof document === "undefined") return;
+    if (!gaConfigured()) return;                       // placeholder not filled in yet
+    if (document.getElementById("ga4-src")) return;    // inject exactly once per page
+    var head = document.head || document.getElementsByTagName("head")[0];
+    if (!head) return;
+    var s = document.createElement("script");
+    s.id = "ga4-src";
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_MEASUREMENT_ID;
+    head.appendChild(s);
+    var inline = document.createElement("script");
+    inline.id = "ga4-init";
+    inline.text =
+      "window.dataLayer=window.dataLayer||[];" +
+      "function gtag(){dataLayer.push(arguments);}" +
+      "gtag('js',new Date());" +
+      "gtag('config','" + GA_MEASUREMENT_ID + "');";
+    head.appendChild(inline);
+  }
 
   var CSS = [
     "#site-header{position:sticky;top:0;z-index:30;background:rgba(16,12,34,0.82);backdrop-filter:blur(8px);border-bottom:1px solid rgba(196,181,253,0.10);font-family:'Source Sans 3',system-ui,sans-serif;}",
@@ -282,6 +319,7 @@
     wireDropdown: wireDropdown,
     wireMobile: wireMobile,
     readResultToken: readResultToken,
-    applyResultToken: applyResultToken
+    applyResultToken: applyResultToken,
+    injectAnalytics: injectAnalytics
   };
 });
