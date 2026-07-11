@@ -38,6 +38,13 @@ function page({ title, description, canonical, active, main }) {
 <meta property="og:description" content="${description}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${canonical}" />
+<meta property="og:image" content="https://artofsoulcraft.com/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${title}" />
+<meta name="twitter:description" content="${description}" />
+<meta name="twitter:image" content="https://artofsoulcraft.com/og-image.png" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
