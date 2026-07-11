@@ -32,8 +32,8 @@ function page({ title, description, canonical, active, main }) {
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="manifest" href="/manifest.json" />
-<meta name="theme-color" content="#171230" />
-<link rel="apple-touch-icon" href="/icon-192.png" />
+<meta name="theme-color" content="#1a1a2e" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <title>${title}</title>
 <meta name="description" content="${description}" />
 <link rel="canonical" href="${canonical}" />
@@ -217,6 +217,70 @@ function contactMain() {
               // Tailwind grid class sets display:grid as an author style and
               // would otherwise win over the UA [hidden] display:none rule,
               // leaving the form visible next to the confirmation.
+              f.style.display='none'; f.hidden=true;
+              done.hidden=false; done.style.display='block';
+              done.setAttribute('tabindex','-1'); done.focus();
+              done.scrollIntoView({behavior:'smooth', block:'center'});
+            } else {
+              s.style.color='#fca5a5'; s.textContent=(res.j&&res.j.error)||'Something went wrong. Please try again.';
+              btn.disabled=false; btn.textContent=old;
+            }
+          })
+          .catch(function(){
+            s.style.color='#fca5a5'; s.textContent='Network error — please try again.';
+            btn.disabled=false; btn.textContent=old;
+          });
+      });
+    })();
+    </script>`;
+}
+// Support page — a help form (name / email / subject / message) that POSTs to
+// /api/support (emails the support inbox via Resend), plus a direct mailto for
+// people who'd rather write from their own client. Same dark design language as
+// the contact page; linked from the FOOTER only, never the main nav.
+function supportMain() {
+  return `    <section class="text-center pt-16 pb-8 md:pt-24">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">SUPPORT</p>
+      <h1 class="serif text-4xl md:text-6xl mb-4">We're here to help</h1>
+      <p class="text-violet-200/80 text-lg max-w-xl mx-auto">Have a question or need help? We're here. Send a note below and we'll get back to you — or email <a href="mailto:hello@artofsoulcraft.com" class="text-amber-200/90 hover:text-amber-100 underline underline-offset-4">hello@artofsoulcraft.com</a> directly.</p>
+    </section>
+    <section class="max-w-xl mx-auto pb-20">
+      <form id="support-form" class="grid gap-4" novalidate>
+        <label class="block"><span class="text-sm text-violet-200/80">Name</span>
+          <input name="name" type="text" required autocomplete="name" class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60" /></label>
+        <label class="block"><span class="text-sm text-violet-200/80">Email</span>
+          <input name="email" type="email" required autocomplete="email" class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60" /></label>
+        <label class="block"><span class="text-sm text-violet-200/80">Subject</span>
+          <input name="subject" type="text" autocomplete="off" class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60" /></label>
+        <label class="block"><span class="text-sm text-violet-200/80">Message</span>
+          <textarea name="message" rows="6" required class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60"></textarea></label>
+        <button type="submit" id="support-submit" class="rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Send message</button>
+        <p id="support-status" class="text-sm text-center min-h-[1.25rem]" role="status" aria-live="polite"></p>
+      </form>
+      <div id="support-done" class="card rounded-2xl px-8 py-12 text-center" hidden>
+        <div class="text-4xl mb-4" aria-hidden="true">✓</div>
+        <h2 class="serif text-3xl mb-3">Thank you — we'll be in touch soon.</h2>
+        <p class="text-violet-200/80 mb-8">Your message is on its way. We read every note and will reply to the email you gave us.</p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="/" class="rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the Assessment</a>
+          <a href="/explore/" class="rounded-xl px-6 py-3.5 border border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100 transition-colors">Explore the Archetypes</a>
+        </div>
+      </div>
+    </section>
+    <script>
+    (function(){
+      var f=document.getElementById('support-form'); if(!f) return;
+      var btn=document.getElementById('support-submit'), s=document.getElementById('support-status');
+      var done=document.getElementById('support-done');
+      f.addEventListener('submit', function(e){
+        e.preventDefault();
+        var d={ name:f.name.value.trim(), email:f.email.value.trim(), subject:f.subject.value.trim(), message:f.message.value.trim() };
+        if(!d.name||!d.email||!d.message){ s.style.color='#fca5a5'; s.textContent='Please fill in your name, email, and message.'; return; }
+        var old=btn.textContent; btn.disabled=true; btn.textContent='Sending…'; s.textContent='';
+        fetch('/api/support',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+          .then(function(r){ return r.json().catch(function(){return {};}).then(function(j){ return {ok:r.ok, j:j}; }); })
+          .then(function(res){
+            if(res.ok){
               f.style.display='none'; f.hidden=true;
               done.hidden=false; done.style.display='block';
               done.setAttribute('tabindex','-1'); done.focus();
@@ -1338,6 +1402,14 @@ write("contact/index.html", page({
   canonical: "https://artofsoulcraft.com/contact/",
   active: "contact",
   main: contactMain()
+}));
+
+write("support/index.html", page({
+  title: "Support — The Art of Soulcraft",
+  description: "Have a question or need help? Send the team a message, or email hello@artofsoulcraft.com directly.",
+  canonical: "https://artofsoulcraft.com/support/",
+  active: "support",
+  main: supportMain()
 }));
 
 write("my-results/index.html", page({
