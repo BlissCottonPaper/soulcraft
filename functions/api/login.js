@@ -49,6 +49,7 @@ export async function onRequestPost({ request, env }) {
     const { token } = await createSession(env, user.id);
     return json({ ok: true }, 200, { "Set-Cookie": sessionCookie(token) });
   } catch (err) {
-    return json({ error: "Server error", detail: err.message }, 500);
+    console.error("login failed:", err && (err.stack || err.message || err));
+    return json({ error: "Server error", detail: err && err.message }, 500);
   }
 }

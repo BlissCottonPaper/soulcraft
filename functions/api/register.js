@@ -73,6 +73,9 @@ export async function onRequestPost({ request, env }) {
     const { token } = await createSession(env, userId);
     return json({ ok: true }, 200, { "Set-Cookie": sessionCookie(token) });
   } catch (err) {
-    return json({ error: "Server error", detail: err.message }, 500);
+    // Surface the real cause in the Cloudflare Pages Functions logs (wrangler
+    // pages deployment tail / dashboard), while keeping the client message generic.
+    console.error("register failed:", err && (err.stack || err.message || err));
+    return json({ error: "Server error", detail: err && err.message }, 500);
   }
 }
