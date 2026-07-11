@@ -76,6 +76,41 @@ function newToken() {
   return toHex(bytes);
 }
 
+// --- Self-healing schema (so registration/login work even if migration 0002
+// was never run against the live D1). D1 has no "ADD COLUMN IF NOT EXISTS", so
+// each ALTER is attempted and its "duplicate column name" error is swallowed;
+// CREATE ... IF NOT EXISTS is naturally idempotent. Memoized per isolate so the
+// ~dozen statements run at most once per cold start, not on every request. ---
+let schemaEnsured = false;
+export async function ensureSchema(env) {
+  if (schemaEnsured || !env || !env.DB) return;
+  const statements = [
+    // Base tables (idempotent) — so even a brand-new/empty D1 bootstraps here,
+    // not just one that's missing the accounts additions. CREATE ... IF NOT
+    // EXISTS never touches an existing table, so the ALTERs below still run to
+    // upgrade a pre-existing users/results table.
+    "CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT, stripe_customer_id TEXT, companion_active INTEGER NOT NULL DEFAULT 0, companion_tier TEXT, subscription_id TEXT, created_at INTEGER NOT NULL)",
+    "CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL)",
+    "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
+    "CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)",
+    "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)",
+    // Upgrade an existing users table (magic-link era) to the accounts schema.
+    "ALTER TABLE users ADD COLUMN password_hash TEXT",
+    "ALTER TABLE users ADD COLUMN companion_active INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN companion_tier TEXT",
+    "ALTER TABLE users ADD COLUMN subscription_id TEXT",
+    // Companion columns on results (only present if a results table already exists).
+    "ALTER TABLE results ADD COLUMN stripe_customer_id TEXT",
+    "ALTER TABLE results ADD COLUMN companion_active INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE results ADD COLUMN companion_tier TEXT",
+    "ALTER TABLE results ADD COLUMN subscription_id TEXT",
+  ];
+  for (const sql of statements) {
+    try { await env.DB.prepare(sql).run(); } catch (e) { /* already exists / not applicable — expected, ignore */ }
+  }
+  schemaEnsured = true;
+}
+
 // Create a session row and return the RAW token (goes in the cookie) + expiry.
 export async function createSession(env, userId) {
   const token = newToken();

@@ -12,7 +12,7 @@
 // Needs the D1 binding env.DB.
 // ============================================================
 
-import { verifyPassword, createSession, sessionCookie } from "./_auth.js";
+import { verifyPassword, createSession, sessionCookie, ensureSchema } from "./_auth.js";
 
 function json(obj, status, extraHeaders) {
   const headers = { "Content-Type": "application/json" };
@@ -23,6 +23,8 @@ function json(obj, status, extraHeaders) {
 export async function onRequestPost({ request, env }) {
   try {
     if (!env.DB) return json({ error: "Accounts aren't available yet." }, 503);
+    // Self-heal the accounts schema if migration 0002 wasn't run against live D1.
+    await ensureSchema(env);
     const body = await request.json().catch(() => ({}));
     const email = (body.email || "").trim().toLowerCase();
     const password = typeof body.password === "string" ? body.password : "";
@@ -47,6 +49,7 @@ export async function onRequestPost({ request, env }) {
     const { token } = await createSession(env, user.id);
     return json({ ok: true }, 200, { "Set-Cookie": sessionCookie(token) });
   } catch (err) {
-    return json({ error: "Server error", detail: err.message }, 500);
+    console.error("login failed:", err && (err.stack || err.message || err));
+    return json({ error: "Server error", detail: err && err.message }, 500);
   }
 }

@@ -91,11 +91,16 @@
     ".sc-menu a:hover{color:#fde68a;}",
     ".sc-menu-divider{height:1px;background:rgba(196,181,253,0.16);margin:.4rem 1rem;}",
     "#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}",
-    ".sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1rem;}",
-    "@media(min-width:768px){.sc-foot{flex-direction:row;justify-content:space-between;} .sc-nav{padding:0 2rem;}}",
-    ".sc-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;}",
+    ".sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1.25rem;}",
+    ".sc-foot-top{display:flex;flex-direction:column;gap:1rem;}",
+    "@media(min-width:768px){.sc-foot-top{flex-direction:row;justify-content:space-between;align-items:flex-start;} .sc-nav{padding:0 2rem;}}",
+    ".sc-foot-links{display:flex;flex-direction:column;gap:.4rem;}",
+    "@media(min-width:768px){.sc-foot-links{align-items:flex-end;text-align:right;}}",
+    ".sc-foot-row{display:flex;flex-wrap:wrap;gap:.5rem;}",
+    ".sc-foot-sep{opacity:.4;}",
     ".sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}",
-    ".sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);}",
+    ".sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);margin:0;}",
+    ".sc-foot-tagline{font-size:12.5px;color:rgba(196,181,253,0.45);margin:0;}",
     "#sc-return-banner{position:relative;display:flex;align-items:center;justify-content:center;gap:.75rem;background:rgba(253,230,138,0.12);border-bottom:1px solid rgba(253,230,138,0.22);font-family:'Source Sans 3',system-ui,sans-serif;padding:.5rem 2.5rem;text-align:center;}",
     ".sc-return-link{color:#fde8b0;text-decoration:none;font-size:14px;font-weight:600;}",
     ".sc-return-link:hover{color:#fff6d8;text-decoration:underline;}",
@@ -190,11 +195,14 @@
   function footerHtml() {
     return '' +
       '<footer id="site-footer"><div class="sc-foot">' +
-        '<p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p>' +
-        '<div class="sc-foot-links">' +
-          '<a href="/">Home</a><a href="/about/">About</a><a href="/how-it-works/">How It Works</a><a href="/explore/bandwidth/">Bandwidth</a>' +
-          '<a href="/explore/temperaments/">Temperament</a><a href="/explore/core-needs/">Core Human Needs</a><a href="/explore/growth-edge/">Growth Edge</a><a href="/integration-guide/">Integration Guide</a><a href="/pricing/">Pricing</a><a href="/contact/">Work with us</a><a href="/support/">Support</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>' +
+        '<div class="sc-foot-top">' +
+          '<p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p>' +
+          '<div class="sc-foot-links">' +
+            '<div class="sc-foot-row"><a href="/contact/">Work With Us</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/support/">Support</a></div>' +
+            '<div class="sc-foot-row"><a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/terms/">Terms</a></div>' +
+          '</div>' +
         '</div>' +
+        '<p class="sc-foot-tagline">A map, not a fortune. Wherever you stand today, take one rung up.</p>' +
       '</div></footer>';
   }
 

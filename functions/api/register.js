@@ -15,7 +15,7 @@
 // Needs the D1 binding env.DB.
 // ============================================================
 
-import { hashPassword, createSession, sessionCookie } from "./_auth.js";
+import { hashPassword, createSession, sessionCookie, ensureSchema } from "./_auth.js";
 
 function json(obj, status, extraHeaders) {
   const headers = { "Content-Type": "application/json" };
@@ -28,6 +28,8 @@ function uuid() { return crypto.randomUUID(); }
 export async function onRequestPost({ request, env }) {
   try {
     if (!env.DB) return json({ error: "Accounts aren't available yet." }, 503);
+    // Make sure the accounts schema exists (self-heals if migration 0002 wasn't run).
+    await ensureSchema(env);
     const body = await request.json().catch(() => ({}));
     const email = (body.email || "").trim().toLowerCase();
     const password = typeof body.password === "string" ? body.password : "";
@@ -71,6 +73,9 @@ export async function onRequestPost({ request, env }) {
     const { token } = await createSession(env, userId);
     return json({ ok: true }, 200, { "Set-Cookie": sessionCookie(token) });
   } catch (err) {
-    return json({ error: "Server error", detail: err.message }, 500);
+    // Surface the real cause in the Cloudflare Pages Functions logs (wrangler
+    // pages deployment tail / dashboard), while keeping the client message generic.
+    console.error("register failed:", err && (err.stack || err.message || err));
+    return json({ error: "Server error", detail: err && err.message }, 500);
   }
 }
