@@ -87,15 +87,26 @@ Set these in the Pages project's **Settings → Environment variables** (and the
 
 ---
 
-## Dependencies (Pages Functions)
+## Rendering the Mandala PNG (Pages Functions)
 
-The site itself is static (no build step), but the Pages **Functions** have one runtime dependency, declared in `package.json`:
+The emailed report embeds the Mandala / Shadow-Mandala as PNGs, rasterized from
+the client-serialized SVGs **server-side on the edge** (no headless browser),
+via the resvg renderer compiled to WASM.
 
-| Package | Why |
+**There is deliberately no `package.json`.** Adding one flips Cloudflare Pages
+from its zero-build "direct upload" mode into build mode, which broke deploys
+here. So resvg is **vendored** into the repo instead:
+
+| File | What |
 | --- | --- |
-| `@resvg/resvg-wasm` | Rasterizes the Mandala / Shadow-Mandala SVGs to PNG **server-side, on the edge** (no headless browser) so they can be embedded in the emailed report (`save-results.js` → `_svg-png.js`). |
+| `functions/api/_resvg.mjs` | wasm-bindgen JS glue (from `@resvg/resvg-wasm@2.6.2`). |
+| `functions/api/_resvg_bg.wasm` | the resvg WASM binary (~2.4 MB), imported relatively as a `WebAssembly.Module` — a pattern Pages Functions support with no build step. |
+| `functions/api/_mandala-font.js` | a ~12 KB subset of Liberation Sans (SIL OFL, redistributable) so resvg can render the archetype labels. |
 
-Cloudflare Pages installs this automatically when it detects `package.json` (leave the project's **build command empty** — there is no site build). The WASM binary is imported as a `WebAssembly.Module` (the standard Workers pattern). A ~12 KB subset of Liberation Sans (SIL OFL, redistributable) is embedded in `functions/api/_mandala-font.js` so resvg can render the archetype labels. The PNG render runs in the background via `waitUntil`, so it never blocks or breaks the save response.
+To update resvg later: `npm i @resvg/resvg-wasm@<v>` somewhere, then copy its
+`index.mjs` → `_resvg.mjs` and `index_bg.wasm` → `_resvg_bg.wasm`. The PNG render
+runs in the background via `waitUntil`, so it never blocks or breaks the save
+response, and any failure just omits the image.
 
 The rendered PNGs are attached to the report email as **Resend CID inline attachments** (`attachments: [{ content, filename, content_id, content_type }]`) and referenced with `<img src="cid:…">` — this renders in every client, Gmail included (unlike `data:` URIs, which Gmail blocks). The HTML body stays small because the image bytes live in separate MIME parts, so Gmail doesn't clip the message either.
 
