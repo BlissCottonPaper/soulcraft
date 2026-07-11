@@ -113,19 +113,22 @@ function sectionLabel(t) {
   return '<p style="font:700 10px/1.4 Arial,sans-serif;letter-spacing:.25em;color:#9a94aa;text-transform:uppercase;margin:26px 0 8px">' + esc(t) + "</p>";
 }
 
-// A centered inline image (the rasterized Mandala PNG, passed as a data URI).
-function mandalaImg(dataUri, alt) {
-  if (!dataUri) return "";
+// A centered inline image (the rasterized Mandala PNG). `cid` is the Content-ID
+// of a Resend inline attachment; we reference it with src="cid:…" so the image
+// renders in every client (including Gmail, which blocks data: URIs).
+function mandalaImg(cid, alt) {
+  if (!cid) return "";
   return (
     '<div style="text-align:center;margin:18px 0 6px">' +
-    '<img src="' + dataUri + '" alt="' + esc(alt) + '" width="320" ' +
+    '<img src="cid:' + cid + '" alt="' + esc(alt) + '" width="320" ' +
     'style="width:100%;max-width:320px;height:auto;display:inline-block" />' +
     "</div>"
   );
 }
 
 // report = { name, loud[], pairings[], temperament{items,note}, shadow{three,pairings}|null }
-// images = { mandala: dataUri|null, shadow: dataUri|null } — inline PNGs (optional).
+// images = { mandala: cid|null, shadow: cid|null } — Content-IDs of inline PNG
+// attachments (optional; the email still reads fine without them).
 export function buildReportEmail(report, email, images) {
   report = report || {};
   images = images || {};

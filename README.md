@@ -97,7 +97,7 @@ The site itself is static (no build step), but the Pages **Functions** have one 
 
 Cloudflare Pages installs this automatically when it detects `package.json` (leave the project's **build command empty** — there is no site build). The WASM binary is imported as a `WebAssembly.Module` (the standard Workers pattern). A ~12 KB subset of Liberation Sans (SIL OFL, redistributable) is embedded in `functions/api/_mandala-font.js` so resvg can render the archetype labels. The PNG render runs in the background via `waitUntil`, so it never blocks or breaks the save response.
 
-> Note on email clients: the Mandala PNG is embedded as a `data:` URI `<img>` per spec. Apple Mail and most desktop clients render these; **Gmail blocks `data:` image URIs and clips messages over ~102 KB**, so the image may not appear there. If Gmail rendering matters, switch the Resend payload to a CID inline attachment (`attachments: [{ content, filename, content_id }]` + `<img src="cid:…">`) — a localized change in `save-results.js`.
+The rendered PNGs are attached to the report email as **Resend CID inline attachments** (`attachments: [{ content, filename, content_id, content_type }]`) and referenced with `<img src="cid:…">` — this renders in every client, Gmail included (unlike `data:` URIs, which Gmail blocks). The HTML body stays small because the image bytes live in separate MIME parts, so Gmail doesn't clip the message either.
 
 ---
 

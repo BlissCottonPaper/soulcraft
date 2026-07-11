@@ -13,7 +13,7 @@
 // ============================================================
 
 import { buildReportEmail } from "./_report-email.js";
-import { svgToPngDataUri } from "./_svg-png.js";
+import { svgToPngBase64 } from "./_svg-png.js";
 
 function uuid() {
   // Cloudflare Workers runtime has crypto.randomUUID() built in natively —
@@ -206,22 +206,39 @@ export async function onRequestPost({ request, env, waitUntil }) {
           const apiKey = env.RESEND_API_KEY;
           const job = (async () => {
             try {
-              // Rasterize the client-serialized Mandala SVGs to inline PNG data URIs.
-              const [mandala, shadow] = await Promise.all([
-                svgToPngDataUri(report.mandalaSvg, 640),
-                report.shadowMandalaSvg ? svgToPngDataUri(report.shadowMandalaSvg, 640) : Promise.resolve(null),
+              // Rasterize the client-serialized Mandala SVGs to PNG bytes (base64).
+              const [mandalaB64, shadowB64] = await Promise.all([
+                svgToPngBase64(report.mandalaSvg, 640),
+                report.shadowMandalaSvg ? svgToPngBase64(report.shadowMandalaSvg, 640) : Promise.resolve(null),
               ]);
-              const { subject, html, text } = buildReportEmail(report, toAddr, { mandala, shadow });
+
+              // Attach the PNGs as CID inline attachments (not data: URIs) so they
+              // render in every client, including Gmail. The email references each
+              // by its Content-ID via <img src="cid:…">.
+              const attachments = [];
+              const cids = { mandala: null, shadow: null };
+              if (mandalaB64) {
+                cids.mandala = "mandala";
+                attachments.push({ filename: "mandala.png", content: mandalaB64, content_id: cids.mandala, content_type: "image/png" });
+              }
+              if (shadowB64) {
+                cids.shadow = "shadow-mandala";
+                attachments.push({ filename: "shadow-mandala.png", content: shadowB64, content_id: cids.shadow, content_type: "image/png" });
+              }
+
+              const { subject, html, text } = buildReportEmail(report, toAddr, cids);
+              const payload = {
+                from: "The Art of Soulcraft <hello@artofsoulcraft.com>",
+                to: [toAddr],
+                subject,
+                html,
+                text,
+              };
+              if (attachments.length) payload.attachments = attachments;
               await fetch("https://api.resend.com/emails", {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  from: "The Art of Soulcraft <hello@artofsoulcraft.com>",
-                  to: [toAddr],
-                  subject,
-                  html,
-                  text,
-                }),
+                body: JSON.stringify(payload),
               });
             } catch (e) {
               // best-effort — swallow so nothing is surfaced to the client

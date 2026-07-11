@@ -29,9 +29,10 @@ function ensureWasm() {
 }
 
 // svg: an SVG string. width: target pixel width (height scales to the viewBox).
-// Returns a "data:image/png;base64,…" string, or null on any failure (callers
-// treat the image as optional — the email still sends without it).
-export async function svgToPngDataUri(svg, width) {
+// Returns the PNG as a base64 string (no data: prefix), or null on any failure
+// (callers treat the image as optional — the email still sends without it). The
+// bare base64 is what Resend wants for a CID inline attachment's `content`.
+export async function svgToPngBase64(svg, width) {
   if (!svg || typeof svg !== "string") return null;
   try {
     await ensureWasm();
@@ -40,7 +41,7 @@ export async function svgToPngDataUri(svg, width) {
       font: { fontBuffers: [MANDALA_FONT], defaultFontFamily: "Liberation Sans", loadSystemFonts: false },
     });
     const png = resvg.render().asPng(); // Uint8Array
-    return "data:image/png;base64," + bytesToBase64(png);
+    return bytesToBase64(png);
   } catch (e) {
     return null;
   }
