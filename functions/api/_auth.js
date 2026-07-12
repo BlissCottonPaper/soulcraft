@@ -101,6 +101,10 @@ export async function ensureSchema(env) {
     "ALTER TABLE users ADD COLUMN subscription_id TEXT",
     // Account preferences (Session 4). Plumbing for spoken replies; 0 = off.
     "ALTER TABLE users ADD COLUMN voice_output_enabled INTEGER NOT NULL DEFAULT 0",
+    // Session 5b: a chosen display name (set at signup, edited in settings, or
+    // learned by Mira in-chat) and an anonymized-research consent flag (0 = off).
+    "ALTER TABLE users ADD COLUMN display_name TEXT",
+    "ALTER TABLE users ADD COLUMN research_consent INTEGER NOT NULL DEFAULT 0",
     // Companion columns on results (only present if a results table already exists).
     "ALTER TABLE results ADD COLUMN stripe_customer_id TEXT",
     "ALTER TABLE results ADD COLUMN companion_active INTEGER NOT NULL DEFAULT 0",

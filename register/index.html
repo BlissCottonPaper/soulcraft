@@ -74,9 +74,15 @@
     <form id="reg-form" novalidate>
       <label class="auth-label" for="email">Email</label>
       <input class="auth-input" id="email" name="email" type="email" autocomplete="email" required style="margin-bottom:1rem;" />
+      <label class="auth-label" for="display_name">What should we call you? <span style="color:rgba(196,181,253,0.5);font-weight:400;">(optional)</span></label>
+      <input class="auth-input" id="display_name" name="display_name" type="text" maxlength="40" autocomplete="nickname" placeholder="Your name" style="margin-bottom:1rem;" />
       <label class="auth-label" for="password">Password</label>
       <input class="auth-input" id="password" name="password" type="password" autocomplete="new-password" required minlength="8" />
       <p style="font-size:12.5px;color:rgba(196,181,253,0.55);margin:.4rem 0 0;">At least 8 characters.</p>
+      <label style="display:flex;gap:.6rem;align-items:flex-start;margin:1.15rem 0 .2rem;font-size:13.5px;line-height:1.5;color:rgba(224,218,246,0.82);cursor:pointer;">
+        <input type="checkbox" id="research_consent" style="margin-top:.15rem;width:1rem;height:1rem;accent-color:#c9a84c;flex:0 0 auto;" />
+        <span>I don't mind if my assessment data is used for anonymized research.</span>
+      </label>
       <p class="auth-err" id="err" role="alert"></p>
       <button class="auth-btn" id="submit" type="submit">Create account</button>
     </form>
@@ -93,9 +99,11 @@
     e.preventDefault();err.textContent="";
     var email=document.getElementById("email").value.trim();
     var password=document.getElementById("password").value;
+    var displayName=document.getElementById("display_name").value.trim();
+    var researchConsent=document.getElementById("research_consent").checked;
     if(password.length<8){err.textContent="Please choose a password of at least 8 characters.";return;}
     btn.disabled=true;btn.textContent="Creating…";
-    fetch("/api/register",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})})
+    fetch("/api/register",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password,display_name:displayName,research_consent:researchConsent})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         if(res.ok&&res.d&&res.d.ok){location.replace("/account/");return;}

@@ -32,6 +32,39 @@ function json(obj, status) {
   return new Response(JSON.stringify(obj), { status: status || 200, headers: { "Content-Type": "application/json" } });
 }
 
+// ---- Name capture (Session 5b) ---------------------------------------------
+// When Mira learns what to call someone she emits a silent ⟦remember-name: …⟧
+// marker (see _prompt.js). The server strips it from the outgoing stream — the
+// person never sees the brackets — and persists the name to users.display_name.
+const OPEN = "⟦", CLOSE = "⟧";                  // ⟦ ⟧
+const NAME_MARKER_G = /⟦\s*remember-name:\s*([^⟧]*?)\s*⟧/g;
+
+function cleanName(v) {
+  if (typeof v !== "string") return null;
+  const s = v.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/["']/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
+  return s || null;
+}
+function extractName(raw) {
+  NAME_MARKER_G.lastIndex = 0;
+  const m = NAME_MARKER_G.exec(raw);
+  return m ? cleanName(m[1]) : null;
+}
+// The prefix of `raw` that is SAFE to emit now: everything except a trailing,
+// still-unclosed "⟦…" fragment (which might turn into a marker), with any
+// COMPLETE markers already removed.
+function safeCleanedPrefix(raw) {
+  const lastOpen = raw.lastIndexOf(OPEN);
+  const holdFrom = (lastOpen >= 0 && raw.indexOf(CLOSE, lastOpen) === -1) ? lastOpen : raw.length;
+  return raw.slice(0, holdFrom).replace(NAME_MARKER_G, "");
+}
+// Final cleanup: strip complete markers, drop any leftover unclosed fragment.
+function stripMarkers(raw) {
+  let out = raw.replace(NAME_MARKER_G, "");
+  const lastOpen = out.lastIndexOf(OPEN);
+  if (lastOpen >= 0 && out.indexOf(CLOSE, lastOpen) === -1) out = out.slice(0, lastOpen);
+  return out;
+}
+
 async function anthropic(env, body) {
   return fetch(ANTHROPIC_URL, {
     method: "POST",
@@ -162,7 +195,10 @@ export async function onRequestPost(context) {
 
     const pump = (async () => {
       const writer = writable.getWriter();
-      let assistantText = "";
+      // `raw` accumulates Mira's full reply (markers included); we only ever
+      // emit the marker-stripped, safe prefix, so the ⟦remember-name⟧ note never
+      // reaches the client.
+      let raw = "", sentLen = 0;
       try {
         // Raise the crisis flag first, before any of Mira's text — so the client
         // shows the 988 UI immediately, independent of what she goes on to say.
@@ -186,11 +222,21 @@ export async function onRequestPost(context) {
             try {
               const ev = JSON.parse(payload);
               if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") {
-                assistantText += ev.delta.text;
-                await writer.write(enc.encode("data: " + JSON.stringify({ text: ev.delta.text }) + "\n\n"));
+                raw += ev.delta.text;
+                const cleaned = safeCleanedPrefix(raw);
+                if (cleaned.length > sentLen) {
+                  await writer.write(enc.encode("data: " + JSON.stringify({ text: cleaned.slice(sentLen) }) + "\n\n"));
+                  sentLen = cleaned.length;
+                }
               }
             } catch (e) { /* ignore non-JSON keepalives */ }
           }
+        }
+        // Flush anything held back behind a marker boundary (now that the reply
+        // is complete, all markers are closed).
+        const finalClean = stripMarkers(raw);
+        if (finalClean.length > sentLen) {
+          await writer.write(enc.encode("data: " + JSON.stringify({ text: finalClean.slice(sentLen) }) + "\n\n"));
         }
         await writer.write(enc.encode("data: " + JSON.stringify({ done: true }) + "\n\n"));
       } catch (e) {
@@ -198,12 +244,23 @@ export async function onRequestPost(context) {
       } finally {
         try { await writer.close(); } catch (e) {}
       }
-      // Persist Mira's completed reply.
+      // Persist Mira's completed reply — the CLEANED text, so the marker never
+      // lands in history or a future summary.
+      const assistantText = stripMarkers(raw).replace(/\s+$/, "");
       if (assistantText) {
         try {
           await env.DB
             .prepare("INSERT INTO mira_messages (user_id, session_id, role, content) VALUES (?, ?, 'assistant', ?)")
             .bind(user.id, sessionId, assistantText).run();
+        } catch (e) { /* best-effort */ }
+      }
+      // If Mira learned their name, remember it — but never overwrite one already set.
+      const learnedName = extractName(raw);
+      if (learnedName) {
+        try {
+          await env.DB
+            .prepare("UPDATE users SET display_name = ? WHERE id = ? AND (display_name IS NULL OR display_name = '')")
+            .bind(learnedName, user.id).run();
         } catch (e) { /* best-effort */ }
       }
     })();

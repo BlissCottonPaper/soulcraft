@@ -41,16 +41,17 @@ export async function onRequestGet({ request, env }) {
       if (count) latestId = list[0].id;
     } catch (e) { /* ignore — treat as no results */ }
 
-    // Account preferences. Defensive: the column is self-healed elsewhere, so a
-    // DB that predates it just reports the setting as off.
-    let voiceOut = false;
+    // Account preferences. Defensive: the columns are self-healed elsewhere, so a
+    // DB that predates them just reports defaults (setting off, no display name).
+    let voiceOut = false, displayName = null;
     try {
       const pref = await env.DB
-        .prepare("SELECT voice_output_enabled AS v FROM users WHERE id = ?")
+        .prepare("SELECT voice_output_enabled AS v, display_name AS dn FROM users WHERE id = ?")
         .bind(user.id)
         .first();
       voiceOut = !!(pref && Number(pref.v) === 1);
-    } catch (e) { /* column not present yet — off */ }
+      displayName = (pref && pref.dn) || null;
+    } catch (e) { /* columns not present yet — defaults */ }
 
     return json({
       authenticated: true,
@@ -61,6 +62,7 @@ export async function onRequestGet({ request, env }) {
       latest_result_id: latestId,
       result_count: count,
       voice_output_enabled: voiceOut,
+      display_name: displayName,
     });
   } catch (err) {
     return json({ authenticated: false });

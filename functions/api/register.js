@@ -3,7 +3,8 @@
 // ============================================================
 // Create a password account and log the person straight in.
 //
-//   POST { email, password }  ->  { ok: true }  (+ Set-Cookie session)
+//   POST { email, password, display_name?, research_consent? }
+//        ->  { ok: true }  (+ Set-Cookie session)
 //
 // The `users` table already existed as an email-only record (magic-link
 // retrieval). Registration UPGRADES that same row in place: if an email
@@ -25,6 +26,14 @@ function json(obj, status, extraHeaders) {
 
 function uuid() { return crypto.randomUUID(); }
 
+// A chosen display name: control chars dropped, whitespace collapsed, trimmed,
+// capped at 40 chars. Empty/whitespace → null (nothing to store).
+function cleanDisplayName(v) {
+  if (typeof v !== "string") return null;
+  const s = v.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+  return s || null;
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     if (!env.DB) return json({ error: "Accounts aren't available yet." }, 503);
@@ -33,6 +42,8 @@ export async function onRequestPost({ request, env }) {
     const body = await request.json().catch(() => ({}));
     const email = (body.email || "").trim().toLowerCase();
     const password = typeof body.password === "string" ? body.password : "";
+    const displayName = cleanDisplayName(body.display_name);
+    const researchConsent = body.research_consent ? 1 : 0;
 
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return json({ error: "Please enter a valid email address." }, 400);
@@ -56,17 +67,24 @@ export async function onRequestPost({ request, env }) {
         return json({ error: "An account with that email already exists. Please log in instead." }, 409);
       }
       // Email-only row (from a prior magic-link save) → claim it as an account,
-      // keeping every result already attached to this user_id.
+      // keeping every result already attached to this user_id. A display name is
+      // set only if provided (never clobber an existing one with a blank).
       userId = existing.id;
       await env.DB
-        .prepare("UPDATE users SET password_hash = ? WHERE id = ?")
-        .bind(passwordHash, userId)
+        .prepare("UPDATE users SET password_hash = ?, research_consent = ? WHERE id = ?")
+        .bind(passwordHash, researchConsent, userId)
         .run();
+      if (displayName) {
+        await env.DB
+          .prepare("UPDATE users SET display_name = COALESCE(display_name, ?) WHERE id = ?")
+          .bind(displayName, userId)
+          .run();
+      }
     } else {
       userId = uuid();
       await env.DB
-        .prepare("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)")
-        .bind(userId, email, passwordHash, now)
+        .prepare("INSERT INTO users (id, email, password_hash, display_name, research_consent, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+        .bind(userId, email, passwordHash, displayName, researchConsent, now)
         .run();
     }
 

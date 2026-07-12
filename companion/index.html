@@ -397,36 +397,51 @@
 
     // ---- Voice input (ASR) — browser SpeechRecognition. Free, no server, no
     // gating. Transcribes into the field for the person to read and edit; it
-    // NEVER auto-sends. If the browser can't do it, the mic button just hides.
+    // NEVER auto-sends. Continuous: brief pauses while thinking don't require
+    // re-tapping — the engine auto-restarts while the mic stays on. If the
+    // browser can't do speech recognition, the mic button just hides.
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     var mic=$('mira-mic'), recog=null, recording=false;
     function paintMic(){ if(mic) mic.className='mira-iconbtn mira-mic'+(recording?' recording':''); }
-    function stopMic(){ try{ if(recog) recog.stop(); }catch(e){} recording=false; paintMic(); }
+    function startRecog(){
+      recog=new SR();
+      recog.lang=(navigator.language||'en-US');
+      recog.interimResults=true; recog.continuous=true;
+      // Rebase on the field at each (re)start so already-captured text survives
+      // an auto-restart — new speech appends after what's already there.
+      var baseText=input.value;
+      var sep=(baseText && !/\s$/.test(baseText)) ? ' ' : '';
+      var finalAdded='';
+      recog.onresult=function(e){
+        var interim='', finals='';
+        for(var i=e.resultIndex;i<e.results.length;i++){
+          var tr=e.results[i];
+          if(tr.isFinal){ finals+=tr[0].transcript; } else { interim+=tr[0].transcript; }
+        }
+        if(finals) finalAdded+=finals;
+        input.value=baseText+sep+finalAdded+interim; grow();
+      };
+      recog.onerror=function(e){
+        // Permission/hardware errors are terminal — stop, don't loop-restart.
+        if(e && (e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture')){ recording=false; }
+      };
+      recog.onend=function(){
+        // A pause (or short-utterance timeout) ends the engine. If the mic is
+        // still meant to be on, restart seamlessly; otherwise settle into off.
+        if(recording){ try{ startRecog(); }catch(e){ recording=false; paintMic(); } }
+        else { paintMic(); input.focus(); }
+      };
+      recog.start();
+    }
+    // stopMic clears the intent FIRST so the onend that stop() triggers won't restart.
+    function stopMic(){ recording=false; try{ if(recog) recog.stop(); }catch(e){} paintMic(); }
     if(mic){
       if(!SR){ mic.className='mira-iconbtn mira-mic mira-hide-hard'; }
       else {
         mic.addEventListener('click', function(){
           if(recording){ stopMic(); return; }
-          try{
-            recog=new SR();
-            recog.lang=(navigator.language||'en-US');
-            recog.interimResults=true; recog.continuous=false;
-            var baseText=input.value;
-            var sep=(baseText && !/\s$/.test(baseText)) ? ' ' : '';
-            var finalAdded='';
-            recog.onresult=function(e){
-              var interim='', finals='';
-              for(var i=e.resultIndex;i<e.results.length;i++){
-                var tr=e.results[i];
-                if(tr.isFinal){ finals+=tr[0].transcript; } else { interim+=tr[0].transcript; }
-              }
-              if(finals) finalAdded+=finals;
-              input.value=baseText+sep+finalAdded+interim; grow();
-            };
-            recog.onerror=function(){ stopMic(); };
-            recog.onend=function(){ recording=false; paintMic(); input.focus(); };
-            recog.start(); recording=true; paintMic(); ga('mira_voice_input_started');
-          }catch(err){ recording=false; paintMic(); }
+          try{ recording=true; paintMic(); ga('mira_voice_input_started'); startRecog(); }
+          catch(err){ recording=false; paintMic(); }
         });
       }
     }

@@ -73,6 +73,16 @@
     <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .3rem;color:#f5f3ff;">Your account</h1>
     <p style="text-align:center;color:rgba(224,218,246,0.7);font-size:14.5px;margin:0 0 2rem;" id="acct-email"></p>
 
+    <div class="acct-row">
+      <h2 class="acct-h">What should we call you?</h2>
+      <p class="acct-p">The name Mira and your account use. Leave it blank to use the name from your email.</p>
+      <div style="display:flex;gap:.5rem;margin-top:.7rem;align-items:center;">
+        <input class="auth-input" id="acct-name-input" type="text" maxlength="40" autocomplete="nickname" placeholder="Your name" style="margin:0;" />
+        <button class="auth-btn" id="acct-name-save" type="button" style="width:auto;margin:0;padding:.7rem 1.15rem;white-space:nowrap;">Save</button>
+      </div>
+      <p class="auth-err" id="acct-name-status" style="min-height:1.1rem;"></p>
+    </div>
+
     <div class="acct-row" id="acct-results"></div>
 
     <div class="acct-row" id="acct-mira"></div>
@@ -115,6 +125,22 @@
     document.getElementById("acct-loading").style.display="none";
     document.getElementById("acct-body").style.display="block";
     document.getElementById("acct-email").textContent=d.email||"";
+
+    // Preferred name (display_name) — editable; blank falls back to the email-derived name.
+    var nameInput=document.getElementById("acct-name-input");
+    var nameSave=document.getElementById("acct-name-save");
+    var nameStatus=document.getElementById("acct-name-status");
+    if(nameInput){ nameInput.value=d.display_name||""; }
+    if(nameSave&&nameInput){ nameSave.addEventListener("click",function(){
+      nameSave.disabled=true; nameStatus.textContent="";
+      fetch("/api/settings",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({display_name:nameInput.value})})
+        .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+        .then(function(res){ nameSave.disabled=false;
+          if(res.ok&&res.j&&res.j.ok){ nameInput.value=res.j.display_name||""; nameStatus.style.color="rgba(253,230,138,0.9)"; nameStatus.textContent=nameInput.value?"Saved.":"Cleared — using the name from your email."; }
+          else { nameStatus.style.color="#fca5a5"; nameStatus.textContent=(res.j&&res.j.error)||"Couldn't save."; }
+        })
+        .catch(function(){ nameSave.disabled=false; nameStatus.style.color="#fca5a5"; nameStatus.textContent="Couldn't reach the server."; });
+    }); }
 
     // Preferences — Spoken replies. Plumbing only: this persists the choice to
     // the account (users.voice_output_enabled) so it's ready when TTS ships, but
