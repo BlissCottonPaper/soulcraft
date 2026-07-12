@@ -91,9 +91,13 @@ export async function ensureSchema(env) {
     // upgrade a pre-existing users/results table.
     "CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT, stripe_customer_id TEXT, companion_active INTEGER NOT NULL DEFAULT 0, companion_tier TEXT, subscription_id TEXT, created_at INTEGER NOT NULL)",
     "CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL)",
+    // Password-reset tokens (Session 5c). We store only the SHA-256 hash of the
+    // emailed token, single-use, short-lived — same discipline as sessions.
+    "CREATE TABLE IF NOT EXISTS password_resets (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, expires_at INTEGER NOT NULL, used INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL)",
     "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
     "CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)",
     "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)",
+    "CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id)",
     // Upgrade an existing users table (magic-link era) to the accounts schema.
     "ALTER TABLE users ADD COLUMN password_hash TEXT",
     "ALTER TABLE users ADD COLUMN companion_active INTEGER NOT NULL DEFAULT 0",

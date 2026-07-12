@@ -1148,6 +1148,7 @@ function loginMain() {
       <button class="auth-btn" id="submit" type="submit">Log in</button>
     </form>
   </div>
+  <p class="auth-alt" style="margin-top:.9rem;"><a href="/forgot-password/">Forgot your password?</a></p>
   <p class="auth-alt">New here? <a href="/register/">Create an account</a></p>
   <p class="auth-alt" style="margin-top:.4rem;">Just want your saved reading? <a href="/my-results/">Email me a link instead</a></p>
 </div>
@@ -1172,6 +1173,87 @@ function loginMain() {
         btn.disabled=false;btn.textContent="Log in";
       })
       .catch(function(){err.textContent="We couldn't reach the server. Please try again.";btn.disabled=false;btn.textContent="Log in";});
+  });
+})();
+</script>`;
+}
+
+function forgotPasswordMain() {
+  return `${authFieldCss()}
+<div class="auth-wrap">
+  <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Reset your password</h1>
+  <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Enter your account email and we'll send you a link to choose a new password.</p>
+  <div class="auth-card">
+    <form id="fp-form" novalidate>
+      <label class="auth-label" for="email">Email</label>
+      <input class="auth-input" id="email" name="email" type="email" autocomplete="email" required />
+      <p class="auth-err" id="err" role="alert"></p>
+      <button class="auth-btn" id="submit" type="submit">Send reset link</button>
+    </form>
+    <p id="fp-done" style="display:none;color:rgba(224,218,246,0.85);font-size:14.5px;line-height:1.6;margin:.25rem 0 0;">If an account exists for that email, we've sent a link to choose a new password. It's good for one hour — check your inbox (and your spam folder, just in case).</p>
+  </div>
+  <p class="auth-alt">Remembered it? <a href="/login/">Back to log in</a></p>
+</div>
+<script>
+(function(){
+  var form=document.getElementById("fp-form"),err=document.getElementById("err"),btn=document.getElementById("submit"),done=document.getElementById("fp-done");
+  form.addEventListener("submit",function(e){
+    e.preventDefault();err.textContent="";
+    var email=document.getElementById("email").value.trim();
+    btn.disabled=true;btn.textContent="Sending…";
+    fetch("/api/request-password-reset",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email})})
+      .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+      .then(function(res){
+        if(res.ok&&res.d&&res.d.ok){form.style.display="none";done.style.display="block";return;}
+        err.textContent=(res.d&&res.d.error)||"That didn't work — please try again.";
+        btn.disabled=false;btn.textContent="Send reset link";
+      })
+      .catch(function(){err.textContent="We couldn't reach the server. Please try again.";btn.disabled=false;btn.textContent="Send reset link";});
+  });
+})();
+</script>`;
+}
+
+function resetPasswordMain() {
+  return `${authFieldCss()}
+<div class="auth-wrap">
+  <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Choose a new password</h1>
+  <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Set a new password for your Soulcraft account.</p>
+  <div class="auth-card">
+    <form id="rp-form" novalidate>
+      <label class="auth-label" for="password">New password</label>
+      <input class="auth-input" id="password" name="password" type="password" autocomplete="new-password" required minlength="8" />
+      <p style="font-size:12.5px;color:rgba(196,181,253,0.55);margin:.4rem 0 0;">At least 8 characters.</p>
+      <label class="auth-label" for="password2" style="margin-top:1rem;">Confirm new password</label>
+      <input class="auth-input" id="password2" name="password2" type="password" autocomplete="new-password" required minlength="8" />
+      <p class="auth-err" id="err" role="alert"></p>
+      <button class="auth-btn" id="submit" type="submit">Set new password</button>
+    </form>
+    <p id="rp-bad" style="display:none;color:rgba(224,218,246,0.85);font-size:14.5px;line-height:1.6;margin:.25rem 0 0;">This reset link is invalid or has expired. <a href="/forgot-password/" style="color:#fde8b0;">Request a new one</a>.</p>
+  </div>
+  <p class="auth-alt"><a href="/login/">Back to log in</a></p>
+</div>
+<script>
+(function(){
+  var params=new URLSearchParams(location.search);
+  var token=params.get("token")||"";
+  var form=document.getElementById("rp-form"),err=document.getElementById("err"),btn=document.getElementById("submit"),bad=document.getElementById("rp-bad");
+  if(!token){form.style.display="none";bad.style.display="block";return;}
+  form.addEventListener("submit",function(e){
+    e.preventDefault();err.textContent="";
+    var p1=document.getElementById("password").value;
+    var p2=document.getElementById("password2").value;
+    if(p1.length<8){err.textContent="Please choose a password of at least 8 characters.";return;}
+    if(p1!==p2){err.textContent="Those passwords don't match.";return;}
+    btn.disabled=true;btn.textContent="Saving…";
+    fetch("/api/reset-password",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:token,password:p1})})
+      .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+      .then(function(res){
+        if(res.ok&&res.d&&res.d.ok){location.replace("/account/");return;}
+        err.textContent=(res.d&&res.d.error)||"That didn't work — please try again.";
+        btn.disabled=false;btn.textContent="Set new password";
+      })
+      .catch(function(){err.textContent="We couldn't reach the server. Please try again.";btn.disabled=false;btn.textContent="Set new password";});
   });
 })();
 </script>`;
@@ -2042,6 +2124,22 @@ write("register/index.html", page({
   canonical: "https://artofsoulcraft.com/register/",
   active: "account",
   main: registerMain()
+}));
+
+write("forgot-password/index.html", page({
+  title: "Reset your password — The Art of Soulcraft",
+  description: "Request a link to reset your Art of Soulcraft account password.",
+  canonical: "https://artofsoulcraft.com/forgot-password/",
+  active: "account",
+  main: forgotPasswordMain()
+}));
+
+write("reset-password/index.html", page({
+  title: "Choose a new password — The Art of Soulcraft",
+  description: "Set a new password for your Art of Soulcraft account.",
+  canonical: "https://artofsoulcraft.com/reset-password/",
+  active: "account",
+  main: resetPasswordMain()
 }));
 
 write("account/index.html", page({

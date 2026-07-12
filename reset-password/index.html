@@ -8,19 +8,19 @@
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#1a1a2e" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-<title>Log in — The Art of Soulcraft</title>
-<meta name="description" content="Log in to your Art of Soulcraft account to see Your Mandala and manage Mira, your personal reflection companion." />
-<link rel="canonical" href="https://artofsoulcraft.com/login/" />
-<meta property="og:title" content="Log in — The Art of Soulcraft" />
-<meta property="og:description" content="Log in to your Art of Soulcraft account to see Your Mandala and manage Mira, your personal reflection companion." />
+<title>Choose a new password — The Art of Soulcraft</title>
+<meta name="description" content="Set a new password for your Art of Soulcraft account." />
+<link rel="canonical" href="https://artofsoulcraft.com/reset-password/" />
+<meta property="og:title" content="Choose a new password — The Art of Soulcraft" />
+<meta property="og:description" content="Set a new password for your Art of Soulcraft account." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://artofsoulcraft.com/login/" />
+<meta property="og:url" content="https://artofsoulcraft.com/reset-password/" />
 <meta property="og:image" content="https://artofsoulcraft.com/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Log in — The Art of Soulcraft" />
-<meta name="twitter:description" content="Log in to your Art of Soulcraft account to see Your Mandala and manage Mira, your personal reflection companion." />
+<meta name="twitter:title" content="Choose a new password — The Art of Soulcraft" />
+<meta name="twitter:description" content="Set a new password for your Art of Soulcraft account." />
 <meta name="twitter:image" content="https://artofsoulcraft.com/og-image.png" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,43 +68,43 @@
   .acct-switch:focus-visible{outline:2px solid rgba(253,230,138,0.7);outline-offset:2px;}
   </style>
 <div class="auth-wrap">
-  <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Welcome back</h1>
-  <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Log in to your Soulcraft account.</p>
+  <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Choose a new password</h1>
+  <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Set a new password for your Soulcraft account.</p>
   <div class="auth-card">
-    <form id="login-form" novalidate>
-      <label class="auth-label" for="email">Email</label>
-      <input class="auth-input" id="email" name="email" type="email" autocomplete="email" required style="margin-bottom:1rem;" />
-      <label class="auth-label" for="password">Password</label>
-      <input class="auth-input" id="password" name="password" type="password" autocomplete="current-password" required />
+    <form id="rp-form" novalidate>
+      <label class="auth-label" for="password">New password</label>
+      <input class="auth-input" id="password" name="password" type="password" autocomplete="new-password" required minlength="8" />
+      <p style="font-size:12.5px;color:rgba(196,181,253,0.55);margin:.4rem 0 0;">At least 8 characters.</p>
+      <label class="auth-label" for="password2" style="margin-top:1rem;">Confirm new password</label>
+      <input class="auth-input" id="password2" name="password2" type="password" autocomplete="new-password" required minlength="8" />
       <p class="auth-err" id="err" role="alert"></p>
-      <button class="auth-btn" id="submit" type="submit">Log in</button>
+      <button class="auth-btn" id="submit" type="submit">Set new password</button>
     </form>
+    <p id="rp-bad" style="display:none;color:rgba(224,218,246,0.85);font-size:14.5px;line-height:1.6;margin:.25rem 0 0;">This reset link is invalid or has expired. <a href="/forgot-password/" style="color:#fde8b0;">Request a new one</a>.</p>
   </div>
-  <p class="auth-alt" style="margin-top:.9rem;"><a href="/forgot-password/">Forgot your password?</a></p>
-  <p class="auth-alt">New here? <a href="/register/">Create an account</a></p>
-  <p class="auth-alt" style="margin-top:.4rem;">Just want your saved reading? <a href="/my-results/">Email me a link instead</a></p>
+  <p class="auth-alt"><a href="/login/">Back to log in</a></p>
 </div>
 <script>
 (function(){
   var params=new URLSearchParams(location.search);
-  var next=params.get("next")||"/account/";
-  // Already signed in → skip straight to the account page.
-  fetch("/api/me",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(d){
-    if(d&&d.authenticated){location.replace(next);}
-  }).catch(function(){});
-  var form=document.getElementById("login-form"),err=document.getElementById("err"),btn=document.getElementById("submit");
+  var token=params.get("token")||"";
+  var form=document.getElementById("rp-form"),err=document.getElementById("err"),btn=document.getElementById("submit"),bad=document.getElementById("rp-bad");
+  if(!token){form.style.display="none";bad.style.display="block";return;}
   form.addEventListener("submit",function(e){
-    e.preventDefault();err.textContent="";btn.disabled=true;btn.textContent="Logging in…";
-    var email=document.getElementById("email").value.trim();
-    var password=document.getElementById("password").value;
-    fetch("/api/login",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})})
+    e.preventDefault();err.textContent="";
+    var p1=document.getElementById("password").value;
+    var p2=document.getElementById("password2").value;
+    if(p1.length<8){err.textContent="Please choose a password of at least 8 characters.";return;}
+    if(p1!==p2){err.textContent="Those passwords don't match.";return;}
+    btn.disabled=true;btn.textContent="Saving…";
+    fetch("/api/reset-password",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:token,password:p1})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
-        if(res.ok&&res.d&&res.d.ok){location.replace(next);return;}
+        if(res.ok&&res.d&&res.d.ok){location.replace("/account/");return;}
         err.textContent=(res.d&&res.d.error)||"That didn't work — please try again.";
-        btn.disabled=false;btn.textContent="Log in";
+        btn.disabled=false;btn.textContent="Set new password";
       })
-      .catch(function(){err.textContent="We couldn't reach the server. Please try again.";btn.disabled=false;btn.textContent="Log in";});
+      .catch(function(){err.textContent="We couldn't reach the server. Please try again.";btn.disabled=false;btn.textContent="Set new password";});
   });
 })();
 </script>
