@@ -176,7 +176,6 @@
         '<p class="sc-m-group">Explore</p>' +
         mobileExplore +
         '<div class="sc-m-divider" role="separator"></div>' +
-        '<a' + mact("pricing") + ' href="/pricing/">Pricing</a>' +
         '<a' + mact("mira") + ' href="/companion/">Mira</a>' +
         '<a' + mact("results") + ' href="/my-results/">My Results</a>' +
         '<a' + mact("contact") + ' href="/contact/">Contact</a>' +
@@ -191,7 +190,6 @@
             '<button id="sc-explore-btn" class="' + cls("explore") + '" aria-haspopup="true" aria-expanded="false">Explore <span style="font-size:.7em">▾</span></button>' +
             '<div class="sc-menu" id="sc-explore-menu">' + menu + '</div>' +
           '</div>' +
-          '<a class="' + cls("pricing") + '" href="/pricing/">Pricing</a>' +
           '<a class="' + cls("mira") + '" href="/companion/">Mira</a>' +
           '<a class="' + cls("results") + '" href="/my-results/">My Results</a>' +
           '<a class="' + cls("contact") + '" href="/contact/">Contact</a>' +

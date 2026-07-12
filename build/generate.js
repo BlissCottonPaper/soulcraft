@@ -1123,6 +1123,13 @@ function authFieldCss() {
   .acct-link{display:inline-block;margin-top:.65rem;color:#fde8b0;text-decoration:none;font-weight:600;font-size:14.5px;}
   .acct-link:hover{text-decoration:underline;}
   .acct-disclaimer{font-size:12.5px;line-height:1.6;color:rgba(196,181,253,0.55);border-top:1px solid rgba(196,181,253,0.12);margin-top:1.5rem;padding-top:1.25rem;}
+  .acct-pref{display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+  .acct-soon{display:inline-block;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(253,230,138,0.9);border:1px solid rgba(253,230,138,0.35);border-radius:999px;padding:.08rem .5rem;margin-left:.5rem;vertical-align:middle;font-family:'Source Sans 3',system-ui,sans-serif;}
+  .acct-switch{position:relative;flex:0 0 auto;width:46px;height:26px;border-radius:999px;border:1px solid rgba(196,181,253,0.3);background:rgba(0,0,0,0.28);cursor:pointer;transition:background .15s,border-color .15s;padding:0;}
+  .acct-switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:rgba(224,218,246,0.85);transition:transform .15s;}
+  .acct-switch.on{background:rgba(253,230,138,0.5);border-color:rgba(253,230,138,0.7);}
+  .acct-switch.on::after{transform:translateX(20px);background:#1b1430;}
+  .acct-switch:focus-visible{outline:2px solid rgba(253,230,138,0.7);outline-offset:2px;}
   </style>`;
 }
 
@@ -1226,6 +1233,22 @@ function accountMain() {
 
     <div class="acct-row" id="acct-mira"></div>
 
+    <div class="acct-row">
+      <div class="acct-pref">
+        <div>
+          <h2 class="acct-h" style="display:inline-block;">Spoken replies<span class="acct-soon">Coming soon</span></h2>
+          <p class="acct-p">Have Mira read her reflections aloud. We're still tuning her voice — turn this on now to be first when it lands.</p>
+        </div>
+        <button type="button" class="acct-switch" id="pref-voice" role="switch" aria-checked="false" aria-label="Spoken replies (coming soon)"></button>
+      </div>
+    </div>
+
+    <div class="acct-row">
+      <h2 class="acct-h">Plans &amp; pricing</h2>
+      <p class="acct-p">See every tier — the free reading, the full Mandala, and Mira's companion plans.</p>
+      <a class="acct-link" href="/pricing/">View plans &amp; pricing →</a>
+    </div>
+
     <div class="acct-row" id="acct-billing" style="display:none;">
       <h2 class="acct-h">Billing</h2>
       <p class="acct-p">Update your card, change plan, or cancel anytime.</p>
@@ -1248,6 +1271,20 @@ function accountMain() {
     document.getElementById("acct-loading").style.display="none";
     document.getElementById("acct-body").style.display="block";
     document.getElementById("acct-email").textContent=d.email||"";
+
+    // Preferences — Spoken replies. Plumbing only: this persists the choice to
+    // the account (users.voice_output_enabled) so it's ready when TTS ships, but
+    // nothing reads it yet — replies stay text-only for now.
+    var vBtn=document.getElementById("pref-voice");
+    if(vBtn){
+      var vOn=!!d.voice_output_enabled;
+      var paintVoice=function(){ vBtn.className="acct-switch"+(vOn?" on":""); vBtn.setAttribute("aria-checked",vOn?"true":"false"); };
+      paintVoice();
+      vBtn.addEventListener("click",function(){
+        vOn=!vOn; paintVoice();
+        fetch("/api/settings",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({voice_output_enabled:vOn?1:0})}).catch(function(){});
+      });
+    }
 
     // Results
     var rEl=document.getElementById("acct-results");
@@ -1295,6 +1332,8 @@ function companionMain() {
   var disclaimer = "Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US " + link988 + ".";
   // A small permanent invitation — never crisis-triggered — in borrowing language.
   var mira988Line = 'Need a human tonight? <a href="tel:988">Call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a> — you don\'t have to be in crisis to reach out.';
+  // A curated, always-open directory of licensed therapists (opens in a new tab).
+  var therapistDir = "https://www.psychologytoday.com/us/therapists";
   return `
 <style>
   .mira-wrap{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 3rem;}
@@ -1328,6 +1367,29 @@ function companionMain() {
   .mira-goon{background:rgba(255,250,240,0.05);border:1px solid rgba(196,181,253,0.28);color:rgba(224,218,246,0.85);border-radius:999px;font-size:12.5px;padding:.28rem .7rem;cursor:pointer;font-family:inherit;}
   .mira-goon:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;} .mira-goon:disabled{opacity:.45;cursor:default;}
   .mira-inputbar{display:flex;gap:.5rem;align-items:flex-end;padding:0 0 .2rem;}
+  /* Toolbar icon buttons (Lantern, mic) sit inline with Send — not floating. */
+  .mira-iconbtn{flex:0 0 auto;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:.9rem;border:1px solid rgba(196,181,253,0.25);background:rgba(0,0,0,0.25);color:rgba(224,218,246,0.85);cursor:pointer;padding:0;transition:border-color .15s,color .15s,background .15s;}
+  .mira-iconbtn:hover{border-color:rgba(253,230,138,0.55);color:#fde8b0;}
+  .mira-iconbtn:disabled{opacity:.4;cursor:default;}
+  .mira-iconbtn svg{width:21px;height:21px;}
+  .mira-mic.recording{border-color:rgba(253,113,133,0.85);color:#fda4af;background:rgba(253,113,133,0.14);animation:micpulse 1.2s ease-in-out infinite;}
+  @keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(253,113,133,0.35);}50%{box-shadow:0 0 0 6px rgba(253,113,133,0);}}
+  .mira-hide-hard{display:none !important;}
+  /* The Lantern sheet — a bottom sheet (centered on wider screens). */
+  .mira-sheet-back{position:fixed;inset:0;z-index:70;background:rgba(10,7,22,0.62);display:flex;align-items:flex-end;justify-content:center;}
+  .mira-sheet{width:100%;max-width:34rem;box-sizing:border-box;background:#171226;border:1px solid rgba(196,181,253,0.2);border-bottom:0;border-radius:1.1rem 1.1rem 0 0;padding:1.1rem 1.25rem 1.6rem;box-shadow:0 -10px 34px rgba(0,0,0,0.55);}
+  @media(min-width:640px){.mira-sheet-back{align-items:center;} .mira-sheet{border-radius:1.1rem;border-bottom:1px solid rgba(196,181,253,0.2);}}
+  .mira-sheet-grip{width:36px;height:4px;border-radius:999px;background:rgba(196,181,253,0.3);margin:.15rem auto 1rem;}
+  .mira-sheet h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.45rem;color:#f5f3ff;margin:0 0 1.15rem;text-align:center;line-height:1.35;font-weight:500;}
+  .mira-door{display:block;border:1px solid rgba(196,181,253,0.2);border-radius:.9rem;padding:.95rem 1.05rem;margin-bottom:.75rem;background:rgba(255,250,240,0.03);text-decoration:none;color:#efe9ff;}
+  a.mira-door:hover{border-color:rgba(253,230,138,0.5);}
+  .mira-door-t{font-size:15.5px;font-weight:600;color:#fde8b0;}
+  .mira-door-p{font-size:13px;color:rgba(224,218,246,0.75);margin-top:.2rem;line-height:1.5;}
+  .mira-door-links{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.7rem;}
+  .mira-door-links a{flex:1 1 30%;text-align:center;border:1px solid rgba(196,181,253,0.28);border-radius:.7rem;padding:.55rem .5rem;color:#efe9ff;text-decoration:none;font-size:14px;font-weight:600;background:rgba(0,0,0,0.2);}
+  .mira-door-links a:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;}
+  .mira-sheet-close{display:block;width:100%;margin-top:.5rem;background:none;border:0;color:rgba(196,181,253,0.7);font-size:13.5px;cursor:pointer;padding:.55rem;font-family:inherit;}
+  .mira-sheet-close:hover{color:#fde8b0;}
   /* ~6 lines then internal scroll; resize:none removes the browser's drag-handle arrows. */
   .mira-input{flex:1;resize:none;max-height:9.25rem;overflow-y:auto;background:rgba(0,0,0,0.25);border:1px solid rgba(196,181,253,0.25);border-radius:.9rem;padding:.7rem .9rem;color:#f5f3ff;font-size:15.5px;line-height:1.4;outline:none;font-family:inherit;}
   .mira-input:focus{border-color:rgba(253,230,138,0.5);}
@@ -1433,7 +1495,13 @@ function companionMain() {
     <div class="mira-dock">
       <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Tell me more…</button></div>
       <div class="mira-inputbar">
+        <button class="mira-iconbtn mira-lantern" id="mira-lantern" type="button" title="The Lantern — a little light, any time" aria-label="Open the Lantern — support and resources">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8"/><path d="M12 2v3"/><path d="M6.5 8a5.5 5.5 0 0 1 11 0v7a3 3 0 0 1-3 3h-5a3 3 0 0 1-3-3z"/><path d="M9 21h6"/><circle cx="12" cy="12" r="2.2"/></svg>
+        </button>
         <textarea class="mira-input" id="mira-input" rows="1" placeholder="Share what's on your mind…" aria-label="Message Mira"></textarea>
+        <button class="mira-iconbtn mira-mic" id="mira-mic" type="button" title="Speak your message" aria-label="Speak your message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M9 21h6"/></svg>
+        </button>
         <button class="mira-send" id="mira-sendbtn">Send</button>
       </div>
     </div>
@@ -1443,6 +1511,30 @@ function companionMain() {
 
   <!-- Permanent 988 invitation — always visible, in every view, never crisis-triggered. -->
   <p class="mira-988">${mira988Line}</p>
+</div>
+
+<!-- The Lantern sheet. Opened from the toolbar; dismissing returns to the chat.
+     Two doors: a therapist directory, and graded crisis resources (least-
+     commitment first). No "talk to Mira" — closing already does that. -->
+<div class="mira-sheet-back mira-hide-hard" id="mira-lantern-sheet" role="dialog" aria-modal="true" aria-label="The Lantern">
+  <div class="mira-sheet" role="document">
+    <div class="mira-sheet-grip" aria-hidden="true"></div>
+    <h2>Borrow some light tonight — you don't have to be in crisis to reach out.</h2>
+    <a class="mira-door" href="${therapistDir}" target="_blank" rel="noopener noreferrer">
+      <span class="mira-door-t">Find a therapist →</span>
+      <span class="mira-door-p">Browse licensed therapists near you in the Psychology Today directory. Opens in a new tab.</span>
+    </a>
+    <div class="mira-door">
+      <span class="mira-door-t">If you need someone right now</span>
+      <span class="mira-door-p">Free, confidential, 24/7. Start wherever feels easiest.</span>
+      <div class="mira-door-links">
+        <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener noreferrer">Chat online</a>
+        <a href="sms:988">Text 988</a>
+        <a href="tel:988">Call 988</a>
+      </div>
+    </div>
+    <button class="mira-sheet-close" id="mira-lantern-close" type="button">Close — back to our conversation</button>
+  </div>
 </div>
 <script>
 (function(){
@@ -1483,6 +1575,19 @@ function companionMain() {
       return '<a href="'+u+'" target="_blank" rel="noopener noreferrer">'+u+'</a>'+tail;
     });
     return out;
+  }
+
+  // ---- The Lantern ----
+  // A toolbar door to real-world support. Opening it is not a crisis signal and
+  // it never routes back through Mira — closing the sheet is the return path.
+  function openLantern(){ var b=$('mira-lantern-sheet'); if(b){ b.className='mira-sheet-back'; ga('mira_lantern_opened'); } }
+  function closeLantern(){ var b=$('mira-lantern-sheet'); if(b){ b.className='mira-sheet-back mira-hide-hard'; } }
+  function lanternOpen(){ var b=$('mira-lantern-sheet'); return !!(b && b.className.indexOf('mira-hide-hard')<0); }
+  function wireLantern(){
+    var btn=$('mira-lantern'); if(btn) btn.addEventListener('click', openLantern);
+    var back=$('mira-lantern-sheet'); if(back) back.addEventListener('click', function(e){ if(e.target===back) closeLantern(); });
+    var close=$('mira-lantern-close'); if(close) close.addEventListener('click', closeLantern);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && lanternOpen()) closeLantern(); });
   }
 
   function addRow(who){
@@ -1581,7 +1686,44 @@ function companionMain() {
     // Grow to ~6 lines (148px ≈ 9.25rem), then the textarea scrolls internally.
     function grow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,148)+'px'; }
     input.addEventListener('input', grow);
-    function submit(){ var t=input.value.trim(); if(!t||streaming) return; input.value=''; grow(); sendMessage(t,false); }
+
+    // ---- Voice input (ASR) — browser SpeechRecognition. Free, no server, no
+    // gating. Transcribes into the field for the person to read and edit; it
+    // NEVER auto-sends. If the browser can't do it, the mic button just hides.
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var mic=$('mira-mic'), recog=null, recording=false;
+    function paintMic(){ if(mic) mic.className='mira-iconbtn mira-mic'+(recording?' recording':''); }
+    function stopMic(){ try{ if(recog) recog.stop(); }catch(e){} recording=false; paintMic(); }
+    if(mic){
+      if(!SR){ mic.className='mira-iconbtn mira-mic mira-hide-hard'; }
+      else {
+        mic.addEventListener('click', function(){
+          if(recording){ stopMic(); return; }
+          try{
+            recog=new SR();
+            recog.lang=(navigator.language||'en-US');
+            recog.interimResults=true; recog.continuous=false;
+            var baseText=input.value;
+            var sep=(baseText && !/\\s$/.test(baseText)) ? ' ' : '';
+            var finalAdded='';
+            recog.onresult=function(e){
+              var interim='', finals='';
+              for(var i=e.resultIndex;i<e.results.length;i++){
+                var tr=e.results[i];
+                if(tr.isFinal){ finals+=tr[0].transcript; } else { interim+=tr[0].transcript; }
+              }
+              if(finals) finalAdded+=finals;
+              input.value=baseText+sep+finalAdded+interim; grow();
+            };
+            recog.onerror=function(){ stopMic(); };
+            recog.onend=function(){ recording=false; paintMic(); input.focus(); };
+            recog.start(); recording=true; paintMic(); ga('mira_voice_input_started');
+          }catch(err){ recording=false; paintMic(); }
+        });
+      }
+    }
+
+    function submit(){ stopMic(); var t=input.value.trim(); if(!t||streaming) return; input.value=''; grow(); sendMessage(t,false); }
     $('mira-sendbtn').addEventListener('click', submit);
     input.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submit(); } });
     $('mira-editbeliefs').addEventListener('click', function(){ showOnboard(true); });
@@ -1658,6 +1800,7 @@ function companionMain() {
       })
       .catch(function(){ location.replace('/login/?next=/companion/'); });
   }
+  wireLantern();
   boot();
 })();
 </script>`;
