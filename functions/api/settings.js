@@ -1,12 +1,15 @@
 // ============================================================
 // /functions/api/settings.js  ->  POST /api/settings
 // ============================================================
-// Saves account preferences. Today that's just the spoken-replies plumbing:
-// a boolean stored on the user row (users.voice_output_enabled). No feature
-// reads it yet — TTS isn't wired — but the choice persists so it's ready when
-// it ships.
+// Saves account preferences. Partial updates: only the fields present in the
+// body are touched.
+//   • voice_output_enabled: 0|1 — spoken-replies plumbing (Session 4). No TTS
+//     reads it yet; the choice just persists.
+//   • display_name: string     — what to call the person (Session 5b). Empty
+//     string clears it back to the email-derived fallback.
 //
-//   POST { voice_output_enabled: 0|1 }  ->  { ok: true, voice_output_enabled }
+//   POST { voice_output_enabled?, display_name? }
+//        -> { ok: true, voice_output_enabled?, display_name? }
 //
 // Auth-gated. Needs the D1 binding env.DB.
 // ============================================================
@@ -20,6 +23,13 @@ function json(obj, status) {
   });
 }
 
+// Trim, collapse whitespace, drop control chars, cap 40. Empty → null (clear).
+function cleanDisplayName(v) {
+  if (typeof v !== "string") return null;
+  const s = v.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+  return s || null;
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     if (!env.DB) return json({ error: "Database isn't configured." }, 500);
@@ -28,14 +38,27 @@ export async function onRequestPost({ request, env }) {
     await ensureSchema(env);
 
     const body = await request.json().catch(() => ({}));
-    const voiceOut = body.voice_output_enabled ? 1 : 0;
+    const out = { ok: true };
 
-    await env.DB
-      .prepare("UPDATE users SET voice_output_enabled = ? WHERE id = ?")
-      .bind(voiceOut, user.id)
-      .run();
+    if ("voice_output_enabled" in body) {
+      const voiceOut = body.voice_output_enabled ? 1 : 0;
+      await env.DB
+        .prepare("UPDATE users SET voice_output_enabled = ? WHERE id = ?")
+        .bind(voiceOut, user.id)
+        .run();
+      out.voice_output_enabled = !!voiceOut;
+    }
 
-    return json({ ok: true, voice_output_enabled: !!voiceOut });
+    if ("display_name" in body) {
+      const name = cleanDisplayName(body.display_name);
+      await env.DB
+        .prepare("UPDATE users SET display_name = ? WHERE id = ?")
+        .bind(name, user.id)
+        .run();
+      out.display_name = name;
+    }
+
+    return json(out);
   } catch (err) {
     return json({ error: "Server error", detail: err && err.message }, 500);
   }

@@ -1186,9 +1186,15 @@ function registerMain() {
     <form id="reg-form" novalidate>
       <label class="auth-label" for="email">Email</label>
       <input class="auth-input" id="email" name="email" type="email" autocomplete="email" required style="margin-bottom:1rem;" />
+      <label class="auth-label" for="display_name">What should we call you? <span style="color:rgba(196,181,253,0.5);font-weight:400;">(optional)</span></label>
+      <input class="auth-input" id="display_name" name="display_name" type="text" maxlength="40" autocomplete="nickname" placeholder="Your name" style="margin-bottom:1rem;" />
       <label class="auth-label" for="password">Password</label>
       <input class="auth-input" id="password" name="password" type="password" autocomplete="new-password" required minlength="8" />
       <p style="font-size:12.5px;color:rgba(196,181,253,0.55);margin:.4rem 0 0;">At least 8 characters.</p>
+      <label style="display:flex;gap:.6rem;align-items:flex-start;margin:1.15rem 0 .2rem;font-size:13.5px;line-height:1.5;color:rgba(224,218,246,0.82);cursor:pointer;">
+        <input type="checkbox" id="research_consent" style="margin-top:.15rem;width:1rem;height:1rem;accent-color:#c9a84c;flex:0 0 auto;" />
+        <span>I don't mind if my assessment data is used for anonymized research.</span>
+      </label>
       <p class="auth-err" id="err" role="alert"></p>
       <button class="auth-btn" id="submit" type="submit">Create account</button>
     </form>
@@ -1205,9 +1211,11 @@ function registerMain() {
     e.preventDefault();err.textContent="";
     var email=document.getElementById("email").value.trim();
     var password=document.getElementById("password").value;
+    var displayName=document.getElementById("display_name").value.trim();
+    var researchConsent=document.getElementById("research_consent").checked;
     if(password.length<8){err.textContent="Please choose a password of at least 8 characters.";return;}
     btn.disabled=true;btn.textContent="Creating…";
-    fetch("/api/register",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})})
+    fetch("/api/register",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password,display_name:displayName,research_consent:researchConsent})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         if(res.ok&&res.d&&res.d.ok){location.replace("/account/");return;}
@@ -1228,6 +1236,16 @@ function accountMain() {
   <div id="acct-body" style="display:none;">
     <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .3rem;color:#f5f3ff;">Your account</h1>
     <p style="text-align:center;color:rgba(224,218,246,0.7);font-size:14.5px;margin:0 0 2rem;" id="acct-email"></p>
+
+    <div class="acct-row">
+      <h2 class="acct-h">What should we call you?</h2>
+      <p class="acct-p">The name Mira and your account use. Leave it blank to use the name from your email.</p>
+      <div style="display:flex;gap:.5rem;margin-top:.7rem;align-items:center;">
+        <input class="auth-input" id="acct-name-input" type="text" maxlength="40" autocomplete="nickname" placeholder="Your name" style="margin:0;" />
+        <button class="auth-btn" id="acct-name-save" type="button" style="width:auto;margin:0;padding:.7rem 1.15rem;white-space:nowrap;">Save</button>
+      </div>
+      <p class="auth-err" id="acct-name-status" style="min-height:1.1rem;"></p>
+    </div>
 
     <div class="acct-row" id="acct-results"></div>
 
@@ -1271,6 +1289,22 @@ function accountMain() {
     document.getElementById("acct-loading").style.display="none";
     document.getElementById("acct-body").style.display="block";
     document.getElementById("acct-email").textContent=d.email||"";
+
+    // Preferred name (display_name) — editable; blank falls back to the email-derived name.
+    var nameInput=document.getElementById("acct-name-input");
+    var nameSave=document.getElementById("acct-name-save");
+    var nameStatus=document.getElementById("acct-name-status");
+    if(nameInput){ nameInput.value=d.display_name||""; }
+    if(nameSave&&nameInput){ nameSave.addEventListener("click",function(){
+      nameSave.disabled=true; nameStatus.textContent="";
+      fetch("/api/settings",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({display_name:nameInput.value})})
+        .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+        .then(function(res){ nameSave.disabled=false;
+          if(res.ok&&res.j&&res.j.ok){ nameInput.value=res.j.display_name||""; nameStatus.style.color="rgba(253,230,138,0.9)"; nameStatus.textContent=nameInput.value?"Saved.":"Cleared — using the name from your email."; }
+          else { nameStatus.style.color="#fca5a5"; nameStatus.textContent=(res.j&&res.j.error)||"Couldn't save."; }
+        })
+        .catch(function(){ nameSave.disabled=false; nameStatus.style.color="#fca5a5"; nameStatus.textContent="Couldn't reach the server."; });
+    }); }
 
     // Preferences — Spoken replies. Plumbing only: this persists the choice to
     // the account (users.voice_output_enabled) so it's ready when TTS ships, but
@@ -1689,36 +1723,51 @@ function companionMain() {
 
     // ---- Voice input (ASR) — browser SpeechRecognition. Free, no server, no
     // gating. Transcribes into the field for the person to read and edit; it
-    // NEVER auto-sends. If the browser can't do it, the mic button just hides.
+    // NEVER auto-sends. Continuous: brief pauses while thinking don't require
+    // re-tapping — the engine auto-restarts while the mic stays on. If the
+    // browser can't do speech recognition, the mic button just hides.
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     var mic=$('mira-mic'), recog=null, recording=false;
     function paintMic(){ if(mic) mic.className='mira-iconbtn mira-mic'+(recording?' recording':''); }
-    function stopMic(){ try{ if(recog) recog.stop(); }catch(e){} recording=false; paintMic(); }
+    function startRecog(){
+      recog=new SR();
+      recog.lang=(navigator.language||'en-US');
+      recog.interimResults=true; recog.continuous=true;
+      // Rebase on the field at each (re)start so already-captured text survives
+      // an auto-restart — new speech appends after what's already there.
+      var baseText=input.value;
+      var sep=(baseText && !/\\s$/.test(baseText)) ? ' ' : '';
+      var finalAdded='';
+      recog.onresult=function(e){
+        var interim='', finals='';
+        for(var i=e.resultIndex;i<e.results.length;i++){
+          var tr=e.results[i];
+          if(tr.isFinal){ finals+=tr[0].transcript; } else { interim+=tr[0].transcript; }
+        }
+        if(finals) finalAdded+=finals;
+        input.value=baseText+sep+finalAdded+interim; grow();
+      };
+      recog.onerror=function(e){
+        // Permission/hardware errors are terminal — stop, don't loop-restart.
+        if(e && (e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture')){ recording=false; }
+      };
+      recog.onend=function(){
+        // A pause (or short-utterance timeout) ends the engine. If the mic is
+        // still meant to be on, restart seamlessly; otherwise settle into off.
+        if(recording){ try{ startRecog(); }catch(e){ recording=false; paintMic(); } }
+        else { paintMic(); input.focus(); }
+      };
+      recog.start();
+    }
+    // stopMic clears the intent FIRST so the onend that stop() triggers won't restart.
+    function stopMic(){ recording=false; try{ if(recog) recog.stop(); }catch(e){} paintMic(); }
     if(mic){
       if(!SR){ mic.className='mira-iconbtn mira-mic mira-hide-hard'; }
       else {
         mic.addEventListener('click', function(){
           if(recording){ stopMic(); return; }
-          try{
-            recog=new SR();
-            recog.lang=(navigator.language||'en-US');
-            recog.interimResults=true; recog.continuous=false;
-            var baseText=input.value;
-            var sep=(baseText && !/\\s$/.test(baseText)) ? ' ' : '';
-            var finalAdded='';
-            recog.onresult=function(e){
-              var interim='', finals='';
-              for(var i=e.resultIndex;i<e.results.length;i++){
-                var tr=e.results[i];
-                if(tr.isFinal){ finals+=tr[0].transcript; } else { interim+=tr[0].transcript; }
-              }
-              if(finals) finalAdded+=finals;
-              input.value=baseText+sep+finalAdded+interim; grow();
-            };
-            recog.onerror=function(){ stopMic(); };
-            recog.onend=function(){ recording=false; paintMic(); input.focus(); };
-            recog.start(); recording=true; paintMic(); ga('mira_voice_input_started');
-          }catch(err){ recording=false; paintMic(); }
+          try{ recording=true; paintMic(); ga('mira_voice_input_started'); startRecog(); }
+          catch(err){ recording=false; paintMic(); }
         });
       }
     }

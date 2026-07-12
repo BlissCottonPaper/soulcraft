@@ -22,6 +22,10 @@ CREATE TABLE users (
   companion_trial_until INTEGER,       -- unix seconds; 30-day Mira trial from a $29/WHITEDOT reading
   voice_output_enabled INTEGER NOT NULL DEFAULT 0,  -- account preference: read Mira's replies aloud
                                         -- (Session 4 plumbing; no TTS wired yet)
+  display_name TEXT,                   -- what to call them: set at signup, edited in settings, or
+                                        -- learned by Mira in-chat. Falls back to the email-derived name.
+  research_consent INTEGER NOT NULL DEFAULT 0,  -- opt-in: anonymized research use of assessment data
+                                        -- (Session 5b; stored only, no behavior wired yet)
   created_at INTEGER NOT NULL          -- unix timestamp
 );
 

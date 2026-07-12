@@ -64,10 +64,20 @@ function firstNameFromEmail(email) {
   return local.charAt(0).toUpperCase() + local.slice(1).toLowerCase();
 }
 
+// The resolved name to address the person by: an explicit display name they've
+// set (or Mira learned) wins; otherwise the email-derived first name; otherwise
+// NAME_UNKNOWN (a cue for Mira to ask). Exported so callers can tell whether the
+// name is known and gate the "learn their name" instruction accordingly.
+export function resolveKnownName(displayName, email) {
+  const dn = typeof displayName === "string" ? displayName.trim() : "";
+  return dn || firstNameFromEmail(email) || null;
+}
+
 // ---- {{USER_PROFILE}} ------------------------------------------------------
 // Compact labels/values (not prose) built from the person's latest real reading.
-async function buildUserProfile(env, userId, email) {
-  const firstName = firstNameFromEmail(email);
+async function buildUserProfile(env, userId, email, displayName) {
+  const knownName = resolveKnownName(displayName, email);
+  const firstName = knownName;
   let row = null;
   try {
     row = await env.DB
@@ -206,13 +216,23 @@ async function dynamicBlock(env, userId, email) {
   let userRow = null;
   try {
     userRow = await env.DB
-      .prepare("SELECT email, belief_traditions, belief_open_all, belief_openness FROM users WHERE id = ?")
+      .prepare("SELECT email, display_name, belief_traditions, belief_open_all, belief_openness FROM users WHERE id = ?")
       .bind(userId)
       .first();
-  } catch (e) { userRow = null; }
+  } catch (e) {
+    // display_name may not exist yet on an un-migrated DB — retry without it.
+    try {
+      userRow = await env.DB
+        .prepare("SELECT email, belief_traditions, belief_open_all, belief_openness FROM users WHERE id = ?")
+        .bind(userId)
+        .first();
+    } catch (e2) { userRow = null; }
+  }
   const resolvedEmail = email || (userRow && userRow.email) || null;
+  const displayName = (userRow && userRow.display_name) || null;
 
-  const profile = await buildUserProfile(env, userId, resolvedEmail);
+  const profile = await buildUserProfile(env, userId, resolvedEmail, displayName);
+  const nameKnown = !!resolveKnownName(displayName, resolvedEmail);
 
   // Session summaries — 5 most recent, newest first.
   let summaries = "This is your first conversation with this person.";
@@ -236,7 +256,7 @@ async function dynamicBlock(env, userId, email) {
 
   const lens = beliefLens(userRow);
 
-  return [
+  const parts = [
     "About this person (dynamic — this is the material the pointers above refer to):",
     "",
     "Who you are speaking with:",
@@ -250,7 +270,21 @@ async function dynamicBlock(env, userId, email) {
     "",
     "Their spiritual home:",
     lens,
-  ].join("\n");
+  ];
+
+  // If we don't yet know their name, give Mira a silent way to remember it once
+  // they share it. The ⟦remember-name: …⟧ marker is stripped by the server before
+  // her reply reaches them (they never see the brackets) and persisted as their
+  // display name, so she won't have to ask again next time.
+  if (!nameKnown) {
+    parts.push(
+      "",
+      "Remembering their name (system mechanic — do this silently):",
+      "You don't know their name yet. If they tell you what they'd like to be called, use it warmly in your reply, and then, on its very last line, write exactly ⟦remember-name: NAME⟧ one time — replacing NAME with what they gave you (just the name, no quotes). The server strips this marker before your message is shown, so they never see the ⟦ ⟧ brackets; it simply lets the system remember their name. Emit it only once, only after they've actually told you, and never write those brackets for any other reason."
+    );
+  }
+
+  return parts.join("\n");
 }
 
 // System blocks for the Anthropic call: [ static (cached), dynamic ].
