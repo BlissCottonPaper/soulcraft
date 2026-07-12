@@ -163,9 +163,31 @@ export function beliefLens(userRow) {
 }
 
 // ---- assemble --------------------------------------------------------------
-export async function assembleMiraPrompt(env, userId, email) {
-  await ensureMiraSchema(env);
+// Prompt caching (Session 3.1): the system prompt is split into a STATIC prefix
+// (template shell + stage lexicon, with the four per-user placeholders replaced
+// by fixed pointers) and a DYNAMIC tail (this person's profile, memory, insights,
+// belief lens). The static prefix is byte-identical across all users and turns,
+// so marking it cache_control:{type:"ephemeral"} and ordering it FIRST lets
+// Anthropic serve repeat reads of it from cache (~10% of input cost).
 
+const POINTER = "(Provided in the “About this person” section at the end of this system message.)";
+
+let _staticCache = null;
+export function staticSystemText() {
+  if (_staticCache) return _staticCache;
+  let out = PROMPT_TEMPLATE
+    .replace("{{STAGE_LEXICON}}", STAGE_LEXICON.trim())
+    .replace("{{USER_PROFILE}}", POINTER)
+    .replace("{{SESSION_SUMMARIES}}", POINTER)
+    .replace("{{SAVED_INSIGHTS}}", POINTER)
+    .replace("{{BELIEF_LENS}}", POINTER);
+  out = out.split("\n").filter((line) => !/^\s*>/.test(line)).join("\n");
+  _staticCache = out;
+  return out;
+}
+
+// The per-user tail. Never cached — changes with the person and the conversation.
+async function dynamicBlock(env, userId, email) {
   let userRow = null;
   try {
     userRow = await env.DB
@@ -182,12 +204,9 @@ export async function assembleMiraPrompt(env, userId, email) {
   try {
     const r = await env.DB
       .prepare("SELECT summary, created_at FROM mira_summaries WHERE user_id = ? ORDER BY id DESC LIMIT 5")
-      .bind(userId)
-      .all();
+      .bind(userId).all();
     const rows = (r && r.results) || [];
-    if (rows.length) {
-      summaries = rows.map((s) => "• (" + String(s.created_at).slice(0, 10) + ") " + s.summary).join("\n");
-    }
+    if (rows.length) summaries = rows.map((s) => "• (" + String(s.created_at).slice(0, 10) + ") " + s.summary).join("\n");
   } catch (e) { /* keep default */ }
 
   // Saved insights — 10 most recent with dates.
@@ -195,24 +214,42 @@ export async function assembleMiraPrompt(env, userId, email) {
   try {
     const r = await env.DB
       .prepare("SELECT content, created_at FROM mira_insights WHERE user_id = ? ORDER BY id DESC LIMIT 10")
-      .bind(userId)
-      .all();
+      .bind(userId).all();
     const rows = (r && r.results) || [];
-    if (rows.length) {
-      insights = rows.map((s) => "• (" + String(s.created_at).slice(0, 10) + ") " + s.content).join("\n");
-    }
+    if (rows.length) insights = rows.map((s) => "• (" + String(s.created_at).slice(0, 10) + ") " + s.content).join("\n");
   } catch (e) { /* keep default */ }
 
   const lens = beliefLens(userRow);
 
-  let out = PROMPT_TEMPLATE
-    .replace("{{STAGE_LEXICON}}", STAGE_LEXICON.trim())
-    .replace("{{USER_PROFILE}}", profile)
-    .replace("{{SESSION_SUMMARIES}}", summaries)
-    .replace("{{SAVED_INSIGHTS}}", insights)
-    .replace("{{BELIEF_LENS}}", lens);
+  return [
+    "About this person (dynamic — this is the material the pointers above refer to):",
+    "",
+    "Who you are speaking with:",
+    profile,
+    "",
+    "Memory of past conversations:",
+    summaries,
+    "",
+    "Insights this person has chosen to keep:",
+    insights,
+    "",
+    "Their spiritual home:",
+    lens,
+  ].join("\n");
+}
 
-  // Strip build-note blockquote lines (documentation, never prompt).
-  out = out.split("\n").filter((line) => !/^\s*>/.test(line)).join("\n");
-  return out;
+// System blocks for the Anthropic call: [ static (cached), dynamic ].
+export async function assembleMiraSystem(env, userId, email) {
+  await ensureMiraSchema(env);
+  const dyn = await dynamicBlock(env, userId, email);
+  return [
+    { type: "text", text: staticSystemText(), cache_control: { type: "ephemeral" } },
+    { type: "text", text: dyn },
+  ];
+}
+
+// Back-compat single-string form (used by tests and any non-caching caller).
+export async function assembleMiraPrompt(env, userId, email) {
+  const blocks = await assembleMiraSystem(env, userId, email);
+  return blocks.map((b) => b.text).join("\n\n");
 }

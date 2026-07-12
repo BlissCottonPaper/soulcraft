@@ -13,7 +13,13 @@
 
 import { getSessionUser } from "./_auth.js";
 import { ensureMiraSchema } from "../mira/_schema.js";
-import { assembleMiraPrompt } from "../mira/_prompt.js";
+import { assembleMiraSystem } from "../mira/_prompt.js";
+
+// Static instruction for the summarizer — kept as its own constant so it can be
+// sent as a cache_control'd block (static-first). It's short (well under the
+// per-block cache minimum), so caching is effectively a no-op today, but the
+// structure is correct and future-proof if the instruction ever grows.
+const SUMMARY_INSTRUCTION = "Summarize this reflection session in 3–5 sentences for a companion's memory: name what the person brought, which archetypal voices were discussed, any realization reached, anything to follow up on. Third person, factual, warm.";
 
 const CHAT_MODEL = "claude-sonnet-4-6";              // per Session-3 handoff
 const SUMMARY_MODEL = "claude-haiku-4-5-20251001";   // per Session-3 handoff
@@ -70,7 +76,11 @@ async function lazySummarize(env, userId, sessionId) {
       max_tokens: 300,
       messages: [{
         role: "user",
-        content: "Summarize this reflection session in 3–5 sentences for a companion's memory: name what the person brought, which archetypal voices were discussed, any realization reached, anything to follow up on. Third person, factual, warm.\n\n" + transcript,
+        content: [
+          // Static instruction first, marked cacheable; the dynamic transcript after.
+          { type: "text", text: SUMMARY_INSTRUCTION, cache_control: { type: "ephemeral" } },
+          { type: "text", text: transcript },
+        ],
       }],
     });
     if (!res.ok) return;
@@ -118,7 +128,9 @@ export async function onRequestPost(context) {
       .slice().reverse()
       .map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));
 
-    const system = await assembleMiraPrompt(env, user.id, user.email);
+    // System as [static (cache_control ephemeral), dynamic] blocks — static-first
+    // so Anthropic's prompt cache lands on the large, unchanging framework prefix.
+    const system = await assembleMiraSystem(env, user.id, user.email);
 
     const upstream = await anthropic(env, {
       model: CHAT_MODEL,

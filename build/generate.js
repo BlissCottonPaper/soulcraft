@@ -1290,7 +1290,11 @@ function accountMain() {
 // the chat. The orb is pure CSS. Client JS below uses only string concatenation
 // and quotes (no backticks / ${} ) so it nests safely in this template literal.
 function companionMain() {
-  var disclaimer = "Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US call or text 988.";
+  // 988 is live everywhere it appears (tel / sms / chat) — Session 3.1.
+  var link988 = '<a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a>';
+  var disclaimer = "Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US " + link988 + ".";
+  // A small permanent invitation — never crisis-triggered — in borrowing language.
+  var mira988Line = 'Need a human tonight? <a href="tel:988">Call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a> — you don\'t have to be in crisis to reach out.';
   return `
 <style>
   .mira-wrap{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 3rem;}
@@ -1318,6 +1322,9 @@ function companionMain() {
   .mira-send{flex:0 0 auto;border:0;border-radius:.9rem;padding:.7rem 1.1rem;background:rgba(253,230,138,0.92);color:#1b1430;font-weight:600;font-size:15px;cursor:pointer;}
   .mira-send:disabled{opacity:.5;cursor:default;}
   .mira-disclaim{font-size:11.5px;line-height:1.6;color:rgba(196,181,253,0.45);margin-top:1.5rem;border-top:1px solid rgba(196,181,253,0.12);padding-top:1rem;}
+  .mira-988{font-size:13px;line-height:1.6;color:rgba(224,218,246,0.7);text-align:center;margin:1.5rem auto 0;max-width:34rem;padding-top:1rem;border-top:1px solid rgba(196,181,253,0.12);}
+  .mira-disclaim a, .mira-988 a{color:#fde8b0;text-decoration:underline;text-underline-offset:2px;}
+  .mira-disclaim a:hover, .mira-988 a:hover{color:#fff6d8;}
   .mira-edit{display:block;text-align:center;font-size:12.5px;color:rgba(196,181,253,0.6);margin-top:.5rem;background:none;border:0;cursor:pointer;width:100%;}
   .mira-edit:hover{color:#fde8b0;}
   .bl-list{display:flex;flex-direction:column;gap:.15rem;margin:1rem 0;}
@@ -1392,6 +1399,9 @@ function companionMain() {
     <button class="mira-edit" id="mira-editbeliefs">Adjust your belief lens</button>
     <p class="mira-disclaim">${disclaimer}</p>
   </div>
+
+  <!-- Permanent 988 invitation — always visible, in every view, never crisis-triggered. -->
+  <p class="mira-988">${mira988Line}</p>
 </div>
 <script>
 (function(){
