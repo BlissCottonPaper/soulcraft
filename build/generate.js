@@ -1749,7 +1749,7 @@ write("login/index.html", page({
   title: "Log in — The Art of Soulcraft",
   description: "Log in to your Art of Soulcraft account to see Your Mandala and manage Mira, your personal reflection companion.",
   canonical: "https://artofsoulcraft.com/login/",
-  active: "results",
+  active: "account",
   main: loginMain()
 }));
 
@@ -1757,7 +1757,7 @@ write("register/index.html", page({
   title: "Create your account — The Art of Soulcraft",
   description: "Create an Art of Soulcraft account to keep Your Mandala and meet Mira, your personal reflection companion.",
   canonical: "https://artofsoulcraft.com/register/",
-  active: "results",
+  active: "account",
   main: registerMain()
 }));
 
@@ -1765,7 +1765,7 @@ write("account/index.html", page({
   title: "Your account — The Art of Soulcraft",
   description: "Your Art of Soulcraft account — Your Mandala, Mira, and your subscription.",
   canonical: "https://artofsoulcraft.com/account/",
-  active: "results",
+  active: "account",
   main: accountMain()
 }));
 

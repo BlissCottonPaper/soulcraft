@@ -31,6 +31,7 @@
       chrome.wireDropdown();
       chrome.wireMobile();
       chrome.applyResultToken();
+      chrome.syncResultsActive();
       chrome.applyAuthNav();
       chrome.injectAnalytics();
       chrome.registerServiceWorker();
@@ -141,6 +142,9 @@
     if (p.indexOf("/pricing") === 0) return "pricing";
     if (p.indexOf("/my-results") === 0) return "results";
     if (p.indexOf("/companion") === 0) return "mira";
+    // Account area — "My Account" is a runtime-added nav item, so nothing in the
+    // static nav gets highlighted here; renderAuthNav() marks "My Account" active.
+    if (p.indexOf("/account") === 0 || p.indexOf("/login") === 0 || p.indexOf("/register") === 0) return "account";
     if (p.indexOf("/contact") === 0) return "contact";
     if (p.indexOf("/support") === 0) return "support";
     return "home";
@@ -326,6 +330,25 @@
     });
   }
 
+  // The home page is reached with ?return=mandala / ?view=mine when the visitor
+  // opens a SAVED reading via "My Results". On that landing the reading — not the
+  // homepage — is what's showing, so highlight "My Results", not "Home". (This
+  // runs before index.html's React effect strips the query string.)
+  function syncResultsActive() {
+    if (typeof document === "undefined") return;
+    var params;
+    try { params = new URLSearchParams(location.search); } catch (e) { return; }
+    if (params.get("return") !== "mandala" && params.get("view") !== "mine") return;
+    var header = document.getElementById("site-header");
+    if (!header) return;
+    var anchors = header.querySelectorAll(".sc-links a, #sc-mobile-menu a");
+    for (var i = 0; i < anchors.length; i++) {
+      var label = (anchors[i].textContent || "").trim();
+      if (label === "Home") anchors[i].classList.remove("sc-active");
+      if (label === "My Results") anchors[i].classList.add("sc-active");
+    }
+  }
+
   // --- Auth-aware nav (Task 3g) ---------------------------------------------
   // The baked nav is the logged-OUT default (real markup, crawlable). At runtime
   // we ask /api/me and, once, append the right affordance: "My Account" + "Log
@@ -337,13 +360,20 @@
       .catch(function () { window.location.href = "/"; });
   }
 
+  // Which account-area page are we on? "My Account" (or "Log In") is a runtime
+  // nav item, so it's the one to highlight on /account, /login, /register.
+  function onAccountArea() {
+    try { return /^\/(account|login|register)(\/|$)/.test(location.pathname); } catch (e) { return false; }
+  }
+
   function renderAuthNav(authed) {
     if (typeof document === "undefined") return;
+    var acct = onAccountArea();
     var links = document.querySelector("#site-header .sc-links");
     if (links && !links.querySelector(".sc-auth")) {
       if (authed) {
         var a = document.createElement("a");
-        a.className = "sc-link sc-auth"; a.href = "/account/"; a.textContent = "My Account";
+        a.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); a.href = "/account/"; a.textContent = "My Account";
         links.appendChild(a);
         var b = document.createElement("button");
         b.className = "sc-link sc-auth"; b.type = "button"; b.textContent = "Log Out";
@@ -351,16 +381,17 @@
         links.appendChild(b);
       } else {
         var l = document.createElement("a");
-        l.className = "sc-link sc-auth"; l.href = "/login/"; l.textContent = "Log In";
+        l.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); l.href = "/login/"; l.textContent = "Log In";
         links.appendChild(l);
       }
     }
     var mobile = document.getElementById("sc-mobile-menu");
     if (mobile && !mobile.querySelector(".sc-auth")) {
+      var actCls = acct ? ' class="sc-auth sc-active"' : ' class="sc-auth"';
       if (authed) {
         mobile.insertAdjacentHTML("beforeend",
           '<div class="sc-m-divider" role="separator"></div>' +
-          '<a class="sc-auth" href="/account/">My Account</a>' +
+          '<a' + actCls + ' href="/account/">My Account</a>' +
           '<a class="sc-auth" href="#" role="button">Log Out</a>');
         var ml = mobile.querySelectorAll(".sc-auth");
         var last = ml[ml.length - 1];
@@ -368,7 +399,7 @@
       } else {
         mobile.insertAdjacentHTML("beforeend",
           '<div class="sc-m-divider" role="separator"></div>' +
-          '<a class="sc-auth" href="/login/">Log In</a>');
+          '<a' + actCls + ' href="/login/">Log In</a>');
       }
     }
   }
@@ -402,6 +433,7 @@
     wireMobile: wireMobile,
     readResultToken: readResultToken,
     applyResultToken: applyResultToken,
+    syncResultsActive: syncResultsActive,
     applyAuthNav: applyAuthNav,
     injectAnalytics: injectAnalytics,
     registerServiceWorker: registerServiceWorker
