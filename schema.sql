@@ -20,6 +20,8 @@ CREATE TABLE users (
   companion_tier TEXT,                 -- 'monthly' | 'quarterly' | 'yearly' | NULL
   subscription_id TEXT,                -- Stripe subscription id backing Mira, if any
   companion_trial_until INTEGER,       -- unix seconds; 30-day Mira trial from a $29/WHITEDOT reading
+  voice_output_enabled INTEGER NOT NULL DEFAULT 0,  -- account preference: read Mira's replies aloud
+                                        -- (Session 4 plumbing; no TTS wired yet)
   created_at INTEGER NOT NULL          -- unix timestamp
 );
 

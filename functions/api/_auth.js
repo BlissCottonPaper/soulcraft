@@ -99,6 +99,8 @@ export async function ensureSchema(env) {
     "ALTER TABLE users ADD COLUMN companion_active INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE users ADD COLUMN companion_tier TEXT",
     "ALTER TABLE users ADD COLUMN subscription_id TEXT",
+    // Account preferences (Session 4). Plumbing for spoken replies; 0 = off.
+    "ALTER TABLE users ADD COLUMN voice_output_enabled INTEGER NOT NULL DEFAULT 0",
     // Companion columns on results (only present if a results table already exists).
     "ALTER TABLE results ADD COLUMN stripe_customer_id TEXT",
     "ALTER TABLE results ADD COLUMN companion_active INTEGER NOT NULL DEFAULT 0",

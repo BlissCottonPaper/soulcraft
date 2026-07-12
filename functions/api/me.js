@@ -41,6 +41,17 @@ export async function onRequestGet({ request, env }) {
       if (count) latestId = list[0].id;
     } catch (e) { /* ignore — treat as no results */ }
 
+    // Account preferences. Defensive: the column is self-healed elsewhere, so a
+    // DB that predates it just reports the setting as off.
+    let voiceOut = false;
+    try {
+      const pref = await env.DB
+        .prepare("SELECT voice_output_enabled AS v FROM users WHERE id = ?")
+        .bind(user.id)
+        .first();
+      voiceOut = !!(pref && Number(pref.v) === 1);
+    } catch (e) { /* column not present yet — off */ }
+
     return json({
       authenticated: true,
       email: user.email,
@@ -49,6 +60,7 @@ export async function onRequestGet({ request, env }) {
       has_results: count > 0,
       latest_result_id: latestId,
       result_count: count,
+      voice_output_enabled: voiceOut,
     });
   } catch (err) {
     return json({ authenticated: false });
