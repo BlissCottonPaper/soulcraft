@@ -1403,7 +1403,7 @@ function companionMain() {
     <div class="orb" id="mira-orb"></div>
     <div class="mira-msgs" id="mira-msgs" aria-live="polite"></div>
     <div class="mira-dock">
-      <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Go on ↷</button></div>
+      <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Tell me more…</button></div>
       <div class="mira-inputbar">
         <textarea class="mira-input" id="mira-input" rows="1" placeholder="Share what's on your mind…" aria-label="Message Mira"></textarea>
         <button class="mira-send" id="mira-sendbtn">Send</button>
@@ -1508,9 +1508,9 @@ function companionMain() {
     $('mira-sendbtn').addEventListener('click', submit);
     input.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submit(); } });
     $('mira-editbeliefs').addEventListener('click', function(){ showOnboard(true); });
-    // "Go on" — a lightweight continuation for when Mira's reply didn't end in a
-    // question and the person isn't sure how to pick it back up.
-    $('mira-goon').addEventListener('click', function(){ if(streaming) return; sendMessage('go on', false); });
+    // "Tell me more…" — a lightweight continuation for when Mira's reply didn't
+    // end in a question and the person isn't sure how to pick it back up.
+    $('mira-goon').addEventListener('click', function(){ if(streaming) return; sendMessage('Tell me more.', false); });
     // First-ever session → hidden bootstrap so Mira opens in her own voice.
     if(!hasHistory){ sendMessage('[first session — begin]', true); }
     input.focus();
