@@ -41,12 +41,27 @@ export function growthEdgeName(rankedNames) {
   return first ? first.opposite : null;
 }
 
-// First name, best-effort from the email local-part (the assessment stores no name).
+const NAME_UNKNOWN = "not yet known — ask them warmly what they'd like to be called";
+
+// Obvious non-name local-parts (role/shared inboxes) — alphabetic but clearly
+// not a person's name, so we defer to asking.
+const NON_NAMES = new Set([
+  "info", "admin", "hello", "hi", "contact", "team", "support", "sales",
+  "noreply", "no", "reply", "mail", "email", "user", "test", "me", "account",
+  "billing", "help", "service", "office", "inbox", "post", "webmaster", "root",
+]);
+
+// First name, best-effort from the email local-part (the assessment stores no
+// name). Trust it ONLY when the whole local-part is PURELY alphabetic, 2–15
+// chars, and not an obvious role/non-name. Any digit, dot, or other separator
+// (e.g. "john.smith", "coolguy42", "j") means it isn't clearly a name, so we
+// defer to asking. Returns null when nothing name-like is present.
 function firstNameFromEmail(email) {
   if (!email) return null;
-  const local = String(email).split("@")[0].split(/[.+_-]/)[0];
-  if (!local) return null;
-  return local.charAt(0).toUpperCase() + local.slice(1);
+  const local = String(email).split("@")[0];
+  if (!/^[A-Za-z]{2,15}$/.test(local)) return null;
+  if (NON_NAMES.has(local.toLowerCase())) return null;
+  return local.charAt(0).toUpperCase() + local.slice(1).toLowerCase();
 }
 
 // ---- {{USER_PROFILE}} ------------------------------------------------------
@@ -62,7 +77,7 @@ async function buildUserProfile(env, userId, email) {
   } catch (e) { row = null; }
 
   if (!row) {
-    return (firstName ? "First name: " + firstName + "\n" : "") +
+    return "First name: " + (firstName || NAME_UNKNOWN) + "\n" +
       "This person has not completed the Soulcraft assessment yet — their Mandala is unknown. Gently invite them to take it so you can meet their actual pattern; until then, work from what they tell you.";
   }
 
@@ -116,7 +131,7 @@ async function buildUserProfile(env, userId, email) {
   const dateStr = row.created_at ? new Date(row.created_at * 1000).toISOString().slice(0, 10) : "unknown";
 
   return [
-    firstName ? "First name: " + firstName : "First name: unknown",
+    "First name: " + (firstName || NAME_UNKNOWN),
     "Assessment date: " + dateStr,
     "",
     "Ranked twelve voices (strongest → quietest; score in parens):",
