@@ -565,10 +565,21 @@ function TwelveWithin() {
     const topTie = ranked.length && ranked.filter((r) => r.score === ranked[0].score).length > 1
         ? ranked.filter((r) => r.score === ranked[0].score)
         : null;
-    // Growth Edge = the fixed wheel-opposite of the loudest voice. When that same
-    // archetype is ALSO one of the already-loud top voices, plain "growth edge"
-    // copy reads as "underdeveloped" when it plainly isn't — so the card adapts.
-    const growthName = ranked.length ? ranked[0].opposite : null;
+    // Growth Edge — AXIS-AWARE (canon, 2026-07-11). The fixed opposite of the
+    // highest-ranked voice whose opposite is NOT already in the top three: iterate
+    // from the loudest down, skipping any whose opposite is among the top three,
+    // and take the first opposite that isn't. Usually this is just the opposite of
+    // the loudest voice, but when the loudest voices dominate one axis (e.g. Mystic
+    // 1st, Creator 2nd) the edge moves outward (→ Lover). This EXACTLY mirrors
+    // functions/mira/_prompt.js growthEdgeName so the site and Mira always agree.
+    const growthName = (() => {
+        if (!ranked.length) return null;
+        const topThree = ranked.slice(0, 3).map((r) => r.name);
+        for (const r of ranked) {
+            if (topThree.indexOf(r.opposite) === -1) return r.opposite;
+        }
+        return ranked[0].opposite; // degenerate fallback
+    })();
     const growthIdx = growthName ? ranked.findIndex((r) => r.name === growthName) : -1;
     const GROWTH_ORD = ["", "second", "third"];
     const growthIsTopVoice = growthIdx >= 1 && growthIdx <= 2 && growthIdx < TIERS[tier].topCount;
