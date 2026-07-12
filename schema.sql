@@ -79,6 +79,18 @@ CREATE TABLE results (
   created_at INTEGER NOT NULL
 );
 
+-- One row per password-reset request. The emailed link carries a raw random
+-- token; we store ONLY its SHA-256 hash (like sessions), so a leaked table can't
+-- be used to reset anyone's password. Single-use and short-lived (~1 hour).
+CREATE TABLE password_resets (
+  token_hash TEXT PRIMARY KEY,         -- SHA-256 hex of the emailed token
+  user_id TEXT NOT NULL REFERENCES users(id),
+  expires_at INTEGER NOT NULL,         -- unix seconds, ~1 hour from creation
+  used INTEGER NOT NULL DEFAULT 0,     -- 0/1 — flipped the moment it's redeemed
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX idx_password_resets_user ON password_resets(user_id);
+
 -- One row per magic link ever sent. A token is single-use for LOGIN
 -- purposes (marked used after the first click), but the underlying
 -- result itself never expires — only the login token does.

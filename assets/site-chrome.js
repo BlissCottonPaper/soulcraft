@@ -145,7 +145,8 @@
     if (p.indexOf("/companion") === 0) return "mira";
     // Account area — "My Account" is a runtime-added nav item, so nothing in the
     // static nav gets highlighted here; renderAuthNav() marks "My Account" active.
-    if (p.indexOf("/account") === 0 || p.indexOf("/login") === 0 || p.indexOf("/register") === 0) return "account";
+    if (p.indexOf("/account") === 0 || p.indexOf("/login") === 0 || p.indexOf("/register") === 0 ||
+        p.indexOf("/forgot-password") === 0 || p.indexOf("/reset-password") === 0) return "account";
     if (p.indexOf("/contact") === 0) return "contact";
     if (p.indexOf("/support") === 0) return "support";
     return "home";
@@ -362,7 +363,7 @@
   // Which account-area page are we on? "My Account" (or "Log In") is a runtime
   // nav item, so it's the one to highlight on /account, /login, /register.
   function onAccountArea() {
-    try { return /^\/(account|login|register)(\/|$)/.test(location.pathname); } catch (e) { return false; }
+    try { return /^\/(account|login|register|forgot-password|reset-password)(\/|$)/.test(location.pathname); } catch (e) { return false; }
   }
 
   function renderAuthNav(authed) {
