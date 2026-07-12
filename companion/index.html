@@ -62,7 +62,9 @@
   .mira-row{display:flex;flex-direction:column;max-width:88%;}
   .mira-row.me{align-self:flex-end;align-items:flex-end;}
   .mira-row.her{align-self:flex-start;align-items:flex-start;}
-  .mira-bubble{padding:.7rem .95rem;border-radius:1rem;font-size:15.5px;line-height:1.62;white-space:pre-wrap;}
+  .mira-bubble{padding:.7rem .95rem;border-radius:1rem;font-size:15.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;}
+  .mira-bubble a{color:#fde8b0;text-decoration:underline;text-underline-offset:2px;}
+  .mira-bubble a:hover{color:#fff6d8;}
   .mira-row.me .mira-bubble{background:rgba(253,230,138,0.14);color:#fdf6e3;border:1px solid rgba(253,230,138,0.22);border-bottom-right-radius:.35rem;}
   .mira-row.her .mira-bubble{background:rgba(255,250,240,0.04);color:#efe9ff;border:1px solid rgba(196,181,253,0.18);border-bottom-left-radius:.35rem;}
   .mira-save{background:none;border:0;color:rgba(196,181,253,0.7);font-size:12.5px;cursor:pointer;padding:.25rem .1rem;margin-top:.15rem;}
@@ -84,6 +86,10 @@
   .mira-disclaim a:hover, .mira-988 a:hover{color:#fff6d8;}
   .mira-crisis{border:1px solid rgba(253,164,175,0.5);background:rgba(253,164,175,0.10);border-radius:.9rem;padding:.85rem 1rem;font-size:14px;line-height:1.6;color:#fde4e6;margin:.5rem 0 1rem;}
   .mira-crisis a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:2px;}
+  /* Once fired, the banner pins to the top of the viewport for the whole
+     session — immune to scrolling, above the sticky site header (z-30). */
+  .mira-crisis-pinned{position:fixed;top:0;left:0;right:0;z-index:60;margin:0;border-radius:0;border-left:0;border-right:0;padding:.7rem 1rem;max-height:45vh;overflow-y:auto;background:#3a1620;box-shadow:0 3px 14px rgba(0,0,0,0.45);}
+  .mira-crisis-pinned .mira-crisis-inner{max-width:44rem;margin:0 auto;}
   .mira-trial{text-align:center;font-size:12.5px;color:rgba(253,230,138,0.85);background:rgba(253,230,138,0.08);border:1px solid rgba(253,230,138,0.22);border-radius:999px;padding:.3rem .8rem;margin:0 auto .5rem;max-width:22rem;}
   .mira-edit{display:block;text-align:center;font-size:12.5px;color:rgba(196,181,253,0.6);margin-top:.5rem;background:none;border:0;cursor:pointer;width:100%;}
   .mira-edit:hover{color:#fde8b0;}
@@ -165,8 +171,10 @@
     <!-- Deterministic crisis banner — raised by the server's independent check,
          regardless of Mira's own reply. Hidden until triggered. -->
     <div class="mira-crisis mira-hide" id="mira-crisis" role="alert">
-      <strong>If you're in danger or thinking about harming yourself, please reach out now.</strong>
-      You deserve real-time human support. In the US, <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a> — 24/7, free, confidential. If someone is in immediate danger, call 911.
+      <div class="mira-crisis-inner">
+        <strong>If you're in danger or thinking about harming yourself, please reach out now.</strong>
+        You deserve real-time human support. In the US, <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a> — 24/7, free, confidential. If someone is in immediate danger, call 911.
+      </div>
     </div>
     <div class="mira-msgs" id="mira-msgs" aria-live="polite"></div>
     <div class="mira-dock">
@@ -206,6 +214,24 @@
   function atBottom(){ return (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 80); }
   function scrollDown(){ if(stick) window.scrollTo(0, document.body.scrollHeight); }
   window.addEventListener('scroll', function(){ stick = atBottom(); }, { passive:true });
+  // Minimal, safe markdown for Mira's replies. We escape the raw text FIRST
+  // (so nothing she says can inject HTML), then re-introduce only two things:
+  // **bold** and clickable links. Newlines are preserved by the bubble's
+  // white-space:pre-wrap, so no <br> conversion is needed.
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function renderMira(text){
+    var out=escapeHtml(text);
+    out=out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Autolink http(s) URLs. Trailing sentence punctuation is trimmed off the
+    // link so "(see https://x.com)." doesn't swallow the paren/period.
+    out=out.replace(/(https?:\/\/[^\s<]+)/g, function(u){
+      var tail=''; var m=u.match(/[)\].,;:!?'\u201d\u2019]+$/);
+      if(m){ tail=m[0]; u=u.slice(0, u.length-tail.length); }
+      return '<a href="'+u+'" target="_blank" rel="noopener noreferrer">'+u+'</a>'+tail;
+    });
+    return out;
+  }
+
   function addRow(who){
     var row=document.createElement('div'); row.className='mira-row '+(who==='me'?'me':'her');
     var b=document.createElement('div'); b.className='mira-bubble'; row.appendChild(b);
@@ -229,7 +255,24 @@
     var orb=$('mira-orb'); if(orb) orb.className='orb'+(on?' streaming':'');
     $('mira-input').disabled=on; $('mira-sendbtn').disabled=on;
   }
-  function showCrisis(){ var c=$('mira-crisis'); if(c){ c.className='mira-crisis'; c.scrollIntoView({behavior:'smooth',block:'nearest'}); } }
+  // Crisis banner. Once it fires it PINS to the top of the viewport and stays
+  // there for the rest of the session — it never depends on a later message
+  // re-matching to keep help on screen. Persisted against the session id so a
+  // reload within the same session brings it right back.
+  var CRISIS_KEY='mira_crisis';
+  function applyCrisisOffset(){
+    var c=$('mira-crisis'); if(!c || c.className.indexOf('mira-crisis-pinned')<0) return;
+    var h=c.offsetHeight;
+    document.body.style.paddingTop=h+'px';
+    var hdr=document.getElementById('site-header'); if(hdr) hdr.style.top=h+'px';
+  }
+  function pinCrisis(persist){
+    var c=$('mira-crisis'); if(!c) return;
+    if(c.className.indexOf('mira-crisis-pinned')<0){ c.className='mira-crisis mira-crisis-pinned'; }
+    if(persist!==false){ try{ localStorage.setItem(CRISIS_KEY, SESSION||session()); }catch(e){} }
+    applyCrisisOffset();
+  }
+  window.addEventListener('resize', applyCrisisOffset, { passive:true });
 
   var FIRST_MSG_KEY='mira_first_msg_sent';
   function sendMessage(text, hidden){
@@ -258,7 +301,7 @@
               if(!dline) continue;
               var payload=dline.slice(5).replace(/^\s+/,'');
               if(!payload) continue;
-              try{ var ev=JSON.parse(payload); if(ev.crisis){ showCrisis(); } if(ev.text){ full+=ev.text; bubble.textContent=full; scrollDown(); } }catch(e){}
+              try{ var ev=JSON.parse(payload); if(ev.crisis){ pinCrisis(true); } if(ev.text){ full+=ev.text; bubble.innerHTML=renderMira(full); scrollDown(); } }catch(e){}
             }
             return pump();
           });
@@ -272,6 +315,9 @@
   var chatWired=false;
   function wireChat(hasHistory, ctx){
     show('mira-chat'); SESSION=session(); ga('mira_session_started');
+    // If this session already tripped the crisis layer, keep the banner pinned
+    // across the reload — the session's help stays on screen, not just the message.
+    try{ if(localStorage.getItem(CRISIS_KEY)===SESSION){ pinCrisis(false); } }catch(e){}
     // Trial note — only while trialing (not a paid subscriber).
     if(ctx && ctx.trialing && ctx.trial_until){
       var days=Math.max(0, Math.ceil((ctx.trial_until*1000 - Date.now())/86400000));
