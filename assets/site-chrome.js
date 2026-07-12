@@ -140,6 +140,7 @@
     if (p.indexOf("/explore") === 0) return "explore";
     if (p.indexOf("/pricing") === 0) return "pricing";
     if (p.indexOf("/my-results") === 0) return "results";
+    if (p.indexOf("/companion") === 0) return "mira";
     if (p.indexOf("/contact") === 0) return "contact";
     if (p.indexOf("/support") === 0) return "support";
     return "home";
@@ -171,6 +172,7 @@
         mobileExplore +
         '<div class="sc-m-divider" role="separator"></div>' +
         '<a' + mact("pricing") + ' href="/pricing/">Pricing</a>' +
+        '<a' + mact("mira") + ' href="/companion/">Mira</a>' +
         '<a' + mact("results") + ' href="/my-results/">My Results</a>' +
         '<a' + mact("contact") + ' href="/contact/">Contact</a>' +
       '</div>';
@@ -185,6 +187,7 @@
             '<div class="sc-menu" id="sc-explore-menu">' + menu + '</div>' +
           '</div>' +
           '<a class="' + cls("pricing") + '" href="/pricing/">Pricing</a>' +
+          '<a class="' + cls("mira") + '" href="/companion/">Mira</a>' +
           '<a class="' + cls("results") + '" href="/my-results/">My Results</a>' +
           '<a class="' + cls("contact") + '" href="/contact/">Contact</a>' +
         '</div>' +

@@ -1263,7 +1263,7 @@ function accountMain() {
       mEl.innerHTML='<h2 class="acct-h">Mira</h2><p class="acct-p">Your personal Soulcraft companion is active'+(d.companion_tier?' ('+esc(d.companion_tier)+' plan)':'')+'.</p><a class="acct-link" href="/companion/">Open Mira →</a>';
       document.getElementById("acct-billing").style.display="block";
     }else{
-      mEl.innerHTML='<h2 class="acct-h">Mira is coming soon</h2><p class="acct-p">Mira — your personal Soulcraft companion. A mirror that reflects what you\\'re not looking at, using your own twelve voices as the lens.</p>';
+      mEl.innerHTML='<h2 class="acct-h">Mira</h2><p class="acct-p">Your personal Soulcraft companion — a mirror that reflects what you\\'re not looking at, using your own twelve voices as the lens.</p><a class="acct-link" href="/companion/">Meet Mira →</a>';
     }
 
     // Billing portal
@@ -1305,9 +1305,13 @@ function companionMain() {
   @keyframes orb-breathe{0%,100%{transform:scale(1);opacity:.92;box-shadow:0 0 36px 6px rgba(150,110,220,0.28)}50%{transform:scale(1.06);opacity:1;box-shadow:0 0 54px 13px rgba(184,146,244,0.46)}}
   .orb.streaming{animation:orb-shimmer 1.7s ease-in-out infinite;}
   @keyframes orb-shimmer{0%,100%{transform:scale(1.02);filter:hue-rotate(0deg)}50%{transform:scale(1.08);filter:hue-rotate(20deg)}}
+  /* Chat orb: fixed near the bottom (future Lantern position) so it never scrolls away.
+     Centered via left/calc so the breathing keyframes keep the transform for scale. */
+  #mira-orb{position:fixed;left:calc(50% - 30px);bottom:5.75rem;width:60px;height:60px;margin:0;z-index:6;pointer-events:none;}
+  @media(max-width:480px){#mira-orb{width:52px;height:52px;left:calc(50% - 26px);bottom:5.25rem;}}
   .mira-title{text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:1.9rem;color:#f5f3ff;margin:.25rem 0 .1rem;}
   .mira-sub{text-align:center;color:rgba(224,218,246,0.72);font-size:14.5px;margin:0 auto 1.25rem;max-width:30rem;}
-  .mira-msgs{display:flex;flex-direction:column;gap:.85rem;margin:1rem 0;}
+  .mira-msgs{display:flex;flex-direction:column;gap:.85rem;margin:1rem 0;padding-bottom:5.5rem;}
   .mira-row{display:flex;flex-direction:column;max-width:88%;}
   .mira-row.me{align-self:flex-end;align-items:flex-end;}
   .mira-row.her{align-self:flex-start;align-items:flex-start;}
@@ -1316,8 +1320,14 @@ function companionMain() {
   .mira-row.her .mira-bubble{background:rgba(255,250,240,0.04);color:#efe9ff;border:1px solid rgba(196,181,253,0.18);border-bottom-left-radius:.35rem;}
   .mira-save{background:none;border:0;color:rgba(196,181,253,0.7);font-size:12.5px;cursor:pointer;padding:.25rem .1rem;margin-top:.15rem;}
   .mira-save:hover{color:#fde8b0;} .mira-save:disabled{cursor:default;opacity:.8;}
-  .mira-inputbar{display:flex;gap:.5rem;align-items:flex-end;margin-top:.5rem;position:sticky;bottom:0;background:linear-gradient(180deg,rgba(16,12,34,0) 0%,#100c22 40%);padding:.6rem 0 .2rem;}
-  .mira-input{flex:1;resize:none;max-height:8rem;background:rgba(0,0,0,0.25);border:1px solid rgba(196,181,253,0.25);border-radius:.9rem;padding:.7rem .9rem;color:#f5f3ff;font-size:15.5px;line-height:1.4;outline:none;font-family:inherit;}
+  /* The dock (nudge + input) sticks to the bottom together. */
+  .mira-dock{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(16,12,34,0) 0%,#100c22 32%);padding-top:.4rem;}
+  .mira-nudge{display:flex;justify-content:flex-end;padding:0 .1rem .35rem;}
+  .mira-goon{background:rgba(255,250,240,0.05);border:1px solid rgba(196,181,253,0.28);color:rgba(224,218,246,0.85);border-radius:999px;font-size:12.5px;padding:.28rem .7rem;cursor:pointer;font-family:inherit;}
+  .mira-goon:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;} .mira-goon:disabled{opacity:.45;cursor:default;}
+  .mira-inputbar{display:flex;gap:.5rem;align-items:flex-end;padding:0 0 .2rem;}
+  /* ~6 lines then internal scroll; resize:none removes the browser's drag-handle arrows. */
+  .mira-input{flex:1;resize:none;max-height:9.25rem;overflow-y:auto;background:rgba(0,0,0,0.25);border:1px solid rgba(196,181,253,0.25);border-radius:.9rem;padding:.7rem .9rem;color:#f5f3ff;font-size:15.5px;line-height:1.4;outline:none;font-family:inherit;}
   .mira-input:focus{border-color:rgba(253,230,138,0.5);}
   .mira-send{flex:0 0 auto;border:0;border-radius:.9rem;padding:.7rem 1.1rem;background:rgba(253,230,138,0.92);color:#1b1430;font-weight:600;font-size:15px;cursor:pointer;}
   .mira-send:disabled{opacity:.5;cursor:default;}
@@ -1392,9 +1402,12 @@ function companionMain() {
   <div id="mira-chat" class="mira-hide">
     <div class="orb" id="mira-orb"></div>
     <div class="mira-msgs" id="mira-msgs" aria-live="polite"></div>
-    <div class="mira-inputbar">
-      <textarea class="mira-input" id="mira-input" rows="1" placeholder="Share what's on your mind…" aria-label="Message Mira"></textarea>
-      <button class="mira-send" id="mira-sendbtn">Send</button>
+    <div class="mira-dock">
+      <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Go on ↷</button></div>
+      <div class="mira-inputbar">
+        <textarea class="mira-input" id="mira-input" rows="1" placeholder="Share what's on your mind…" aria-label="Message Mira"></textarea>
+        <button class="mira-send" id="mira-sendbtn">Send</button>
+      </div>
     </div>
     <button class="mira-edit" id="mira-editbeliefs">Adjust your belief lens</button>
     <p class="mira-disclaim">${disclaimer}</p>
@@ -1420,7 +1433,12 @@ function companionMain() {
   function touch(){ try{ localStorage.setItem('mira_session',JSON.stringify({id:SESSION,ts:Date.now()})); }catch(e){} }
 
   // ---- chat rendering ----
-  function scrollDown(){ var m=$('mira-msgs'); if(m) window.scrollTo(0, document.body.scrollHeight); }
+  // Auto-scroll only while the reader is at (or near) the bottom. If they scroll
+  // up mid-stream to re-read, we stop yanking them down until they return.
+  var stick=true;
+  function atBottom(){ return (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 80); }
+  function scrollDown(){ if(stick) window.scrollTo(0, document.body.scrollHeight); }
+  window.addEventListener('scroll', function(){ stick = atBottom(); }, { passive:true });
   function addRow(who){
     var row=document.createElement('div'); row.className='mira-row '+(who==='me'?'me':'her');
     var b=document.createElement('div'); b.className='mira-bubble'; row.appendChild(b);
@@ -1447,6 +1465,7 @@ function companionMain() {
 
   function sendMessage(text, hidden){
     if(streaming || !text) return;
+    stick=true; // a fresh turn always follows to the bottom
     if(!hidden) addRow('me').textContent=text;
     ga('mira_message_sent');
     var bubble=addRow('her'); var full=''; setStreaming(true);
@@ -1482,12 +1501,16 @@ function companionMain() {
   function wireChat(hasHistory){
     show('mira-chat'); SESSION=session(); ga('mira_session_started');
     var input=$('mira-input');
-    function grow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,128)+'px'; }
+    // Grow to ~6 lines (148px ≈ 9.25rem), then the textarea scrolls internally.
+    function grow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,148)+'px'; }
     input.addEventListener('input', grow);
     function submit(){ var t=input.value.trim(); if(!t||streaming) return; input.value=''; grow(); sendMessage(t,false); }
     $('mira-sendbtn').addEventListener('click', submit);
     input.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submit(); } });
     $('mira-editbeliefs').addEventListener('click', function(){ showOnboard(true); });
+    // "Go on" — a lightweight continuation for when Mira's reply didn't end in a
+    // question and the person isn't sure how to pick it back up.
+    $('mira-goon').addEventListener('click', function(){ if(streaming) return; sendMessage('go on', false); });
     // First-ever session → hidden bootstrap so Mira opens in her own voice.
     if(!hasHistory){ sendMessage('[first session — begin]', true); }
     input.focus();
@@ -1750,7 +1773,7 @@ write("companion/index.html", page({
   title: "Mira — your Soulcraft companion",
   description: "Mira is a personal reflection companion who knows your Mandala — a mirror that reflects what you're not looking at, through your own twelve archetypal voices.",
   canonical: "https://artofsoulcraft.com/companion/",
-  active: "results",
+  active: "mira",
   main: companionMain()
 }));
 
