@@ -81,48 +81,121 @@ export async function onRequestPost({ request, env }) {
     });
   }
 
-  // We only act on a completed checkout. Everything else is acknowledged and ignored.
-  if (event.type === "checkout.session.completed") {
-    const session = (event.data && event.data.object) || {};
-    const meta = session.metadata || {};
-    const resultId = meta.result_id;
-    const purchaseType = meta.purchase_type;
-
-    if (resultId && env.DB) {
-      try {
-        // UPSERT, not UPDATE: the payment gate now runs BEFORE the assessment, so
-        // a paid result_id can arrive here before save-results has written any
-        // scores. We seed a placeholder row (empty scores) the assessment later
-        // fills in, and never clobber real data when the row already exists.
-        const now = Math.floor(Date.now() / 1000);
-        if (purchaseType === "full") {
-          // Capture the Stripe customer id created for this payment (customer_creation
-          // = always). The post-purchase Mira interstitial reuses it — and the saved
-          // card — to open a trialing subscription (create-subscription.js).
-          const customerId = typeof session.customer === "string" ? session.customer : (session.customer && session.customer.id) || null;
-          await env.DB.prepare(
-            `INSERT INTO results
-               (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, stripe_customer_id, created_at)
-             VALUES (?, 'full', 'quick', '{}', '{}', 0, 1, 1, ?, ?)
-             ON CONFLICT(id) DO UPDATE SET
-               full_purchased = 1,
-               shadow_unlocked = 1,
-               stripe_customer_id = COALESCE(excluded.stripe_customer_id, results.stripe_customer_id)`
-          ).bind(resultId, customerId, now).run();
-        }
-        // 'compatibility' (invite flow TBD) intentionally sets no flags here.
-      } catch (e) {
-        // Log-and-500 so Stripe retries the webhook rather than dropping the payment.
-        return new Response(JSON.stringify({ error: "Database update failed", detail: e.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-    }
+  try {
+    await handleEvent(event, env);
+  } catch (e) {
+    // Log-and-500 so Stripe retries rather than dropping the event.
+    return new Response(JSON.stringify({ error: "Handler failed", detail: e && e.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
+  // 200 for everything (including unhandled event types) so Stripe doesn't retry-spam.
   return new Response(JSON.stringify({ received: true }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+const idOf = (v) => (typeof v === "string" ? v : (v && v.id) || null);
+
+// Resolve the internal user id for a subscription: prefer the metadata we set at
+// checkout, then fall back to a stored subscription_id, then the Stripe customer.
+async function resolveUserId(env, sub) {
+  if (!env.DB || !sub) return null;
+  const metaUid = sub.metadata && sub.metadata.user_id;
+  if (metaUid) return metaUid;
+  const subId = idOf(sub);
+  if (subId) {
+    const r = await env.DB.prepare("SELECT id FROM users WHERE subscription_id = ?").bind(subId).first();
+    if (r) return r.id;
+  }
+  const custId = idOf(sub.customer);
+  if (custId) {
+    const r = await env.DB.prepare("SELECT id FROM users WHERE stripe_customer_id = ?").bind(custId).first();
+    if (r) return r.id;
+  }
+  return null;
+}
+
+async function setCompanion(env, userId, active, tier, subId, custId) {
+  await env.DB.prepare(
+    `UPDATE users SET
+       companion_active = ?,
+       companion_tier = COALESCE(?, companion_tier),
+       subscription_id = COALESCE(?, subscription_id),
+       stripe_customer_id = COALESCE(?, stripe_customer_id)
+     WHERE id = ?`
+  ).bind(active ? 1 : 0, tier || null, subId || null, custId || null, userId).run();
+}
+
+async function handleEvent(event, env) {
+  if (!env.DB) return;
+  const obj = (event.data && event.data.object) || {};
+
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const meta = obj.metadata || {};
+      // Mira subscription checkout → activate the companion on the user.
+      if (meta.purchase_type === "mira" || obj.mode === "subscription") {
+        const userId = meta.user_id || obj.client_reference_id;
+        if (userId) {
+          await setCompanion(env, userId, true, meta.mira_tier || null, idOf(obj.subscription), idOf(obj.customer));
+        }
+        return;
+      }
+      // The $29 Full reading (one-time). UPSERT: the gate runs before the
+      // assessment, so this can arrive before scores exist. Capture the customer
+      // (customer_creation=always) so the post-purchase Mira trial can reuse the card.
+      const resultId = meta.result_id;
+      if (resultId && meta.purchase_type === "full") {
+        const now = Math.floor(Date.now() / 1000);
+        await env.DB.prepare(
+          `INSERT INTO results
+             (id, tier, mode, archetype_scores, channel_scores, is_public, full_purchased, shadow_unlocked, stripe_customer_id, created_at)
+           VALUES (?, 'full', 'quick', '{}', '{}', 0, 1, 1, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+             full_purchased = 1,
+             shadow_unlocked = 1,
+             stripe_customer_id = COALESCE(excluded.stripe_customer_id, results.stripe_customer_id)`
+        ).bind(resultId, idOf(obj.customer), now).run();
+      }
+      // 'compatibility' (invite flow TBD) sets no flags.
+      return;
+    }
+
+    case "customer.subscription.updated": {
+      const userId = await resolveUserId(env, obj);
+      if (!userId) return;
+      const status = obj.status;
+      const tier = (obj.metadata && obj.metadata.mira_tier) || null;
+      if (status === "active" || status === "trialing") {
+        await setCompanion(env, userId, true, tier, idOf(obj), idOf(obj.customer));
+      } else if (status === "canceled" || status === "unpaid") {
+        await setCompanion(env, userId, false, tier, idOf(obj), idOf(obj.customer));
+      } else if (status === "past_due") {
+        // Grace period: keep access on, just log (pause policy — never delete data).
+        console.log("mira subscription past_due for user", userId, "sub", idOf(obj));
+      }
+      return;
+    }
+
+    case "customer.subscription.deleted": {
+      // Cancellation → pause access. NEVER delete the person's data.
+      const userId = await resolveUserId(env, obj);
+      if (userId) await setCompanion(env, userId, false, null, idOf(obj), idOf(obj.customer));
+      return;
+    }
+
+    case "invoice.payment_failed": {
+      // Informational — the matching subscription.updated (past_due/unpaid) drives
+      // the access decision. Log so a failing renewal is visible.
+      console.log("mira invoice.payment_failed customer", idOf(obj.customer), "sub", idOf(obj.subscription));
+      return;
+    }
+
+    default:
+      return; // acknowledged and ignored
+  }
 }

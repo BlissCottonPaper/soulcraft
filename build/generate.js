@@ -1284,6 +1284,261 @@ function accountMain() {
 </script>`;
 }
 
+// ---- Mira companion page (/companion): onboarding · gate · chat · orb -------
+// One client-orchestrated page. On load it asks /api/mira/context and shows the
+// gate (no subscription), the belief-lens onboarding (subscribed, no lens), or
+// the chat. The orb is pure CSS. Client JS below uses only string concatenation
+// and quotes (no backticks / ${} ) so it nests safely in this template literal.
+function companionMain() {
+  var disclaimer = "Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US call or text 988.";
+  return `
+<style>
+  .mira-wrap{max-width:44rem;margin:0 auto;padding:1.5rem 1rem 3rem;}
+  .orb{width:104px;height:104px;border-radius:50%;margin:0.5rem auto 0.75rem;
+    background:radial-gradient(circle at 34% 30%, #fdeaba 0%, #e0bd67 20%, #8a63d6 58%, #392a68 100%);
+    box-shadow:0 0 42px 8px rgba(150,110,220,0.32), inset 0 0 26px rgba(255,240,205,0.28);
+    animation:orb-breathe 6s ease-in-out infinite;}
+  @keyframes orb-breathe{0%,100%{transform:scale(1);opacity:.92;box-shadow:0 0 36px 6px rgba(150,110,220,0.28)}50%{transform:scale(1.06);opacity:1;box-shadow:0 0 54px 13px rgba(184,146,244,0.46)}}
+  .orb.streaming{animation:orb-shimmer 1.7s ease-in-out infinite;}
+  @keyframes orb-shimmer{0%,100%{transform:scale(1.02);filter:hue-rotate(0deg)}50%{transform:scale(1.08);filter:hue-rotate(20deg)}}
+  .mira-title{text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:1.9rem;color:#f5f3ff;margin:.25rem 0 .1rem;}
+  .mira-sub{text-align:center;color:rgba(224,218,246,0.72);font-size:14.5px;margin:0 auto 1.25rem;max-width:30rem;}
+  .mira-msgs{display:flex;flex-direction:column;gap:.85rem;margin:1rem 0;}
+  .mira-row{display:flex;flex-direction:column;max-width:88%;}
+  .mira-row.me{align-self:flex-end;align-items:flex-end;}
+  .mira-row.her{align-self:flex-start;align-items:flex-start;}
+  .mira-bubble{padding:.7rem .95rem;border-radius:1rem;font-size:15.5px;line-height:1.62;white-space:pre-wrap;}
+  .mira-row.me .mira-bubble{background:rgba(253,230,138,0.14);color:#fdf6e3;border:1px solid rgba(253,230,138,0.22);border-bottom-right-radius:.35rem;}
+  .mira-row.her .mira-bubble{background:rgba(255,250,240,0.04);color:#efe9ff;border:1px solid rgba(196,181,253,0.18);border-bottom-left-radius:.35rem;}
+  .mira-save{background:none;border:0;color:rgba(196,181,253,0.7);font-size:12.5px;cursor:pointer;padding:.25rem .1rem;margin-top:.15rem;}
+  .mira-save:hover{color:#fde8b0;} .mira-save:disabled{cursor:default;opacity:.8;}
+  .mira-inputbar{display:flex;gap:.5rem;align-items:flex-end;margin-top:.5rem;position:sticky;bottom:0;background:linear-gradient(180deg,rgba(16,12,34,0) 0%,#100c22 40%);padding:.6rem 0 .2rem;}
+  .mira-input{flex:1;resize:none;max-height:8rem;background:rgba(0,0,0,0.25);border:1px solid rgba(196,181,253,0.25);border-radius:.9rem;padding:.7rem .9rem;color:#f5f3ff;font-size:15.5px;line-height:1.4;outline:none;font-family:inherit;}
+  .mira-input:focus{border-color:rgba(253,230,138,0.5);}
+  .mira-send{flex:0 0 auto;border:0;border-radius:.9rem;padding:.7rem 1.1rem;background:rgba(253,230,138,0.92);color:#1b1430;font-weight:600;font-size:15px;cursor:pointer;}
+  .mira-send:disabled{opacity:.5;cursor:default;}
+  .mira-disclaim{font-size:11.5px;line-height:1.6;color:rgba(196,181,253,0.45);margin-top:1.5rem;border-top:1px solid rgba(196,181,253,0.12);padding-top:1rem;}
+  .mira-edit{display:block;text-align:center;font-size:12.5px;color:rgba(196,181,253,0.6);margin-top:.5rem;background:none;border:0;cursor:pointer;width:100%;}
+  .mira-edit:hover{color:#fde8b0;}
+  .bl-list{display:flex;flex-direction:column;gap:.15rem;margin:1rem 0;}
+  .bl-item{display:flex;align-items:center;gap:.6rem;padding:.6rem .75rem;border:1px solid rgba(196,181,253,0.16);border-radius:.7rem;cursor:pointer;color:#efe9ff;font-size:15px;background:rgba(255,250,240,0.02);}
+  .bl-item:hover{border-color:rgba(253,230,138,0.4);}
+  .bl-item input{width:1.05rem;height:1.05rem;accent-color:#c9a84c;}
+  .bl-master{border-color:rgba(253,230,138,0.4);background:rgba(253,230,138,0.06);margin-bottom:.6rem;}
+  .bl-toggle{display:flex;gap:.5rem;margin:1.1rem 0;}
+  .bl-toggle button{flex:1;padding:.6rem;border-radius:.7rem;border:1px solid rgba(196,181,253,0.22);background:rgba(0,0,0,0.2);color:rgba(224,218,246,0.85);font-size:13.5px;cursor:pointer;}
+  .bl-toggle button.on{border-color:rgba(253,230,138,0.6);background:rgba(253,230,138,0.12);color:#fde8b0;}
+  .mira-tiers{display:flex;flex-direction:column;gap:.75rem;margin:1.25rem 0;}
+  .mira-tier{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:1rem;border:1px solid rgba(196,181,253,0.25);border-radius:1rem;padding:1rem 1.15rem;background:rgba(255,250,240,0.03);cursor:pointer;color:#efe9ff;}
+  .mira-tier:hover{border-color:rgba(253,230,138,0.6);}
+  .mira-tier .t-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.35rem;}
+  .mira-tier .t-note{font-size:12.5px;color:rgba(196,181,253,0.7);}
+  .mira-tier .t-price{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.5rem;white-space:nowrap;}
+  .mira-err{color:#fca5a5;font-size:13.5px;text-align:center;min-height:1.1rem;margin:.4rem 0;}
+  .mira-hide{display:none;}
+</style>
+<div class="mira-wrap">
+  <div id="mira-loading" style="text-align:center;padding:4rem 0;color:rgba(196,181,253,0.7);">
+    <div class="orb"></div><p style="margin-top:1rem;">Waking Mira…</p>
+  </div>
+
+  <!-- GATE -->
+  <div id="mira-gate" class="mira-hide">
+    <div class="orb"></div>
+    <h1 class="mira-title">Meet Mira</h1>
+    <p class="mira-sub">A personal reflection companion who knows your Mandala — a mirror that reflects what you're not looking at, using your own twelve voices as the lens.</p>
+    <div class="mira-tiers">
+      <button class="mira-tier" data-tier="monthly"><span><span class="t-name">Monthly</span><span class="t-note"> billed $8/month</span></span><span class="t-price">$8<span style="font-size:13px;color:rgba(196,181,253,.7)">/mo</span></span></button>
+      <button class="mira-tier" data-tier="quarterly"><span><span class="t-name">Quarterly</span><span class="t-note"> $21/quarter · $7/mo</span></span><span class="t-price">$21</span></button>
+      <button class="mira-tier" data-tier="yearly"><span><span class="t-name">Yearly</span><span class="t-note"> $72/year · $6/mo</span></span><span class="t-price">$72</span></button>
+    </div>
+    <p class="mira-err" id="gate-err"></p>
+    <p class="mira-disclaim">${disclaimer}</p>
+  </div>
+
+  <!-- ONBOARDING -->
+  <div id="mira-onboard" class="mira-hide">
+    <div class="orb"></div>
+    <h1 class="mira-title">Which traditions feel like home to you?</h1>
+    <p class="mira-sub">Mira speaks the language of your tradition. Select all that apply.</p>
+    <label class="bl-item bl-master"><input type="checkbox" id="bl-all"><span>Open to all traditions — surprise me.</span></label>
+    <div class="bl-list" id="bl-list">
+      <label class="bl-item"><input type="checkbox" value="christian"><span>Christian</span></label>
+      <label class="bl-item"><input type="checkbox" value="jewish"><span>Jewish</span></label>
+      <label class="bl-item"><input type="checkbox" value="muslim"><span>Muslim</span></label>
+      <label class="bl-item"><input type="checkbox" value="hindu"><span>Hindu</span></label>
+      <label class="bl-item"><input type="checkbox" value="buddhist"><span>Buddhist</span></label>
+      <label class="bl-item"><input type="checkbox" value="taoist"><span>Taoist</span></label>
+      <label class="bl-item"><input type="checkbox" value="indigenous"><span>Indigenous &amp; shamanic traditions</span></label>
+      <label class="bl-item"><input type="checkbox" value="spiritual"><span>Spiritual but not religious</span></label>
+      <label class="bl-item"><input type="checkbox" value="secular"><span>Secular / humanist</span></label>
+    </div>
+    <div class="bl-toggle" id="bl-toggle">
+      <button data-openness="home" class="on">Speak mostly from my tradition(s)</button>
+      <button data-openness="parallels">Show me parallels across traditions</button>
+    </div>
+    <p class="mira-err" id="onboard-err"></p>
+    <button class="mira-send" id="bl-save" style="width:100%;">Meet Mira →</button>
+  </div>
+
+  <!-- CHAT -->
+  <div id="mira-chat" class="mira-hide">
+    <div class="orb" id="mira-orb"></div>
+    <div class="mira-msgs" id="mira-msgs" aria-live="polite"></div>
+    <div class="mira-inputbar">
+      <textarea class="mira-input" id="mira-input" rows="1" placeholder="Share what's on your mind…" aria-label="Message Mira"></textarea>
+      <button class="mira-send" id="mira-sendbtn">Send</button>
+    </div>
+    <button class="mira-edit" id="mira-editbeliefs">Adjust your belief lens</button>
+    <p class="mira-disclaim">${disclaimer}</p>
+  </div>
+</div>
+<script>
+(function(){
+  function ga(name, params){ try{ if(window.gtag) gtag('event', name, params||{}); }catch(e){} }
+  function $(id){ return document.getElementById(id); }
+  function show(id){ ['mira-loading','mira-gate','mira-onboard','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
+
+  // ---- session id (30-min window) ----
+  var SESSION=null;
+  function session(){
+    try{ var raw=localStorage.getItem('mira_session'); if(raw){ var o=JSON.parse(raw); if(o&&o.id&&o.ts&&(Date.now()-o.ts)<1800000){ o.ts=Date.now(); localStorage.setItem('mira_session',JSON.stringify(o)); return o.id; } } }catch(e){}
+    var id=(crypto&&crypto.randomUUID)?crypto.randomUUID():(''+Date.now()+Math.random());
+    try{ localStorage.setItem('mira_session',JSON.stringify({id:id,ts:Date.now()})); }catch(e){}
+    return id;
+  }
+  function touch(){ try{ localStorage.setItem('mira_session',JSON.stringify({id:SESSION,ts:Date.now()})); }catch(e){} }
+
+  // ---- chat rendering ----
+  function scrollDown(){ var m=$('mira-msgs'); if(m) window.scrollTo(0, document.body.scrollHeight); }
+  function addRow(who){
+    var row=document.createElement('div'); row.className='mira-row '+(who==='me'?'me':'her');
+    var b=document.createElement('div'); b.className='mira-bubble'; row.appendChild(b);
+    $('mira-msgs').appendChild(row); scrollDown(); return b;
+  }
+  function addSave(bubble, text){
+    var btn=document.createElement('button'); btn.className='mira-save'; btn.textContent='\\u2726 Save this insight';
+    btn.addEventListener('click', function(){ saveInsight(text, btn); });
+    bubble.parentNode.appendChild(btn);
+  }
+  function saveInsight(text, btn){
+    btn.disabled=true;
+    fetch('/api/mira/insight',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:text})})
+      .then(function(r){ if(r.ok){ btn.textContent='Saved \\u2713'; ga('mira_insight_saved'); } else { btn.textContent='\\u2726 Save this insight'; btn.disabled=false; } })
+      .catch(function(){ btn.disabled=false; });
+  }
+
+  var streaming=false;
+  function setStreaming(on){
+    streaming=on;
+    var orb=$('mira-orb'); if(orb) orb.className='orb'+(on?' streaming':'');
+    $('mira-input').disabled=on; $('mira-sendbtn').disabled=on;
+  }
+
+  function sendMessage(text, hidden){
+    if(streaming || !text) return;
+    if(!hidden) addRow('me').textContent=text;
+    ga('mira_message_sent');
+    var bubble=addRow('her'); var full=''; setStreaming(true);
+    fetch('/api/mira',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:SESSION})})
+      .then(function(res){
+        if(res.status===401){ location.href='/login/?next=/companion/'; return null; }
+        if(res.status===403){ setStreaming(false); show('mira-gate'); ga('mira_gate_viewed'); return null; }
+        if(!res.ok || !res.body){ bubble.textContent='Something went wrong — please try again.'; setStreaming(false); return null; }
+        var reader=res.body.getReader(); var dec=new TextDecoder(); var buf='';
+        function pump(){
+          return reader.read().then(function(r){
+            if(r.done){ finalize(); return; }
+            buf+=dec.decode(r.value,{stream:true});
+            var nl;
+            while((nl=buf.indexOf('\\n\\n'))>=0){
+              var chunk=buf.slice(0,nl); buf=buf.slice(nl+2);
+              var lines=chunk.split('\\n'); var dline=null;
+              for(var i=0;i<lines.length;i++){ if(lines[i].indexOf('data:')===0){ dline=lines[i]; break; } }
+              if(!dline) continue;
+              var payload=dline.slice(5).replace(/^\\s+/,'');
+              if(!payload) continue;
+              try{ var ev=JSON.parse(payload); if(ev.text){ full+=ev.text; bubble.textContent=full; scrollDown(); } }catch(e){}
+            }
+            return pump();
+          });
+        }
+        function finalize(){ setStreaming(false); touch(); if(full){ addSave(bubble, full); } else { bubble.textContent='(no reply)'; } }
+        return pump();
+      })
+      .catch(function(){ bubble.textContent='Connection lost — please try again.'; setStreaming(false); });
+  }
+
+  function wireChat(hasHistory){
+    show('mira-chat'); SESSION=session(); ga('mira_session_started');
+    var input=$('mira-input');
+    function grow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,128)+'px'; }
+    input.addEventListener('input', grow);
+    function submit(){ var t=input.value.trim(); if(!t||streaming) return; input.value=''; grow(); sendMessage(t,false); }
+    $('mira-sendbtn').addEventListener('click', submit);
+    input.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submit(); } });
+    $('mira-editbeliefs').addEventListener('click', function(){ showOnboard(true); });
+    // First-ever session → hidden bootstrap so Mira opens in her own voice.
+    if(!hasHistory){ sendMessage('[first session — begin]', true); }
+    input.focus();
+  }
+
+  // ---- gate ----
+  function wireGate(){
+    show('mira-gate'); ga('mira_gate_viewed');
+    var btns=document.querySelectorAll('#mira-gate .mira-tier');
+    for(var i=0;i<btns.length;i++){ (function(btn){
+      btn.addEventListener('click', function(){
+        var tier=btn.getAttribute('data-tier'); ga('mira_subscribe_clicked',{tier:tier});
+        $('gate-err').textContent=''; btn.disabled=true;
+        fetch('/api/mira-subscribe',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier:tier})})
+          .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+          .then(function(res){ if(res.ok&&res.j&&res.j.url){ location.href=res.j.url; return; } $('gate-err').textContent=(res.j&&res.j.error)||'Could not start checkout.'; btn.disabled=false; })
+          .catch(function(){ $('gate-err').textContent='Could not reach the server.'; btn.disabled=false; });
+      });
+    })(btns[i]); }
+  }
+
+  // ---- onboarding ----
+  var onbInit=false, returnToChat=false;
+  function showOnboard(fromChat){
+    returnToChat=!!fromChat; show('mira-onboard');
+    if(onbInit) return; onbInit=true;
+    var all=$('bl-all'); var boxes=$('bl-list').querySelectorAll('input[type=checkbox]');
+    function syncAll(){ for(var i=0;i<boxes.length;i++){ boxes[i].disabled=all.checked; if(all.checked) boxes[i].checked=false; } $('bl-list').style.opacity=all.checked?'.45':'1'; }
+    all.addEventListener('change', syncAll);
+    var toggle=$('bl-toggle').querySelectorAll('button'); var openness='home';
+    for(var t=0;t<toggle.length;t++){ (function(b){ b.addEventListener('click', function(){ openness=b.getAttribute('data-openness'); for(var k=0;k<toggle.length;k++) toggle[k].className=''; b.className='on'; }); })(toggle[t]); }
+    $('bl-save').addEventListener('click', function(){
+      var trads=[]; for(var i=0;i<boxes.length;i++){ if(boxes[i].checked) trads.push(boxes[i].value); }
+      var openAll=all.checked;
+      if(!openAll && trads.length===0){ $('onboard-err').textContent='Choose at least one, or “open to all.”'; return; }
+      $('onboard-err').textContent=''; $('bl-save').disabled=true;
+      fetch('/api/mira/beliefs',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({traditions:trads,open_all:openAll,openness:openness})})
+        .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+        .then(function(res){ $('bl-save').disabled=false; if(res.ok&&res.j&&res.j.ok){ ga('mira_onboarding_completed'); if(returnToChat){ show('mira-chat'); } else { boot(); } } else { $('onboard-err').textContent=(res.j&&res.j.error)||'Could not save.'; } })
+        .catch(function(){ $('bl-save').disabled=false; $('onboard-err').textContent='Could not reach the server.'; });
+    });
+  }
+
+  // ---- boot ----
+  var booted=false;
+  function boot(){
+    fetch('/api/mira/context',{credentials:'same-origin'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || !d.authenticated){ location.replace('/login/?next=/companion/'); return; }
+        if(!d.companion_active){ wireGate(); return; }
+        if(!d.belief_set){ showOnboard(false); return; }
+        if(!booted){ booted=true; wireChat(!!d.has_history); }
+      })
+      .catch(function(){ location.replace('/login/?next=/companion/'); });
+  }
+  boot();
+})();
+</script>`;
+}
+
 // ---- Emit ------------------------------------------------------------------
 function write(rel, html) {
   const abs = path.join(ROOT, rel);
@@ -1480,6 +1735,31 @@ write("account/index.html", page({
   active: "results",
   main: accountMain()
 }));
+
+write("companion/index.html", page({
+  title: "Mira — your Soulcraft companion",
+  description: "Mira is a personal reflection companion who knows your Mandala — a mirror that reflects what you're not looking at, through your own twelve archetypal voices.",
+  canonical: "https://artofsoulcraft.com/companion/",
+  active: "results",
+  main: companionMain()
+}));
+
+// ---- Mira prompt content: bundle the verbatim .md payloads into an importable
+// ES module (edge Functions can't read .md at runtime). The .md files remain the
+// canonical, human-authored source of truth; this is a generated mirror kept in
+// sync on every build. JSON.stringify preserves the text byte-for-byte.
+(function bundleMiraContent() {
+  const dir = path.join(ROOT, "functions", "mira");
+  const tmpl = fs.readFileSync(path.join(dir, "prompt-template.md"), "utf8");
+  const lex = fs.readFileSync(path.join(dir, "stage-lexicon.md"), "utf8");
+  const out =
+    "// GENERATED by build/generate.js from prompt-template.md + stage-lexicon.md.\n" +
+    "// Do NOT edit by hand — edit the .md files and re-run `node build/generate.js`.\n" +
+    "export const PROMPT_TEMPLATE = " + JSON.stringify(tmpl) + ";\n" +
+    "export const STAGE_LEXICON = " + JSON.stringify(lex) + ";\n";
+  fs.writeFileSync(path.join(dir, "_content.js"), out);
+  console.log("wrote functions/mira/_content.js (" + out.length + " bytes)");
+})();
 
 stampIndex();
 
