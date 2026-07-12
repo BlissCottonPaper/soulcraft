@@ -15,6 +15,7 @@
 import { buildReportEmail } from "./_report-email.js";
 import { svgToPngBase64 } from "./_svg-png.js";
 import { getSessionUser } from "./_auth.js";
+import { grantMiraTrial } from "../mira/_schema.js";
 
 // Copy any companion (Mira) decision made at the post-purchase interstitial —
 // stored on the RESULT row before an account may have existed — onto the user
@@ -194,6 +195,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // decision made at the post-purchase interstitial onto that account (3f).
     if (userId && resultId) {
       await propagateCompanion(env, resultId, userId);
+      // Front door (Session 3.2): a $29 or WHITEDOT reading grants a 30-day Mira
+      // trial. grantMiraTrial is idempotent and only fires for full_purchased users.
+      await grantMiraTrial(env, userId);
     }
 
     // --- If we have an email, generate and send a magic link ---

@@ -19,6 +19,7 @@ CREATE TABLE users (
   companion_active INTEGER NOT NULL DEFAULT 0,  -- 1 once a Mira subscription (trial or paid) is live
   companion_tier TEXT,                 -- 'monthly' | 'quarterly' | 'yearly' | NULL
   subscription_id TEXT,                -- Stripe subscription id backing Mira, if any
+  companion_trial_until INTEGER,       -- unix seconds; 30-day Mira trial from a $29/WHITEDOT reading
   created_at INTEGER NOT NULL          -- unix timestamp
 );
 

@@ -12,6 +12,7 @@
 // ============================================================
 
 import { getSessionUser } from "./_auth.js";
+import { hasFullPurchase } from "../mira/_schema.js";
 
 const PRICE_ENV = {
   monthly: "STRIPE_PRICE_MIRA_MONTHLY",
@@ -27,6 +28,12 @@ export async function onRequestPost({ request, env }) {
   try {
     const user = await getSessionUser(request, env);
     if (!user) return json({ error: "Please log in first." }, 401);
+
+    // Front-door gate (Session 3.2): Mira is only sold to people who've bought the
+    // $29 reading (or redeemed WHITEDOT). No purchase → no subscription.
+    if (!(await hasFullPurchase(env, user.id))) {
+      return json({ reason: "purchase_required", error: "Mira is included with the $29 reading — take the assessment first." }, 403);
+    }
 
     const body = await request.json().catch(() => ({}));
     const tier = body.tier;

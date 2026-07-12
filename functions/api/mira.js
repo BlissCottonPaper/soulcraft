@@ -12,8 +12,9 @@
 // ============================================================
 
 import { getSessionUser } from "./_auth.js";
-import { ensureMiraSchema } from "../mira/_schema.js";
+import { ensureMiraSchema, miraAccess } from "../mira/_schema.js";
 import { assembleMiraSystem } from "../mira/_prompt.js";
+import { detectCrisis } from "../mira/_crisis.js";
 
 // Static instruction for the summarizer — kept as its own constant so it can be
 // sent as a cache_control'd block (static-first). It's short (well under the
@@ -101,10 +102,15 @@ export async function onRequestPost(context) {
 
     const user = await getSessionUser(request, env);
     if (!user) return json({ error: "Please log in." }, 401);
-    if (!user.companion_active) return json({ reason: "subscription", error: "Mira is a subscriber companion." }, 403);
     if (!env.ANTHROPIC_API_KEY) return json({ error: "Mira isn't configured yet." }, 503);
 
     await ensureMiraSchema(env);
+
+    // Access = a live subscription OR an unexpired 30-day trial (Session 3.2).
+    const access = await miraAccess(env, user.id);
+    if (!access.has_access) {
+      return json({ reason: "subscription", error: "Mira is a subscriber companion." }, 403);
+    }
 
     const body = await request.json().catch(() => ({}));
     const message = typeof body.message === "string" ? body.message.trim() : "";
@@ -112,6 +118,11 @@ export async function onRequestPost(context) {
     if (!message) return json({ error: "Empty message." }, 400);
     if (!sessionId) return json({ error: "Missing session_id." }, 400);
     if (message.length > 6000) return json({ error: "That message is too long." }, 400);
+
+    // Deterministic crisis layer: independent of Mira's generated reply. If this
+    // fires, we tell the client to raise the crisis UI (988) up front — Mira still
+    // replies (her prompt handles it too), this is the guaranteed backstop.
+    const crisis = detectCrisis(message);
 
     // Fold the prior session into memory before we assemble the prompt.
     await lazySummarize(env, user.id, sessionId);
@@ -153,6 +164,11 @@ export async function onRequestPost(context) {
       const writer = writable.getWriter();
       let assistantText = "";
       try {
+        // Raise the crisis flag first, before any of Mira's text — so the client
+        // shows the 988 UI immediately, independent of what she goes on to say.
+        if (crisis) {
+          await writer.write(enc.encode("data: " + JSON.stringify({ crisis: true }) + "\n\n"));
+        }
         const reader = upstream.body.getReader();
         const dec = new TextDecoder();
         let buf = "";

@@ -31,8 +31,10 @@
       chrome.wireDropdown();
       chrome.wireMobile();
       chrome.applyResultToken();
+      chrome.syncResultsActive();
       chrome.applyAuthNav();
       chrome.injectAnalytics();
+      chrome.trackReturnVisit();
       chrome.registerServiceWorker();
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
@@ -140,6 +142,10 @@
     if (p.indexOf("/explore") === 0) return "explore";
     if (p.indexOf("/pricing") === 0) return "pricing";
     if (p.indexOf("/my-results") === 0) return "results";
+    if (p.indexOf("/companion") === 0) return "mira";
+    // Account area — "My Account" is a runtime-added nav item, so nothing in the
+    // static nav gets highlighted here; renderAuthNav() marks "My Account" active.
+    if (p.indexOf("/account") === 0 || p.indexOf("/login") === 0 || p.indexOf("/register") === 0) return "account";
     if (p.indexOf("/contact") === 0) return "contact";
     if (p.indexOf("/support") === 0) return "support";
     return "home";
@@ -171,6 +177,7 @@
         mobileExplore +
         '<div class="sc-m-divider" role="separator"></div>' +
         '<a' + mact("pricing") + ' href="/pricing/">Pricing</a>' +
+        '<a' + mact("mira") + ' href="/companion/">Mira</a>' +
         '<a' + mact("results") + ' href="/my-results/">My Results</a>' +
         '<a' + mact("contact") + ' href="/contact/">Contact</a>' +
       '</div>';
@@ -185,6 +192,7 @@
             '<div class="sc-menu" id="sc-explore-menu">' + menu + '</div>' +
           '</div>' +
           '<a class="' + cls("pricing") + '" href="/pricing/">Pricing</a>' +
+          '<a class="' + cls("mira") + '" href="/companion/">Mira</a>' +
           '<a class="' + cls("results") + '" href="/my-results/">My Results</a>' +
           '<a class="' + cls("contact") + '" href="/contact/">Contact</a>' +
         '</div>' +
@@ -323,6 +331,25 @@
     });
   }
 
+  // The home page is reached with ?return=mandala / ?view=mine when the visitor
+  // opens a SAVED reading via "My Results". On that landing the reading — not the
+  // homepage — is what's showing, so highlight "My Results", not "Home". (This
+  // runs before index.html's React effect strips the query string.)
+  function syncResultsActive() {
+    if (typeof document === "undefined") return;
+    var params;
+    try { params = new URLSearchParams(location.search); } catch (e) { return; }
+    if (params.get("return") !== "mandala" && params.get("view") !== "mine") return;
+    var header = document.getElementById("site-header");
+    if (!header) return;
+    var anchors = header.querySelectorAll(".sc-links a, #sc-mobile-menu a");
+    for (var i = 0; i < anchors.length; i++) {
+      var label = (anchors[i].textContent || "").trim();
+      if (label === "Home") anchors[i].classList.remove("sc-active");
+      if (label === "My Results") anchors[i].classList.add("sc-active");
+    }
+  }
+
   // --- Auth-aware nav (Task 3g) ---------------------------------------------
   // The baked nav is the logged-OUT default (real markup, crawlable). At runtime
   // we ask /api/me and, once, append the right affordance: "My Account" + "Log
@@ -334,13 +361,20 @@
       .catch(function () { window.location.href = "/"; });
   }
 
+  // Which account-area page are we on? "My Account" (or "Log In") is a runtime
+  // nav item, so it's the one to highlight on /account, /login, /register.
+  function onAccountArea() {
+    try { return /^\/(account|login|register)(\/|$)/.test(location.pathname); } catch (e) { return false; }
+  }
+
   function renderAuthNav(authed) {
     if (typeof document === "undefined") return;
+    var acct = onAccountArea();
     var links = document.querySelector("#site-header .sc-links");
     if (links && !links.querySelector(".sc-auth")) {
       if (authed) {
         var a = document.createElement("a");
-        a.className = "sc-link sc-auth"; a.href = "/account/"; a.textContent = "My Account";
+        a.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); a.href = "/account/"; a.textContent = "My Account";
         links.appendChild(a);
         var b = document.createElement("button");
         b.className = "sc-link sc-auth"; b.type = "button"; b.textContent = "Log Out";
@@ -348,16 +382,17 @@
         links.appendChild(b);
       } else {
         var l = document.createElement("a");
-        l.className = "sc-link sc-auth"; l.href = "/login/"; l.textContent = "Log In";
+        l.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); l.href = "/login/"; l.textContent = "Log In";
         links.appendChild(l);
       }
     }
     var mobile = document.getElementById("sc-mobile-menu");
     if (mobile && !mobile.querySelector(".sc-auth")) {
+      var actCls = acct ? ' class="sc-auth sc-active"' : ' class="sc-auth"';
       if (authed) {
         mobile.insertAdjacentHTML("beforeend",
           '<div class="sc-m-divider" role="separator"></div>' +
-          '<a class="sc-auth" href="/account/">My Account</a>' +
+          '<a' + actCls + ' href="/account/">My Account</a>' +
           '<a class="sc-auth" href="#" role="button">Log Out</a>');
         var ml = mobile.querySelectorAll(".sc-auth");
         var last = ml[ml.length - 1];
@@ -365,7 +400,7 @@
       } else {
         mobile.insertAdjacentHTML("beforeend",
           '<div class="sc-m-divider" role="separator"></div>' +
-          '<a class="sc-auth" href="/login/">Log In</a>');
+          '<a' + actCls + ' href="/login/">Log In</a>');
       }
     }
   }
@@ -376,6 +411,27 @@
       .then(function (r) { return r.json(); })
       .then(function (d) { renderAuthNav(!!(d && d.authenticated)); })
       .catch(function () { renderAuthNav(false); });
+  }
+
+  // --- Funnel: return within 7 days (GA4) -----------------------------------
+  // Stamp the first-ever visit; the first page of any LATER session that lands
+  // between 30 min and 7 days after that first visit fires the event once.
+  function trackReturnVisit() {
+    if (typeof window === "undefined") return;
+    try {
+      var now = Date.now();
+      var WEEK = 7 * 24 * 60 * 60 * 1000;
+      if (window.sessionStorage.getItem("sc_session_seen")) return; // same session, not a return
+      window.sessionStorage.setItem("sc_session_seen", "1");
+      var first = window.localStorage.getItem("sc_first_visit");
+      if (!first) { window.localStorage.setItem("sc_first_visit", String(now)); return; } // first ever visit
+      if (window.localStorage.getItem("sc_return7_fired") === "1") return;
+      var elapsed = now - parseInt(first, 10);
+      if (elapsed > 30 * 60 * 1000 && elapsed <= WEEK) {
+        window.localStorage.setItem("sc_return7_fired", "1");
+        if (window.gtag) window.gtag("event", "return_within_7_days");
+      }
+    } catch (e) { /* storage blocked — skip */ }
   }
 
   // --- PWA service worker (Task 5) ------------------------------------------
@@ -399,8 +455,10 @@
     wireMobile: wireMobile,
     readResultToken: readResultToken,
     applyResultToken: applyResultToken,
+    syncResultsActive: syncResultsActive,
     applyAuthNav: applyAuthNav,
     injectAnalytics: injectAnalytics,
+    trackReturnVisit: trackReturnVisit,
     registerServiceWorker: registerServiceWorker
   };
 });

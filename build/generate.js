@@ -1263,7 +1263,7 @@ function accountMain() {
       mEl.innerHTML='<h2 class="acct-h">Mira</h2><p class="acct-p">Your personal Soulcraft companion is active'+(d.companion_tier?' ('+esc(d.companion_tier)+' plan)':'')+'.</p><a class="acct-link" href="/companion/">Open Mira →</a>';
       document.getElementById("acct-billing").style.display="block";
     }else{
-      mEl.innerHTML='<h2 class="acct-h">Mira is coming soon</h2><p class="acct-p">Mira — your personal Soulcraft companion. A mirror that reflects what you\\'re not looking at, using your own twelve voices as the lens.</p>';
+      mEl.innerHTML='<h2 class="acct-h">Mira</h2><p class="acct-p">Your personal Soulcraft companion — a mirror that reflects what you\\'re not looking at, using your own twelve voices as the lens.</p><a class="acct-link" href="/companion/">Meet Mira →</a>';
     }
 
     // Billing portal
@@ -1305,9 +1305,13 @@ function companionMain() {
   @keyframes orb-breathe{0%,100%{transform:scale(1);opacity:.92;box-shadow:0 0 36px 6px rgba(150,110,220,0.28)}50%{transform:scale(1.06);opacity:1;box-shadow:0 0 54px 13px rgba(184,146,244,0.46)}}
   .orb.streaming{animation:orb-shimmer 1.7s ease-in-out infinite;}
   @keyframes orb-shimmer{0%,100%{transform:scale(1.02);filter:hue-rotate(0deg)}50%{transform:scale(1.08);filter:hue-rotate(20deg)}}
+  /* Chat orb: fixed near the bottom (future Lantern position) so it never scrolls away.
+     Centered via left/calc so the breathing keyframes keep the transform for scale. */
+  #mira-orb{position:fixed;left:calc(50% - 30px);bottom:5.75rem;width:60px;height:60px;margin:0;z-index:6;pointer-events:none;}
+  @media(max-width:480px){#mira-orb{width:52px;height:52px;left:calc(50% - 26px);bottom:5.25rem;}}
   .mira-title{text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:1.9rem;color:#f5f3ff;margin:.25rem 0 .1rem;}
   .mira-sub{text-align:center;color:rgba(224,218,246,0.72);font-size:14.5px;margin:0 auto 1.25rem;max-width:30rem;}
-  .mira-msgs{display:flex;flex-direction:column;gap:.85rem;margin:1rem 0;}
+  .mira-msgs{display:flex;flex-direction:column;gap:.85rem;margin:1rem 0;padding-bottom:5.5rem;}
   .mira-row{display:flex;flex-direction:column;max-width:88%;}
   .mira-row.me{align-self:flex-end;align-items:flex-end;}
   .mira-row.her{align-self:flex-start;align-items:flex-start;}
@@ -1316,8 +1320,14 @@ function companionMain() {
   .mira-row.her .mira-bubble{background:rgba(255,250,240,0.04);color:#efe9ff;border:1px solid rgba(196,181,253,0.18);border-bottom-left-radius:.35rem;}
   .mira-save{background:none;border:0;color:rgba(196,181,253,0.7);font-size:12.5px;cursor:pointer;padding:.25rem .1rem;margin-top:.15rem;}
   .mira-save:hover{color:#fde8b0;} .mira-save:disabled{cursor:default;opacity:.8;}
-  .mira-inputbar{display:flex;gap:.5rem;align-items:flex-end;margin-top:.5rem;position:sticky;bottom:0;background:linear-gradient(180deg,rgba(16,12,34,0) 0%,#100c22 40%);padding:.6rem 0 .2rem;}
-  .mira-input{flex:1;resize:none;max-height:8rem;background:rgba(0,0,0,0.25);border:1px solid rgba(196,181,253,0.25);border-radius:.9rem;padding:.7rem .9rem;color:#f5f3ff;font-size:15.5px;line-height:1.4;outline:none;font-family:inherit;}
+  /* The dock (nudge + input) sticks to the bottom together. */
+  .mira-dock{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(16,12,34,0) 0%,#100c22 32%);padding-top:.4rem;}
+  .mira-nudge{display:flex;justify-content:flex-end;padding:0 .1rem .35rem;}
+  .mira-goon{background:rgba(255,250,240,0.05);border:1px solid rgba(196,181,253,0.28);color:rgba(224,218,246,0.85);border-radius:999px;font-size:12.5px;padding:.28rem .7rem;cursor:pointer;font-family:inherit;}
+  .mira-goon:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;} .mira-goon:disabled{opacity:.45;cursor:default;}
+  .mira-inputbar{display:flex;gap:.5rem;align-items:flex-end;padding:0 0 .2rem;}
+  /* ~6 lines then internal scroll; resize:none removes the browser's drag-handle arrows. */
+  .mira-input{flex:1;resize:none;max-height:9.25rem;overflow-y:auto;background:rgba(0,0,0,0.25);border:1px solid rgba(196,181,253,0.25);border-radius:.9rem;padding:.7rem .9rem;color:#f5f3ff;font-size:15.5px;line-height:1.4;outline:none;font-family:inherit;}
   .mira-input:focus{border-color:rgba(253,230,138,0.5);}
   .mira-send{flex:0 0 auto;border:0;border-radius:.9rem;padding:.7rem 1.1rem;background:rgba(253,230,138,0.92);color:#1b1430;font-weight:600;font-size:15px;cursor:pointer;}
   .mira-send:disabled{opacity:.5;cursor:default;}
@@ -1325,6 +1335,9 @@ function companionMain() {
   .mira-988{font-size:13px;line-height:1.6;color:rgba(224,218,246,0.7);text-align:center;margin:1.5rem auto 0;max-width:34rem;padding-top:1rem;border-top:1px solid rgba(196,181,253,0.12);}
   .mira-disclaim a, .mira-988 a{color:#fde8b0;text-decoration:underline;text-underline-offset:2px;}
   .mira-disclaim a:hover, .mira-988 a:hover{color:#fff6d8;}
+  .mira-crisis{border:1px solid rgba(253,164,175,0.5);background:rgba(253,164,175,0.10);border-radius:.9rem;padding:.85rem 1rem;font-size:14px;line-height:1.6;color:#fde4e6;margin:.5rem 0 1rem;}
+  .mira-crisis a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:2px;}
+  .mira-trial{text-align:center;font-size:12.5px;color:rgba(253,230,138,0.85);background:rgba(253,230,138,0.08);border:1px solid rgba(253,230,138,0.22);border-radius:999px;padding:.3rem .8rem;margin:0 auto .5rem;max-width:22rem;}
   .mira-edit{display:block;text-align:center;font-size:12.5px;color:rgba(196,181,253,0.6);margin-top:.5rem;background:none;border:0;cursor:pointer;width:100%;}
   .mira-edit:hover{color:#fde8b0;}
   .bl-list{display:flex;flex-direction:column;gap:.15rem;margin:1rem 0;}
@@ -1363,6 +1376,16 @@ function companionMain() {
     <p class="mira-disclaim">${disclaimer}</p>
   </div>
 
+  <!-- FRONT DOOR (no $29 reading yet) -->
+  <div id="mira-frontdoor" class="mira-hide">
+    <div class="orb"></div>
+    <h1 class="mira-title">Mira comes with your reading</h1>
+    <p class="mira-sub">Mira knows your Mandala — so she begins with your reading. Take the assessment and unlock your full Mandala for $29, and your first 30 days with Mira are included.</p>
+    <a class="mira-send" href="/" style="display:block;text-align:center;text-decoration:none;">Take the assessment →</a>
+    <p style="text-align:center;margin-top:.9rem;"><a href="/pricing/" style="color:rgba(196,181,253,0.75);font-size:13.5px;">See what's included</a></p>
+    <p class="mira-disclaim">${disclaimer}</p>
+  </div>
+
   <!-- ONBOARDING -->
   <div id="mira-onboard" class="mira-hide">
     <div class="orb"></div>
@@ -1391,10 +1414,20 @@ function companionMain() {
   <!-- CHAT -->
   <div id="mira-chat" class="mira-hide">
     <div class="orb" id="mira-orb"></div>
+    <p class="mira-trial mira-hide" id="mira-trial"></p>
+    <!-- Deterministic crisis banner — raised by the server's independent check,
+         regardless of Mira's own reply. Hidden until triggered. -->
+    <div class="mira-crisis mira-hide" id="mira-crisis" role="alert">
+      <strong>If you're in danger or thinking about harming yourself, please reach out now.</strong>
+      You deserve real-time human support. In the US, <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a> — 24/7, free, confidential. If someone is in immediate danger, call 911.
+    </div>
     <div class="mira-msgs" id="mira-msgs" aria-live="polite"></div>
-    <div class="mira-inputbar">
-      <textarea class="mira-input" id="mira-input" rows="1" placeholder="Share what's on your mind…" aria-label="Message Mira"></textarea>
-      <button class="mira-send" id="mira-sendbtn">Send</button>
+    <div class="mira-dock">
+      <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Tell me more…</button></div>
+      <div class="mira-inputbar">
+        <textarea class="mira-input" id="mira-input" rows="1" placeholder="Share what's on your mind…" aria-label="Message Mira"></textarea>
+        <button class="mira-send" id="mira-sendbtn">Send</button>
+      </div>
     </div>
     <button class="mira-edit" id="mira-editbeliefs">Adjust your belief lens</button>
     <p class="mira-disclaim">${disclaimer}</p>
@@ -1407,7 +1440,7 @@ function companionMain() {
 (function(){
   function ga(name, params){ try{ if(window.gtag) gtag('event', name, params||{}); }catch(e){} }
   function $(id){ return document.getElementById(id); }
-  function show(id){ ['mira-loading','mira-gate','mira-onboard','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
+  function show(id){ ['mira-loading','mira-gate','mira-frontdoor','mira-onboard','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
 
   // ---- session id (30-min window) ----
   var SESSION=null;
@@ -1420,7 +1453,12 @@ function companionMain() {
   function touch(){ try{ localStorage.setItem('mira_session',JSON.stringify({id:SESSION,ts:Date.now()})); }catch(e){} }
 
   // ---- chat rendering ----
-  function scrollDown(){ var m=$('mira-msgs'); if(m) window.scrollTo(0, document.body.scrollHeight); }
+  // Auto-scroll only while the reader is at (or near) the bottom. If they scroll
+  // up mid-stream to re-read, we stop yanking them down until they return.
+  var stick=true;
+  function atBottom(){ return (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 80); }
+  function scrollDown(){ if(stick) window.scrollTo(0, document.body.scrollHeight); }
+  window.addEventListener('scroll', function(){ stick = atBottom(); }, { passive:true });
   function addRow(who){
     var row=document.createElement('div'); row.className='mira-row '+(who==='me'?'me':'her');
     var b=document.createElement('div'); b.className='mira-bubble'; row.appendChild(b);
@@ -1444,16 +1482,21 @@ function companionMain() {
     var orb=$('mira-orb'); if(orb) orb.className='orb'+(on?' streaming':'');
     $('mira-input').disabled=on; $('mira-sendbtn').disabled=on;
   }
+  function showCrisis(){ var c=$('mira-crisis'); if(c){ c.className='mira-crisis'; c.scrollIntoView({behavior:'smooth',block:'nearest'}); } }
 
+  var FIRST_MSG_KEY='mira_first_msg_sent';
   function sendMessage(text, hidden){
     if(streaming || !text) return;
+    stick=true; // a fresh turn always follows to the bottom
     if(!hidden) addRow('me').textContent=text;
     ga('mira_message_sent');
+    // Funnel: the very first real message this person ever sends Mira.
+    if(!hidden){ try{ if(!localStorage.getItem(FIRST_MSG_KEY)){ localStorage.setItem(FIRST_MSG_KEY,'1'); ga('mira_first_message'); } }catch(e){} }
     var bubble=addRow('her'); var full=''; setStreaming(true);
     fetch('/api/mira',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:SESSION})})
       .then(function(res){
         if(res.status===401){ location.href='/login/?next=/companion/'; return null; }
-        if(res.status===403){ setStreaming(false); show('mira-gate'); ga('mira_gate_viewed'); return null; }
+        if(res.status===403){ setStreaming(false); boot(); return null; }
         if(!res.ok || !res.body){ bubble.textContent='Something went wrong — please try again.'; setStreaming(false); return null; }
         var reader=res.body.getReader(); var dec=new TextDecoder(); var buf='';
         function pump(){
@@ -1468,7 +1511,7 @@ function companionMain() {
               if(!dline) continue;
               var payload=dline.slice(5).replace(/^\\s+/,'');
               if(!payload) continue;
-              try{ var ev=JSON.parse(payload); if(ev.text){ full+=ev.text; bubble.textContent=full; scrollDown(); } }catch(e){}
+              try{ var ev=JSON.parse(payload); if(ev.crisis){ showCrisis(); } if(ev.text){ full+=ev.text; bubble.textContent=full; scrollDown(); } }catch(e){}
             }
             return pump();
           });
@@ -1479,15 +1522,26 @@ function companionMain() {
       .catch(function(){ bubble.textContent='Connection lost — please try again.'; setStreaming(false); });
   }
 
-  function wireChat(hasHistory){
+  var chatWired=false;
+  function wireChat(hasHistory, ctx){
     show('mira-chat'); SESSION=session(); ga('mira_session_started');
+    // Trial note — only while trialing (not a paid subscriber).
+    if(ctx && ctx.trialing && ctx.trial_until){
+      var days=Math.max(0, Math.ceil((ctx.trial_until*1000 - Date.now())/86400000));
+      var tn=$('mira-trial'); if(tn){ tn.textContent='Your Mira trial is active — '+days+' day'+(days===1?'':'s')+' left.'; tn.className='mira-trial'; }
+    }
+    if(chatWired){ return; } chatWired=true;
     var input=$('mira-input');
-    function grow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,128)+'px'; }
+    // Grow to ~6 lines (148px ≈ 9.25rem), then the textarea scrolls internally.
+    function grow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,148)+'px'; }
     input.addEventListener('input', grow);
     function submit(){ var t=input.value.trim(); if(!t||streaming) return; input.value=''; grow(); sendMessage(t,false); }
     $('mira-sendbtn').addEventListener('click', submit);
     input.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submit(); } });
     $('mira-editbeliefs').addEventListener('click', function(){ showOnboard(true); });
+    // "Tell me more…" — a lightweight continuation for when Mira's reply didn't
+    // end in a question and the person isn't sure how to pick it back up.
+    $('mira-goon').addEventListener('click', function(){ if(streaming) return; sendMessage('Tell me more.', false); });
     // First-ever session → hidden bootstrap so Mira opens in her own voice.
     if(!hasHistory){ sendMessage('[first session — begin]', true); }
     input.focus();
@@ -1533,14 +1587,28 @@ function companionMain() {
 
   // ---- boot ----
   var booted=false;
+  // Fire the Mira-activation funnel event once, when returning from a successful
+  // subscription checkout (?sub=success).
+  (function(){
+    try{
+      var p=new URLSearchParams(location.search);
+      if(p.get('sub')==='success'){ ga('mira_activated', {source:'subscription'}); }
+    }catch(e){}
+  })();
+
   function boot(){
     fetch('/api/mira/context',{credentials:'same-origin'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d || !d.authenticated){ location.replace('/login/?next=/companion/'); return; }
-        if(!d.companion_active){ wireGate(); return; }
+        // Front door (Session 3.2): access needs a live sub OR an unexpired trial.
+        if(!d.has_access){
+          if(d.has_full_purchase){ wireGate(); }   // bought the $29, trial ended → offer tiers
+          else { show('mira-frontdoor'); ga('mira_gate_viewed', {gate:'frontdoor'}); }  // no reading yet → front door
+          return;
+        }
         if(!d.belief_set){ showOnboard(false); return; }
-        if(!booted){ booted=true; wireChat(!!d.has_history); }
+        wireChat(!!d.has_history, d);
       })
       .catch(function(){ location.replace('/login/?next=/companion/'); });
   }
@@ -1726,7 +1794,7 @@ write("login/index.html", page({
   title: "Log in — The Art of Soulcraft",
   description: "Log in to your Art of Soulcraft account to see Your Mandala and manage Mira, your personal reflection companion.",
   canonical: "https://artofsoulcraft.com/login/",
-  active: "results",
+  active: "account",
   main: loginMain()
 }));
 
@@ -1734,7 +1802,7 @@ write("register/index.html", page({
   title: "Create your account — The Art of Soulcraft",
   description: "Create an Art of Soulcraft account to keep Your Mandala and meet Mira, your personal reflection companion.",
   canonical: "https://artofsoulcraft.com/register/",
-  active: "results",
+  active: "account",
   main: registerMain()
 }));
 
@@ -1742,7 +1810,7 @@ write("account/index.html", page({
   title: "Your account — The Art of Soulcraft",
   description: "Your Art of Soulcraft account — Your Mandala, Mira, and your subscription.",
   canonical: "https://artofsoulcraft.com/account/",
-  active: "results",
+  active: "account",
   main: accountMain()
 }));
 
@@ -1750,7 +1818,7 @@ write("companion/index.html", page({
   title: "Mira — your Soulcraft companion",
   description: "Mira is a personal reflection companion who knows your Mandala — a mirror that reflects what you're not looking at, through your own twelve archetypal voices.",
   canonical: "https://artofsoulcraft.com/companion/",
-  active: "results",
+  active: "mira",
   main: companionMain()
 }));
 
