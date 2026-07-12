@@ -9,7 +9,7 @@
 // ============================================================
 
 import { getSessionUser } from "../_auth.js";
-import { ensureMiraSchema } from "../../mira/_schema.js";
+import { ensureMiraSchema, grantMiraTrial, miraAccess } from "../../mira/_schema.js";
 
 function json(obj, status) {
   return new Response(JSON.stringify(obj), {
@@ -23,6 +23,11 @@ export async function onRequestGet({ request, env }) {
     const user = await getSessionUser(request, env);
     if (!user) return json({ authenticated: false });
     await ensureMiraSchema(env);
+
+    // Front door: if they came through the $29 (or WHITEDOT) and haven't been
+    // granted their 30-day trial yet, start it now. Idempotent + eligibility-gated.
+    await grantMiraTrial(env, user.id);
+    const access = await miraAccess(env, user.id);
 
     let row = null;
     try {
@@ -48,6 +53,11 @@ export async function onRequestGet({ request, env }) {
       email: user.email,
       companion_active: !!user.companion_active,
       companion_tier: user.companion_tier || null,
+      // Session 3.2 access model: chat is open with a live sub OR an unexpired trial.
+      has_access: !!access.has_access,
+      trial_until: access.trial_until || null,
+      trialing: !!(access.trial_until && !access.active),
+      has_full_purchase: !!access.has_full_purchase,
       belief_set: !!beliefSet,
       belief_traditions: traditions,
       belief_open_all: !!openAll,

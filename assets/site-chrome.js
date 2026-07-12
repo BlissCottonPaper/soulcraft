@@ -34,6 +34,7 @@
       chrome.syncResultsActive();
       chrome.applyAuthNav();
       chrome.injectAnalytics();
+      chrome.trackReturnVisit();
       chrome.registerServiceWorker();
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
@@ -412,6 +413,27 @@
       .catch(function () { renderAuthNav(false); });
   }
 
+  // --- Funnel: return within 7 days (GA4) -----------------------------------
+  // Stamp the first-ever visit; the first page of any LATER session that lands
+  // between 30 min and 7 days after that first visit fires the event once.
+  function trackReturnVisit() {
+    if (typeof window === "undefined") return;
+    try {
+      var now = Date.now();
+      var WEEK = 7 * 24 * 60 * 60 * 1000;
+      if (window.sessionStorage.getItem("sc_session_seen")) return; // same session, not a return
+      window.sessionStorage.setItem("sc_session_seen", "1");
+      var first = window.localStorage.getItem("sc_first_visit");
+      if (!first) { window.localStorage.setItem("sc_first_visit", String(now)); return; } // first ever visit
+      if (window.localStorage.getItem("sc_return7_fired") === "1") return;
+      var elapsed = now - parseInt(first, 10);
+      if (elapsed > 30 * 60 * 1000 && elapsed <= WEEK) {
+        window.localStorage.setItem("sc_return7_fired", "1");
+        if (window.gtag) window.gtag("event", "return_within_7_days");
+      }
+    } catch (e) { /* storage blocked — skip */ }
+  }
+
   // --- PWA service worker (Task 5) ------------------------------------------
   // Registered once from the shared chrome so it lives on every page. The worker
   // itself only caches a few static assets and never touches HTML or /api/*
@@ -436,6 +458,7 @@
     syncResultsActive: syncResultsActive,
     applyAuthNav: applyAuthNav,
     injectAnalytics: injectAnalytics,
+    trackReturnVisit: trackReturnVisit,
     registerServiceWorker: registerServiceWorker
   };
 });

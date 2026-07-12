@@ -363,6 +363,8 @@ function Radar({ scores, size, forPrint }) {
         React.createElement("polygon", { points: polyPoints, fill: col.fill, stroke: col.line, strokeWidth: 2, strokeLinejoin: "round" }),
         pts.map((p, i) => React.createElement("circle", { key: i, cx: p[0], cy: p[1], r: 3.5, fill: col.dot })));
 }
+// GA4 funnel helper — safe no-op until gtag is present (site-chrome loads it).
+const ga = (name, params) => { try { if (window.gtag) window.gtag("event", name, params || {}); } catch (e) {} };
 // Case copy for a uniformly loud or uniformly quiet profile (all four raw 3-4, or all 1-2).
 const ALL_LOUD_COPY = "You move fluidly between all four temperaments. Integration, not dominance, is your signature — you adapt how you show up to what the moment actually needs. Your intentional practice is developing the discipline to choose deliberately rather than flow automatically.";
 const ALL_QUIET_COPY = "All four temperaments are available to you as growth edges — none dominates yet, which means you have significant untapped range across all four. Each one is an invitation.";
@@ -460,7 +462,7 @@ function TwelveWithin() {
     // post-payment resume) and mark this attempt unsaved.
     const resetAssessmentState = () => { setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setUnlockError(""); setPromoError(""); setPromoCode(""); savedForSession.current = null; };
     // Begin (or resume, after payment) the assessment for the active tier.
-    const beginAssessment = () => { resetAssessmentState(); setSession((s) => s + 1); setScreen("descriptors"); };
+    const beginAssessment = () => { ga("assessment_start"); resetAssessmentState(); setSession((s) => s + 1); setScreen("descriptors"); };
     // Two tiers. Payment happens BEFORE the assessment: Free begins the questions
     // immediately; Full goes to the checkout gate first and only begins once paid
     // (or a valid promo code is entered).
@@ -611,6 +613,7 @@ function TwelveWithin() {
         if (screen !== "results" || isSample || restored) return;
         if (savedForSession.current === session) return; // already saved this exact attempt
         savedForSession.current = session;
+        ga("assessment_complete"); // funnel: a real reading reached the results screen
         setSaveStatus("saving");
 
         const archetypeScores = {};
@@ -803,6 +806,7 @@ function TwelveWithin() {
             const data = await res.json().catch(() => ({}));
             if (res.ok && data.ok) {
                 setMiraActivated("tier");
+                ga("mira_activated", { source: "interstitial", tier: miraTier }); // funnel: Mira activation
             } else {
                 setMiraError((data && data.error) || "We couldn't start your Mira trial. You can activate it from your account anytime.");
             }
@@ -914,6 +918,7 @@ function TwelveWithin() {
         setTier(t); setMode(TIERS[t].pairMode);
         setPurchaseIntent("full");
         setPaidFull(true); // a real $29 payment → the Mira interstitial is offered at results
+        ga("purchase", { value: 29, currency: "USD", items: [{ item_name: "Full reading" }] }); // funnel: payment
         setSavedResultId(resultId);
         setShadowUnlocked(true); // Full includes the Shadow Mandala
         beginAssessment();

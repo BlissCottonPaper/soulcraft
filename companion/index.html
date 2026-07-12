@@ -82,6 +82,9 @@
   .mira-988{font-size:13px;line-height:1.6;color:rgba(224,218,246,0.7);text-align:center;margin:1.5rem auto 0;max-width:34rem;padding-top:1rem;border-top:1px solid rgba(196,181,253,0.12);}
   .mira-disclaim a, .mira-988 a{color:#fde8b0;text-decoration:underline;text-underline-offset:2px;}
   .mira-disclaim a:hover, .mira-988 a:hover{color:#fff6d8;}
+  .mira-crisis{border:1px solid rgba(253,164,175,0.5);background:rgba(253,164,175,0.10);border-radius:.9rem;padding:.85rem 1rem;font-size:14px;line-height:1.6;color:#fde4e6;margin:.5rem 0 1rem;}
+  .mira-crisis a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:2px;}
+  .mira-trial{text-align:center;font-size:12.5px;color:rgba(253,230,138,0.85);background:rgba(253,230,138,0.08);border:1px solid rgba(253,230,138,0.22);border-radius:999px;padding:.3rem .8rem;margin:0 auto .5rem;max-width:22rem;}
   .mira-edit{display:block;text-align:center;font-size:12.5px;color:rgba(196,181,253,0.6);margin-top:.5rem;background:none;border:0;cursor:pointer;width:100%;}
   .mira-edit:hover{color:#fde8b0;}
   .bl-list{display:flex;flex-direction:column;gap:.15rem;margin:1rem 0;}
@@ -120,6 +123,16 @@
     <p class="mira-disclaim">Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a>.</p>
   </div>
 
+  <!-- FRONT DOOR (no $29 reading yet) -->
+  <div id="mira-frontdoor" class="mira-hide">
+    <div class="orb"></div>
+    <h1 class="mira-title">Mira comes with your reading</h1>
+    <p class="mira-sub">Mira knows your Mandala — so she begins with your reading. Take the assessment and unlock your full Mandala for $29, and your first 30 days with Mira are included.</p>
+    <a class="mira-send" href="/" style="display:block;text-align:center;text-decoration:none;">Take the assessment →</a>
+    <p style="text-align:center;margin-top:.9rem;"><a href="/pricing/" style="color:rgba(196,181,253,0.75);font-size:13.5px;">See what's included</a></p>
+    <p class="mira-disclaim">Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a>.</p>
+  </div>
+
   <!-- ONBOARDING -->
   <div id="mira-onboard" class="mira-hide">
     <div class="orb"></div>
@@ -148,6 +161,13 @@
   <!-- CHAT -->
   <div id="mira-chat" class="mira-hide">
     <div class="orb" id="mira-orb"></div>
+    <p class="mira-trial mira-hide" id="mira-trial"></p>
+    <!-- Deterministic crisis banner — raised by the server's independent check,
+         regardless of Mira's own reply. Hidden until triggered. -->
+    <div class="mira-crisis mira-hide" id="mira-crisis" role="alert">
+      <strong>If you're in danger or thinking about harming yourself, please reach out now.</strong>
+      You deserve real-time human support. In the US, <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a> — 24/7, free, confidential. If someone is in immediate danger, call 911.
+    </div>
     <div class="mira-msgs" id="mira-msgs" aria-live="polite"></div>
     <div class="mira-dock">
       <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Tell me more…</button></div>
@@ -167,7 +187,7 @@
 (function(){
   function ga(name, params){ try{ if(window.gtag) gtag('event', name, params||{}); }catch(e){} }
   function $(id){ return document.getElementById(id); }
-  function show(id){ ['mira-loading','mira-gate','mira-onboard','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
+  function show(id){ ['mira-loading','mira-gate','mira-frontdoor','mira-onboard','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
 
   // ---- session id (30-min window) ----
   var SESSION=null;
@@ -209,17 +229,21 @@
     var orb=$('mira-orb'); if(orb) orb.className='orb'+(on?' streaming':'');
     $('mira-input').disabled=on; $('mira-sendbtn').disabled=on;
   }
+  function showCrisis(){ var c=$('mira-crisis'); if(c){ c.className='mira-crisis'; c.scrollIntoView({behavior:'smooth',block:'nearest'}); } }
 
+  var FIRST_MSG_KEY='mira_first_msg_sent';
   function sendMessage(text, hidden){
     if(streaming || !text) return;
     stick=true; // a fresh turn always follows to the bottom
     if(!hidden) addRow('me').textContent=text;
     ga('mira_message_sent');
+    // Funnel: the very first real message this person ever sends Mira.
+    if(!hidden){ try{ if(!localStorage.getItem(FIRST_MSG_KEY)){ localStorage.setItem(FIRST_MSG_KEY,'1'); ga('mira_first_message'); } }catch(e){} }
     var bubble=addRow('her'); var full=''; setStreaming(true);
     fetch('/api/mira',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:SESSION})})
       .then(function(res){
         if(res.status===401){ location.href='/login/?next=/companion/'; return null; }
-        if(res.status===403){ setStreaming(false); show('mira-gate'); ga('mira_gate_viewed'); return null; }
+        if(res.status===403){ setStreaming(false); boot(); return null; }
         if(!res.ok || !res.body){ bubble.textContent='Something went wrong — please try again.'; setStreaming(false); return null; }
         var reader=res.body.getReader(); var dec=new TextDecoder(); var buf='';
         function pump(){
@@ -234,7 +258,7 @@
               if(!dline) continue;
               var payload=dline.slice(5).replace(/^\s+/,'');
               if(!payload) continue;
-              try{ var ev=JSON.parse(payload); if(ev.text){ full+=ev.text; bubble.textContent=full; scrollDown(); } }catch(e){}
+              try{ var ev=JSON.parse(payload); if(ev.crisis){ showCrisis(); } if(ev.text){ full+=ev.text; bubble.textContent=full; scrollDown(); } }catch(e){}
             }
             return pump();
           });
@@ -245,8 +269,15 @@
       .catch(function(){ bubble.textContent='Connection lost — please try again.'; setStreaming(false); });
   }
 
-  function wireChat(hasHistory){
+  var chatWired=false;
+  function wireChat(hasHistory, ctx){
     show('mira-chat'); SESSION=session(); ga('mira_session_started');
+    // Trial note — only while trialing (not a paid subscriber).
+    if(ctx && ctx.trialing && ctx.trial_until){
+      var days=Math.max(0, Math.ceil((ctx.trial_until*1000 - Date.now())/86400000));
+      var tn=$('mira-trial'); if(tn){ tn.textContent='Your Mira trial is active — '+days+' day'+(days===1?'':'s')+' left.'; tn.className='mira-trial'; }
+    }
+    if(chatWired){ return; } chatWired=true;
     var input=$('mira-input');
     // Grow to ~6 lines (148px ≈ 9.25rem), then the textarea scrolls internally.
     function grow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,148)+'px'; }
@@ -303,14 +334,28 @@
 
   // ---- boot ----
   var booted=false;
+  // Fire the Mira-activation funnel event once, when returning from a successful
+  // subscription checkout (?sub=success).
+  (function(){
+    try{
+      var p=new URLSearchParams(location.search);
+      if(p.get('sub')==='success'){ ga('mira_activated', {source:'subscription'}); }
+    }catch(e){}
+  })();
+
   function boot(){
     fetch('/api/mira/context',{credentials:'same-origin'})
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d || !d.authenticated){ location.replace('/login/?next=/companion/'); return; }
-        if(!d.companion_active){ wireGate(); return; }
+        // Front door (Session 3.2): access needs a live sub OR an unexpired trial.
+        if(!d.has_access){
+          if(d.has_full_purchase){ wireGate(); }   // bought the $29, trial ended → offer tiers
+          else { show('mira-frontdoor'); ga('mira_gate_viewed', {gate:'frontdoor'}); }  // no reading yet → front door
+          return;
+        }
         if(!d.belief_set){ showOnboard(false); return; }
-        if(!booted){ booted=true; wireChat(!!d.has_history); }
+        wireChat(!!d.has_history, d);
       })
       .catch(function(){ location.replace('/login/?next=/companion/'); });
   }
