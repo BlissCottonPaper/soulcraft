@@ -142,10 +142,10 @@ ${grid}
     </section>
 
     <section id="pairings" class="py-12 border-t border-violet-300/10 scroll-mt-20 max-w-2xl">
-      <h2 class="serif text-3xl md:text-4xl mb-1">Pairings</h2>
+      <h2 class="serif text-3xl md:text-4xl mb-1">Mindsets</h2>
       <p class="text-violet-300/45 italic serif text-lg mb-4">Two become one.</p>
       <p class="text-violet-300/75 mb-5">When two archetypes combine, something new emerges that neither produces alone — both stay present and distinct, yet together they name a pattern of their own. The Creator and the Mystic read as <span class="text-amber-100">${magician}</span>; the Explorer and the Creator, <span class="text-amber-100">${cartographer}</span>.</p>
-      <a href="/explore/pairings/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">The full ${pairCount} Pairings Lexicon →</a>
+      <a href="/explore/pairings/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">The full ${pairCount} Mindsets Lexicon →</a>
     </section>
 
     <section class="py-12 border-t border-violet-300/10 max-w-2xl">
@@ -165,7 +165,7 @@ ${linkOut("/explore/core-needs/", "What's depleting your Bandwidth?", "Explore C
 
     <section class="py-14 text-center border-t border-violet-300/10">
       <h2 class="serif text-3xl md:text-4xl mb-3">See your own mirror</h2>
-      <p class="text-violet-200/80 mb-6 max-w-xl mx-auto">The assessment ranks all twelve within you, names your top three and their Pairings, and renders your personal mandala.</p>
+      <p class="text-violet-200/80 mb-6 max-w-xl mx-auto">The assessment ranks all twelve within you, names your top three and their Mindsets, and renders your personal mandala.</p>
       <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Begin — Your Mandala</a>
     </section>`;
 }
@@ -452,7 +452,7 @@ function pricingMain() {
         <h2 class="serif text-2xl mb-1">Full</h2>
         <p class="text-violet-300/60 text-sm -mt-0.5 mb-1">Your Mandala + Shadow Mandala</p>
         <p class="text-4xl mb-4">$29</p>
-        <p class="text-violet-300/75 text-sm mb-6">The complete reading — your three most expressive voices, their pairings, your Temperament radar, the full 1–12 ranking, <em>and</em> your Shadow Mandala: the three quieter voices you've been carrying, their shadow pairings, and what becomes possible when you claim them.</p>
+        <p class="text-violet-300/75 text-sm mb-6">The complete reading — your three most expressive voices, their Mindsets, your Temperament radar, the full 1–12 ranking, <em>and</em> your Shadow Mandala: the three quieter voices you've been carrying, their shadow Mindsets, and what becomes possible when you claim them.</p>
         <a href="/" class="block text-center rounded-xl px-5 py-3 mt-auto bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Begin the Full reading</a>
       </div>
     </section>
@@ -510,11 +510,11 @@ function shadowMain() {
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
       <h2 class="serif text-3xl mb-4">What the Shadow Mandala shows you</h2>
-      <p class="text-violet-200/80 leading-relaxed mb-4">Your three quietest archetypes and the three pairings between them. Not your weaknesses. Your unclaimed capacity.</p>
-      <p class="text-violet-200/80 leading-relaxed mb-2">Each pairing has two readings:</p>
+      <p class="text-violet-200/80 leading-relaxed mb-4">Your three quietest archetypes and the three Mindsets between them. Not your weaknesses. Your unclaimed capacity.</p>
+      <p class="text-violet-200/80 leading-relaxed mb-2">Each Mindset has two readings:</p>
       <p class="text-violet-200/80 leading-relaxed mb-2"><em class="text-violet-100 not-italic font-semibold">In shadow</em> — what this energy looks like when it lives outside your awareness, operating sideways.</p>
       <p class="text-violet-200/80 leading-relaxed mb-4"><em class="text-violet-100 not-italic font-semibold">Integrated</em> — what becomes possible when you bring it into conscious awareness and do something with it.</p>
-      <p class="text-violet-200/80 leading-relaxed">The pairings between your shadow archetypes are already named in the system. They carry the same depth as the pairings between your loudest voices. The difference is that you haven't recognized them as yours yet.</p>
+      <p class="text-violet-200/80 leading-relaxed">The Mindsets between your shadow archetypes are already named in the system. They carry the same depth as the Mindsets between your loudest voices. The difference is that you haven't recognized them as yours yet.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
@@ -605,7 +605,7 @@ function temperamentsMain() {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 ${cards}
       </div>
-      <p class="text-violet-300/60 text-sm mt-4 max-w-3xl"><strong class="text-violet-200/80">Named at Base only.</strong> A Temperament is formally named at each archetype's Base expression — not at every stage, and not for every Pairing. Where richer language helps ("a Creator led by the Soul is close to what people call an artist"), it lives as prose, not new taxonomy.</p>
+      <p class="text-violet-300/60 text-sm mt-4 max-w-3xl"><strong class="text-violet-200/80">Named at Base only.</strong> A Temperament is formally named at each archetype's Base expression — not at every stage, and not for every Mindset. Where richer language helps ("a Creator led by the Soul is close to what people call an artist"), it lives as prose, not new taxonomy.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
@@ -763,7 +763,7 @@ ${emb}
     </section>
 
     <section class="py-10 border-t border-violet-300/10">
-      <h2 class="serif text-3xl mb-2">Pairings — ${a.name} leading</h2>
+      <h2 class="serif text-3xl mb-2">Mindsets — ${a.name} leading</h2>
       <p class="text-violet-300/70 text-sm mb-5 max-w-2xl">What emerges when the ${a.name} combines with each of the other eleven — both stay present and distinct.</p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
 ${pairs}
@@ -986,9 +986,9 @@ ${integration}
     </section>`;
 }
 
-// ---- Pairings Lexicon (/explore/pairings/) — all 66 named Pairings ----------
-// Reinforces the locked terminology: a Pairing is the equation (Sage × Creator);
-// a Blend is the result (The Inventor).
+// ---- Mindsets Lexicon (/explore/pairings/) — all 66 named Mindsets ----------
+// A Mindset is the named pattern that emerges when two archetypes combine
+// (e.g. Sage × Creator → The Inventor). Route/anchor stay /pairings for links.
 function pairingsLexiconMain() {
   const keys = Object.keys(DATA.BLEND_NAMES).sort();
   const cards = keys.map((k) => {
@@ -1006,9 +1006,9 @@ function pairingsLexiconMain() {
         </div>`;
   }).join("\n");
   return `    <section class="pt-16 pb-8 md:pt-24 max-w-3xl">
-      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">THE ${keys.length} PAIRINGS</p>
-      <h1 class="serif text-4xl md:text-6xl mb-5">The Pairings Lexicon</h1>
-      <p class="text-violet-200/85 text-lg leading-relaxed">A <strong>Pairing</strong> is the equation — two archetypes combined. The <strong>Blend</strong> is the result: the named pattern that emerges, present in neither archetype alone. There is one for every pair of the twelve — ${keys.length} in all. Your results name the three that arise from your top three voices.</p>
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">THE ${keys.length} MINDSETS</p>
+      <h1 class="serif text-4xl md:text-6xl mb-5">The Mindsets Lexicon</h1>
+      <p class="text-violet-200/85 text-lg leading-relaxed">A <strong>Mindset</strong> is the named pattern that emerges when two of your archetypes combine — present in neither alone. There is one for every pair of the twelve — ${keys.length} in all. Your results name the three that arise from your top three voices.</p>
     </section>
     <section class="py-10 border-t border-violet-300/10">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -2038,8 +2038,8 @@ write("explore/shadow/index.html", page({
 }));
 
 write("explore/pairings/index.html", page({
-  title: "The Pairings Lexicon — all 66 | The Art of Soulcraft",
-  description: "All 66 Pairings — the named pattern (the Blend) that emerges when two of the twelve archetypes combine. One for every pair of the twelve.",
+  title: "The Mindsets Lexicon — all 66 | The Art of Soulcraft",
+  description: "All 66 Mindsets — the named pattern that emerges when two of the twelve archetypes combine. One for every pair of the twelve.",
   canonical: "https://artofsoulcraft.com/explore/pairings/",
   active: "explore",
   main: pairingsLexiconMain()

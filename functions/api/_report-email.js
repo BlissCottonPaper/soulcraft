@@ -162,7 +162,7 @@ export function buildReportEmail(report, email, images) {
   // Pairings
   const pairings = Array.isArray(report.pairings) ? report.pairings : [];
   if (pairings.length) {
-    body += sectionLabel("Your Archetypal Pairings");
+    body += sectionLabel("Your Mindsets");
     body += pairings.map((p) => pairingBlock(p, false)).join("");
   }
 
@@ -198,7 +198,7 @@ export function buildReportEmail(report, email, images) {
     body += shadow.three.map(archetypeBlock).join("");
     const sp = Array.isArray(shadow.pairings) ? shadow.pairings : [];
     if (sp.length) {
-      body += sectionLabel("Your Shadow Pairings");
+      body += sectionLabel("Your Shadow Mindsets");
       body += sp.map((p) => pairingBlock(p, true)).join("");
     }
   }
@@ -232,7 +232,7 @@ export function buildReportEmail(report, email, images) {
     if (a.stages && a.stages[2]) tLines.push("  Base: " + a.stages[2]);
   });
   if (pairings.length) {
-    tLines.push("", "PAIRINGS");
+    tLines.push("", "MINDSETS");
     pairings.forEach((p) => tLines.push("  " + p.title + " -> " + (p.name || "unnamed") + (p.texture ? " — " + p.texture : "")));
   }
   if (temp && temp.items) {
