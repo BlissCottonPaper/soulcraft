@@ -9,21 +9,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  /* Self-hosted Cormorant Garamond — the site's real serif. Self-hosted (not
-     CDN) so the canvas always renders the true typeface and never silently
-     falls back to a system serif. Same faces the site loads: normal 500/600,
-     italic 500. */
+  /* Self-hosted Cormorant Garamond — the site's real serif, pulled straight from
+     its CSS font stack. Self-hosted (not CDN) so the canvas always renders the
+     true typeface and never silently falls back to a system serif. Same faces
+     the site loads: normal 500/600, italic 500. */
   @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 500; font-display: swap; src: url('/assets/fonts/cormorant-500.woff2') format('woff2'); }
   @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-600.woff2') format('woff2'); }
   @font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 500; font-display: swap; src: url('/assets/fonts/cormorant-500-italic.woff2') format('woff2'); }
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; color: #f5f3ff;
-    font-family: 'Source Sans 3', system-ui, sans-serif;
-    background: radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%);
-    padding: 2.5rem 1.25rem 4rem;
-  }
+  body { margin: 0; min-height: 100vh; color: #f5f3ff; font-family: 'Source Sans 3', system-ui, sans-serif;
+    background: radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%); padding: 2.5rem 1.25rem 4rem; }
   .wrap { max-width: 68rem; margin: 0 auto; }
   .eyebrow { font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: rgba(253,230,138,0.8); margin: 0 0 .35rem; }
   h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2.2rem; margin: 0 0 .25rem; }
@@ -33,37 +29,32 @@
   .card { background: rgba(255,250,240,0.03); border: 1px solid rgba(196,181,253,0.18); border-radius: 1rem; padding: 1.5rem; }
   label { display: block; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(224,218,246,0.65); margin: 1rem 0 .4rem; }
   label:first-of-type { margin-top: 0; }
-  input[type="text"], textarea, select {
-    width: 100%; background: rgba(0,0,0,0.22); border: 1px solid rgba(196,181,253,0.25);
-    border-radius: .6rem; padding: .6rem .75rem; font: inherit; font-size: 15px; color: #f5f3ff; outline: none; resize: vertical;
-  }
+  input[type="text"], textarea, select { width: 100%; background: rgba(0,0,0,0.22); border: 1px solid rgba(196,181,253,0.25);
+    border-radius: .6rem; padding: .6rem .75rem; font: inherit; font-size: 15px; color: #f5f3ff; outline: none; resize: vertical; }
   input:focus, textarea:focus, select:focus { border-color: rgba(253,230,138,0.6); }
   textarea { min-height: 3.25rem; line-height: 1.4; }
-  .tabs { display: flex; gap: .4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
-  .tab { flex: 1; min-width: 4.6rem; padding: .55rem .4rem; border-radius: .6rem; border: 1px solid rgba(196,181,253,0.22);
-    background: rgba(0,0,0,0.2); color: rgba(224,218,246,0.8); font: inherit; font-weight: 600; font-size: 13.5px; cursor: pointer; }
+  .tabs { display: flex; gap: .35rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .tab { flex: 1 0 auto; min-width: 4.3rem; padding: .5rem .45rem; border-radius: .6rem; border: 1px solid rgba(196,181,253,0.22);
+    background: rgba(0,0,0,0.2); color: rgba(224,218,246,0.8); font: inherit; font-weight: 600; font-size: 13px; cursor: pointer; }
   .tab.on { border-color: rgba(253,230,138,0.6); background: rgba(253,230,138,0.12); color: #fde8b0; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
   .hint { font-size: 12px; color: rgba(224,218,246,0.5); margin: .35rem 0 0; }
   .actions { margin-top: 1.5rem; display: flex; gap: .75rem; align-items: center; }
-  button.go { background: rgba(253,230,138,0.9); color: #1b1430; border: 0; border-radius: .6rem;
-    padding: .7rem 1.3rem; font: inherit; font-weight: 600; cursor: pointer; }
+  button.go { background: rgba(253,230,138,0.9); color: #1b1430; border: 0; border-radius: .6rem; padding: .7rem 1.3rem; font: inherit; font-weight: 600; cursor: pointer; }
   button.go:hover { background: #fde8b0; }
   button.go:disabled { opacity: .45; cursor: default; }
   .note { font-size: 12.5px; color: rgba(224,218,246,0.55); }
   .preview-wrap { position: sticky; top: 1.5rem; }
-  .canvas-frame { width: 100%; max-width: 34rem; margin: 0 auto; border-radius: 1rem; overflow: hidden;
-    border: 1px solid rgba(196,181,253,0.18); box-shadow: 0 18px 50px rgba(0,0,0,0.5); }
+  .canvas-frame { width: 100%; max-width: 34rem; margin: 0 auto; border-radius: 1rem; overflow: hidden; border: 1px solid rgba(196,181,253,0.18); box-shadow: 0 18px 50px rgba(0,0,0,0.5); }
   canvas { display: block; width: 100%; height: auto; }
-  .swap { display: none; }
-  .swap.on { display: block; }
+  .swap { display: none; } .swap.on { display: block; }
 </style>
 </head>
 <body>
   <div class="wrap">
     <p class="eyebrow">The Art of Soulcraft · internal</p>
     <h1>Instagram Content Container</h1>
-    <p class="lead">One shared visual shell, five modes. Every copy field is plain text — the tool renders only what you type. Colors, the Mindset formula, and axis questions come from the canonical wheel data. Download a square PNG.</p>
+    <p class="lead">One shared visual shell, six modes. Every copy field is plain text — the tool renders only what you type. Colors, the Mindset formula, and axis questions come from the canonical wheel data. Download a square PNG.</p>
 
     <div class="grid">
       <div class="card">
@@ -73,9 +64,9 @@
           <button class="tab" data-mode="archetype" type="button">Archetype</button>
           <button class="tab" data-mode="mindset" type="button">Mindset</button>
           <button class="tab" data-mode="axial" type="button">Axial Q</button>
+          <button class="tab" data-mode="definitions" type="button">Definition</button>
         </div>
 
-        <!-- QUOTE -->
         <div class="swap on" id="mode-quote">
           <label>Quote</label>
           <textarea id="q-text" placeholder="Until you make the unconscious conscious, it will direct your life — and you'll call it fate."></textarea>
@@ -83,62 +74,46 @@
           <input type="text" id="q-attr" placeholder="after Carl Jung" />
         </div>
 
-        <!-- PATTERN -->
         <div class="swap" id="mode-pattern">
-          <label>Pattern name</label>
-          <input type="text" id="p-name" placeholder="Cynicism" />
-          <label>Bandwidth tag — gold italic (e.g. low / high bandwidth)</label>
-          <input type="text" id="p-band" placeholder="low bandwidth" />
-          <label>Definition — one sentence</label>
-          <textarea id="p-def" placeholder="Discernment that's stopped believing anything can go right."></textarea>
-          <label>Three descriptors — comma-separated (tag-pills)</label>
-          <input type="text" id="p-desc" placeholder="real, costly, protective" />
-          <label>Freer expression — the payoff (gold)</label>
-          <input type="text" id="p-freer" placeholder="Discernment that leaves room for hope." />
-          <p class="hint">Works for both Protective Patterns and archetype Bandwidth-stage names — same structure.</p>
+          <label>Pattern name</label><input type="text" id="p-name" placeholder="Cynicism" />
+          <label>Bandwidth tag — gold italic (plain language)</label><input type="text" id="p-band" placeholder="low bandwidth" />
+          <label>Definition — one sentence</label><textarea id="p-def" placeholder="Discernment that's stopped believing anything can go right."></textarea>
+          <label>Three descriptors — comma-separated (plain, bullet-joined)</label><input type="text" id="p-desc" placeholder="real, costly, protective" />
+          <label>Freer expression — the payoff (gold)</label><input type="text" id="p-freer" placeholder="Discernment that leaves room for hope." />
+          <p class="hint">Protective Patterns Atlas or archetype Bandwidth-stage names — same structure.</p>
         </div>
 
-        <!-- ARCHETYPE -->
         <div class="swap" id="mode-archetype">
-          <label>Archetype — sets the wheel-color dot + prefills</label>
-          <select id="a-select"></select>
-          <label>Name</label>
-          <input type="text" id="a-name" placeholder="Lover" />
-          <label>Longing — one line</label>
-          <input type="text" id="a-def" placeholder="longs for union" />
-          <label>Axial question</label>
-          <input type="text" id="a-axis" placeholder="Do you trust what you feel, or what you can prove?" />
+          <label>Archetype — sets the wheel-color dot + prefills</label><select id="a-select"></select>
+          <label>Name</label><input type="text" id="a-name" placeholder="Lover" />
+          <label>Longing — one line</label><input type="text" id="a-def" placeholder="longs for union" />
+          <label>Axial question</label><input type="text" id="a-axis" placeholder="Do you trust what you feel, or what you can prove?" />
         </div>
 
-        <!-- MINDSET -->
         <div class="swap" id="mode-mindset">
-          <label>Parent archetypes — two dots + the formula</label>
+          <label>Parent archetypes — two dots + formula</label>
           <div class="two"><select id="m-a"></select><select id="m-b"></select></div>
-          <label>Mindset name</label>
-          <input type="text" id="m-name" placeholder="The Charmer" />
-          <label>Formula (auto)</label>
-          <input type="text" id="m-formula" readonly />
-          <label>Short descriptor</label>
-          <textarea id="m-desc" placeholder="Warmth that opens any door — connection as a kind of play."></textarea>
+          <label>Mindset name</label><input type="text" id="m-name" placeholder="The Charmer" />
+          <label>Formula (auto)</label><input type="text" id="m-formula" readonly />
+          <label>Short descriptor</label><textarea id="m-desc" placeholder="Warmth that opens any door — connection as a kind of play."></textarea>
         </div>
 
-        <!-- AXIAL QUESTION -->
         <div class="swap" id="mode-axial">
-          <label>Axis — prefills the question + subtitle</label>
-          <select id="ax-select"></select>
-          <label>Question</label>
-          <textarea id="ax-q" placeholder="Do you trust what you feel, or what you can prove?"></textarea>
-          <label>Axis subtitle — rendered as “— …”</label>
-          <input type="text" id="ax-axis" placeholder="Lover ↔ Sage" />
+          <label>Axis — prefills question + subtitle</label><select id="ax-select"></select>
+          <label>Question</label><textarea id="ax-q" placeholder="Do you trust what you feel, or what you can prove?"></textarea>
+          <label>Axis subtitle (no leading dash)</label><input type="text" id="ax-axis" placeholder="Lover ↔ Sage" />
+        </div>
+
+        <div class="swap" id="mode-definitions">
+          <label>Term</label><input type="text" id="d-term" placeholder="Cynic" />
+          <label>Category — small caps, quiet (e.g. Sage, low bandwidth · protective pattern)</label><input type="text" id="d-cat" placeholder="Sage, low bandwidth" />
+          <label>Definition — plain</label><textarea id="d-def" placeholder="The Sage's voice curdled into contempt — truth that no longer believes anything can go right."></textarea>
         </div>
 
         <label style="margin-top:1.5rem;">Instagram handle</label>
         <input type="text" id="handle" value="artofsoulcraft" />
 
-        <div class="actions">
-          <button class="go" id="download" type="button">Download image</button>
-          <span class="note" id="status"></span>
-        </div>
+        <div class="actions"><button class="go" id="download" type="button">Download image</button><span class="note" id="status"></span></div>
       </div>
 
       <div class="preview-wrap">
@@ -163,38 +138,32 @@
   var W = 1080, PAD = 112, CONTENT_W = W - PAD * 2, TOP = 130, BOTTOM = 872;
 
   var INK = "#f5f3ff", VIOLET = "rgba(224,218,246,0.82)", INDIGO = "rgba(178,170,236,0.72)";
-  var AMBER = "#fde8b0", AMBER_DIM = "rgba(253,230,138,0.82)";
-  // The site's exact serif, pulled from its CSS (.serif / brand). Self-hosted above.
-  var SERIF = "'Cormorant Garamond', Georgia, serif";
-  var SANS = "'Source Sans 3', system-ui, sans-serif"; // labels + CTA only
+  var SOFT_WHITE = "rgba(245,243,255,0.6)", AMBER = "#fde8b0", AMBER_DIM = "rgba(253,230,138,0.82)";
+  var SERIF = "'Cormorant Garamond', Georgia, serif";   // exact site serif
+  var SANS = "'Source Sans 3', system-ui, sans-serif";   // labels + CTA only
+
+  // Fixed, generous type sizes — deliberately NOT scaled to character count, so a
+  // longer or corrected quote never renders smaller than a short one.
+  var QUOTE_SIZE = 56, AXIAL_SIZE = 60;
 
   var mode = "quote";
 
   // ---- data helpers -------------------------------------------------------
-  function archIndex(key) { for (var i = 0; i < A_LIST.length; i++) if (A_LIST[i].key === key) return i; return -1; }
-  function archColor(key) { var i = archIndex(key); return i < 0 ? "hsl(0,0%,60%)" : "hsl(" + HUEFN(i) + ",62%,56%)"; }
-  function arch(key) { for (var i = 0; i < A_LIST.length; i++) if (A_LIST[i].key === key) return A_LIST[i]; return null; }
-  function archName(key) { var a = arch(key); return a ? a.name : key; }
-  function archLonging(key) { var a = arch(key); return a ? ("longs " + (a.longingVerb ? "to " : "for ") + a.longing) : ""; }
-  function sortedKeys(k1, k2) { return [k1, k2].sort(); }
-  function mindsetFormula(k1, k2) { if (!k1 || !k2) return ""; var s = sortedKeys(k1, k2); return "(" + archName(s[0]) + " × " + archName(s[1]) + ")"; }
-  // Axis display "A ↔ B" in wheel order (lower index first), matching the site's list.
-  function axisLabel(key) { var a = arch(key); if (!a) return ""; var opp = A_LIST.filter(function (x) { return x.name === a.opposite; })[0]; if (!opp) return ""; var lo = archIndex(a.key) < archIndex(opp.key) ? a : opp, hi = lo === a ? opp : a; return lo.name + " ↔ " + hi.name; }
+  function archIndex(k) { for (var i = 0; i < A_LIST.length; i++) if (A_LIST[i].key === k) return i; return -1; }
+  function archColor(k) { var i = archIndex(k); return i < 0 ? "hsl(0,0%,60%)" : "hsl(" + HUEFN(i) + ",62%,56%)"; }
+  function arch(k) { for (var i = 0; i < A_LIST.length; i++) if (A_LIST[i].key === k) return A_LIST[i]; return null; }
+  function archName(k) { var a = arch(k); return a ? a.name : k; }
+  function archLonging(k) { var a = arch(k); return a ? ("longs " + (a.longingVerb ? "to " : "for ") + a.longing) : ""; }
+  function sortedKeys(a, b) { return [a, b].sort(); }
+  function mindsetFormula(a, b) { if (!a || !b) return ""; var s = sortedKeys(a, b); return "(" + archName(s[0]) + " × " + archName(s[1]) + ")"; }
+  function axisLabel(k) { var a = arch(k); if (!a) return ""; var opp = A_LIST.filter(function (x) { return x.name === a.opposite; })[0]; if (!opp) return ""; var lo = archIndex(a.key) < archIndex(opp.key) ? a : opp, hi = lo === a ? opp : a; return lo.name + " ↔ " + hi.name; }
 
   // ---- text helpers -------------------------------------------------------
   function wrapText(text, maxWidth) {
     var words = String(text || "").trim().split(/\s+/), lines = [], cur = "";
     if (!words[0]) return [];
-    for (var i = 0; i < words.length; i++) {
-      var t = cur ? cur + " " + words[i] : words[i];
-      if (ctx.measureText(t).width > maxWidth && cur) { lines.push(cur); cur = words[i]; } else cur = t;
-    }
-    if (cur) lines.push(cur);
-    return lines;
-  }
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    for (var i = 0; i < words.length; i++) { var t = cur ? cur + " " + words[i] : words[i]; if (ctx.measureText(t).width > maxWidth && cur) { lines.push(cur); cur = words[i]; } else cur = t; }
+    if (cur) lines.push(cur); return lines;
   }
   function drawDot(cx, cy, r, color) {
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
@@ -202,56 +171,35 @@
   }
 
   // ---- block engine -------------------------------------------------------
-  var PILL_H = 50, PILL_PADX = 24, PILL_GAP = 14, PILL_ROWGAP = 14, PILL_FONT = "500 27px " + SERIF;
+  // family: 'center' (each line centered) | 'leftblock' (block centered on
+  // canvas, text left-aligned within it — clean left, ragged right).
   function measure(b) {
-    if (b.type === "dot") { b._h = b.r * 2 + 8; return; }
-    if (b.type === "dots") { b._h = b.r * 2 + 8; return; }
-    if (b.type === "pills") {
-      ctx.font = PILL_FONT; var rows = [], row = [], x = 0;
-      (b.words || []).forEach(function (w) {
-        var ww = ctx.measureText(w).width + PILL_PADX * 2;
-        if (x + ww > CONTENT_W && row.length) { rows.push(row); row = []; x = 0; }
-        row.push({ w: w, width: ww }); x += ww + PILL_GAP;
-      });
-      if (row.length) rows.push(row);
-      b._rows = rows; b._h = rows.length ? rows.length * PILL_H + (rows.length - 1) * PILL_ROWGAP : 0; return;
-    }
-    ctx.font = b.font; ctx.letterSpacing = b.ls || "0px"; b._lines = wrapText(b.text, CONTENT_W);
-    b._h = b._lines.length * b.lineHeight; ctx.letterSpacing = "0px";
+    if (b.type === "dot" || b.type === "dots") { b._h = b.r * 2 + 8; return; }
+    ctx.font = b.font; ctx.letterSpacing = b.ls || "0px"; b._lines = wrapText(b.text, CONTENT_W); b._h = b._lines.length * b.lineHeight; ctx.letterSpacing = "0px";
   }
-  function draw(b, x, y, align) {
-    if (b.type === "dot") { var cx = align === "left" ? x + b.r : W / 2; drawDot(cx, y + b.r + 4, b.r, b.color); return y + b._h; }
-    if (b.type === "dots") {
-      var gap = b.r * 1.4, tot = b.r * 4 + gap, sx = align === "left" ? x : (W / 2 - tot / 2);
-      drawDot(sx + b.r, y + b.r + 4, b.r, b.colors[0]); drawDot(sx + b.r * 3 + gap, y + b.r + 4, b.r, b.colors[1]); return y + b._h;
-    }
-    if (b.type === "pills") {
-      ctx.font = PILL_FONT; ctx.textAlign = "left"; ctx.textBaseline = "middle"; var yy = y;
-      b._rows.forEach(function (row) {
-        var xx = x;
-        row.forEach(function (p) {
-          ctx.fillStyle = "rgba(99,102,241,0.20)"; roundRect(xx, yy, p.width, PILL_H, PILL_H / 2); ctx.fill();
-          ctx.strokeStyle = "rgba(147,140,235,0.4)"; ctx.lineWidth = 1.5; roundRect(xx, yy, p.width, PILL_H, PILL_H / 2); ctx.stroke();
-          ctx.fillStyle = "rgba(224,218,246,0.92)"; ctx.fillText(p.w, xx + PILL_PADX, yy + PILL_H / 2 + 1);
-          xx += p.width + PILL_GAP;
-        });
-        yy += PILL_H + PILL_ROWGAP;
-      });
-      return y + b._h;
-    }
+  function draw(b, x0, y, family) {
+    if (b.type === "dot") { drawDot(W / 2, y + b.r + 4, b.r, b.color); return y + b._h; }
+    if (b.type === "dots") { var gap = b.r * 1.4, tot = b.r * 4 + gap, sx = W / 2 - tot / 2; drawDot(sx + b.r, y + b.r + 4, b.r, b.colors[0]); drawDot(sx + b.r * 3 + gap, y + b.r + 4, b.r, b.colors[1]); return y + b._h; }
     ctx.font = b.font; ctx.fillStyle = b.color; ctx.letterSpacing = b.ls || "0px";
-    ctx.textAlign = align === "left" ? "left" : "center"; ctx.textBaseline = "top";
-    var tx = align === "left" ? x : W / 2;
+    var left = family === "leftblock";
+    ctx.textAlign = left ? "left" : "center"; ctx.textBaseline = "top";
+    var tx = left ? x0 : W / 2;
     for (var i = 0; i < b._lines.length; i++) { ctx.fillText(b._lines[i], tx, y); y += b.lineHeight; }
     ctx.letterSpacing = "0px"; return y;
   }
-  function layout(blocks, align) {
-    blocks = blocks.filter(Boolean); blocks.forEach(measure);
-    blocks = blocks.filter(function (b) { return b._h > 0; });
+  function layout(blocks, family) {
+    blocks = blocks.filter(Boolean); blocks.forEach(measure); blocks = blocks.filter(function (b) { return b._h > 0; });
     var total = 0; blocks.forEach(function (b) { total += b._h + (b.gapAfter || 0); });
     if (blocks.length) total -= (blocks[blocks.length - 1].gapAfter || 0);
-    var x = align === "left" ? PAD : W / 2, y = TOP + Math.max(0, ((BOTTOM - TOP) - total) / 2);
-    for (var i = 0; i < blocks.length; i++) { y = draw(blocks[i], x, y, align); y += (blocks[i].gapAfter || 0); }
+    // For a left block, center the whole block horizontally: x0 = (W - widestLine)/2.
+    var x0 = PAD;
+    if (family === "leftblock") {
+      var maxW = 0;
+      blocks.forEach(function (b) { if (!b._lines) return; ctx.font = b.font; ctx.letterSpacing = b.ls || "0px"; b._lines.forEach(function (l) { maxW = Math.max(maxW, ctx.measureText(l).width); }); });
+      ctx.letterSpacing = "0px"; x0 = Math.max(PAD, (W - maxW) / 2);
+    }
+    var y = TOP + Math.max(0, ((BOTTOM - TOP) - total) / 2);
+    for (var i = 0; i < blocks.length; i++) { y = draw(blocks[i], x0, y, family); y += (blocks[i].gapAfter || 0); }
   }
 
   // ---- shell --------------------------------------------------------------
@@ -262,37 +210,27 @@
     ctx.strokeStyle = "rgba(196,181,253,0.14)"; ctx.lineWidth = 2; ctx.strokeRect(40, 40, W - 80, W - 80);
   }
   function drawMandala(cx, cy, R) {
-    for (var i = 0; i < 12; i++) {
-      var a = (-90 + i * 30) * Math.PI / 180;
-      ctx.beginPath(); ctx.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), R * 0.16, 0, Math.PI * 2);
-      ctx.fillStyle = "hsl(" + (i * 30) + ",62%,58%)"; ctx.fill();
-    }
-    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.55);
-    g.addColorStop(0, "rgba(255,252,240,0.9)"); g.addColorStop(1, "rgba(255,246,214,0)");
+    for (var i = 0; i < 12; i++) { var a = (-90 + i * 30) * Math.PI / 180; ctx.beginPath(); ctx.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), R * 0.16, 0, Math.PI * 2); ctx.fillStyle = "hsl(" + (i * 30) + ",62%,58%)"; ctx.fill(); }
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.55); g.addColorStop(0, "rgba(255,252,240,0.9)"); g.addColorStop(1, "rgba(255,246,214,0)");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 0.55, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx, cy, R * 0.2, 0, Math.PI * 2); ctx.fillStyle = "rgb(255,252,240)"; ctx.fill();
   }
   function footer() {
     drawMandala(W / 2, 928, 24);
     ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.letterSpacing = "0px";
-    // Brand wordmark = serif (brand voice).
-    ctx.font = "500 30px " + SERIF; ctx.fillStyle = "rgba(245,243,255,0.9)";
-    ctx.fillText("The Art of Soulcraft", W / 2, 966);
-    // follow = sans (it's a CTA, not brand voice).
+    ctx.font = "500 30px " + SERIF; ctx.fillStyle = "rgba(245,243,255,0.9)"; ctx.fillText("The Art of Soulcraft", W / 2, 966);
     var h = $("handle").value.replace(/^@+/, "").trim() || "artofsoulcraft";
-    ctx.font = "400 20px " + SANS; ctx.fillStyle = "rgba(253,230,138,0.78)"; ctx.letterSpacing = "0.5px";
-    ctx.fillText("follow @" + h, W / 2, 1006); ctx.letterSpacing = "0px";
+    ctx.font = "400 20px " + SANS; ctx.fillStyle = "rgba(253,230,138,0.78)"; ctx.letterSpacing = "0.5px"; ctx.fillText("follow @" + h, W / 2, 1006); ctx.letterSpacing = "0px";
   }
   function catLabel(text) { return { type: "text", text: text, font: "600 21px " + SANS, color: AMBER_DIM, ls: "4px", lineHeight: 32, gapAfter: 18 }; }
+  function bigQuoteMark() { ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.font = "600 150px " + SERIF; ctx.fillStyle = "rgba(253,230,138,0.26)"; ctx.fillText("“", W / 2, TOP + 10); }
 
   // ---- modes --------------------------------------------------------------
   function renderQuote() {
-    var text = $("q-text").value.trim() || "A line worth keeping.";
-    var attr = $("q-attr").value.trim();
-    ctx.textAlign = "center"; ctx.textBaseline = "top";
-    ctx.font = "600 150px " + SERIF; ctx.fillStyle = "rgba(253,230,138,0.26)"; ctx.fillText("“", W / 2, TOP + 10);
+    var text = $("q-text").value.trim() || "A line worth keeping.", attr = $("q-attr").value.trim();
+    bigQuoteMark();
     layout([
-      { type: "text", text: text, font: "500 italic 56px " + SERIF, color: INK, lineHeight: 72, gapAfter: attr ? 48 : 0 },
+      { type: "text", text: text, font: "500 italic " + QUOTE_SIZE + "px " + SERIF, color: INK, lineHeight: QUOTE_SIZE + 16, gapAfter: attr ? 48 : 0 },
       attr ? { type: "text", text: "— " + attr, font: "500 32px " + SERIF, color: INDIGO, lineHeight: 42 } : null
     ], "center");
   }
@@ -303,11 +241,12 @@
     layout([
       name ? { type: "text", text: name, font: "600 66px " + SERIF, color: INK, lineHeight: 76, gapAfter: band ? 6 : 26 } : null,
       band ? { type: "text", text: band, font: "500 italic 32px " + SERIF, color: AMBER, lineHeight: 44, gapAfter: 28 } : null,
-      def ? { type: "text", text: def, font: "500 36px " + SERIF, color: VIOLET, lineHeight: 50, gapAfter: 34 } : null,
-      descs.length ? { type: "pills", words: descs, gapAfter: 40 } : null,
+      def ? { type: "text", text: def, font: "500 36px " + SERIF, color: VIOLET, lineHeight: 50, gapAfter: 22 } : null,
+      // Descriptors: plain text, bullet-joined, soft muted white, smaller than the definition. No pills.
+      descs.length ? { type: "text", text: descs.join("   ·   "), font: "500 28px " + SERIF, color: SOFT_WHITE, lineHeight: 40, gapAfter: 40 } : null,
       freer ? { type: "text", text: "With conscious choice, it can become:", font: "500 32px " + SERIF, color: "rgba(245,243,255,0.92)", lineHeight: 42, gapAfter: 12 } : null,
       freer ? { type: "text", text: freer, font: "500 46px " + SERIF, color: AMBER, lineHeight: 58 } : null
-    ], "left");
+    ], "leftblock");
   }
   function renderArchetype() {
     var key = $("a-select").value, name = $("a-name").value.trim(), def = $("a-def").value.trim(), axis = $("a-axis").value.trim();
@@ -321,28 +260,35 @@
   }
   function renderMindset() {
     var ka = $("m-a").value, kb = $("m-b").value, name = $("m-name").value.trim(), desc = $("m-desc").value.trim();
-    var s = (ka && kb) ? sortedKeys(ka, kb) : null, formula = mindsetFormula(ka, kb);
+    var s = (ka && kb) ? sortedKeys(ka, kb) : null;
     layout([
       s ? { type: "dots", r: 22, colors: [archColor(s[0]), archColor(s[1])], gapAfter: 24 } : null,
       catLabel("MINDSET"),
       name ? { type: "text", text: name, font: "600 62px " + SERIF, color: INK, lineHeight: 72, gapAfter: 8 } : null,
-      formula ? { type: "text", text: formula, font: "500 italic 31px " + SERIF, color: INDIGO, lineHeight: 42, gapAfter: 22 } : null,
+      (ka && kb) ? { type: "text", text: mindsetFormula(ka, kb), font: "500 italic 31px " + SERIF, color: INDIGO, lineHeight: 42, gapAfter: 22 } : null,
       desc ? { type: "text", text: desc, font: "500 35px " + SERIF, color: VIOLET, lineHeight: 48 } : null
     ], "center");
   }
   function renderAxial() {
-    var q = $("ax-q").value.trim() || "A question worth sitting with.";
-    var axis = $("ax-axis").value.trim();
-    ctx.textAlign = "center"; ctx.textBaseline = "top";
-    ctx.font = "600 150px " + SERIF; ctx.fillStyle = "rgba(253,230,138,0.26)"; ctx.fillText("“", W / 2, TOP + 10);
+    var q = $("ax-q").value.trim() || "A question worth sitting with.", axis = $("ax-axis").value.trim();
+    bigQuoteMark();
     layout([
-      { type: "text", text: q, font: "500 italic 56px " + SERIF, color: INK, lineHeight: 72, gapAfter: axis ? 48 : 0 },
-      axis ? { type: "text", text: "— " + axis, font: "500 32px " + SERIF, color: INDIGO, lineHeight: 42 } : null
+      { type: "text", text: q, font: "500 italic " + AXIAL_SIZE + "px " + SERIF, color: INK, lineHeight: AXIAL_SIZE + 16, gapAfter: axis ? 48 : 0 },
+      // Axis pair beneath — no leading em-dash.
+      axis ? { type: "text", text: axis, font: "500 32px " + SERIF, color: INDIGO, lineHeight: 42 } : null
     ], "center");
+  }
+  function renderDefinitions() {
+    var term = $("d-term").value.trim(), cat = $("d-cat").value.trim(), def = $("d-def").value.trim();
+    layout([
+      term ? { type: "text", text: term, font: "600 74px " + SERIF, color: INK, lineHeight: 84, gapAfter: cat ? 12 : 26 } : null,
+      cat ? { type: "text", text: cat.toUpperCase(), font: "600 22px " + SANS, color: INDIGO, ls: "3px", lineHeight: 32, gapAfter: 30 } : null,
+      def ? { type: "text", text: def, font: "500 37px " + SERIF, color: VIOLET, lineHeight: 51 } : null
+    ], "leftblock");
   }
   function render() {
     background();
-    ({ quote: renderQuote, pattern: renderPattern, archetype: renderArchetype, mindset: renderMindset, axial: renderAxial })[mode]();
+    ({ quote: renderQuote, pattern: renderPattern, archetype: renderArchetype, mindset: renderMindset, axial: renderAxial, definitions: renderDefinitions })[mode]();
     footer(); updateDownloadState();
   }
 
@@ -352,23 +298,19 @@
     if (mode === "pattern") return !!($("p-name").value.trim() && $("p-freer").value.trim());
     if (mode === "archetype") return !!$("a-name").value.trim();
     if (mode === "mindset") return !!($("m-name").value.trim() && $("m-a").value && $("m-b").value);
-    return !!$("ax-q").value.trim();
+    if (mode === "axial") return !!$("ax-q").value.trim();
+    return !!($("d-term").value.trim() && $("d-def").value.trim());
   }
   function updateDownloadState() {
     var ok = hasContent(); $("download").disabled = !ok;
-    $("status").textContent = ok ? "" : ({
-      quote: "Enter a quote.", pattern: "Needs a name and a freer expression.",
-      archetype: "Enter a name.", mindset: "Pick both parents and enter a name.", axial: "Enter a question."
-    })[mode];
+    $("status").textContent = ok ? "" : ({ quote: "Enter a quote.", pattern: "Needs a name and a freer expression.", archetype: "Enter a name.", mindset: "Pick both parents and enter a name.", axial: "Enter a question.", definitions: "Needs a term and a definition." })[mode];
   }
   function slug(s) { return String(s || "post").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "post"; }
   function download() {
-    var base = { quote: "q-text", pattern: "p-name", archetype: "a-name", mindset: "m-name", axial: "ax-q" }[mode];
+    var base = { quote: "q-text", pattern: "p-name", archetype: "a-name", mindset: "m-name", axial: "ax-q", definitions: "d-term" }[mode];
     canvas.toBlob(function (blob) {
-      var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-      a.download = "soulcraft-" + mode + "-" + slug($(base).value) + ".png";
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); $("status").textContent = "Downloaded.";
+      var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "soulcraft-" + mode + "-" + slug($(base).value) + ".png";
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); $("status").textContent = "Downloaded.";
     }, "image/png");
   }
 
@@ -378,40 +320,22 @@
     btn.addEventListener("click", function () {
       mode = btn.getAttribute("data-mode");
       for (var k = 0; k < tabs.length; k++) tabs[k].classList.toggle("on", tabs[k] === btn);
-      ["quote", "pattern", "archetype", "mindset", "axial"].forEach(function (m) { $("mode-" + m).classList.toggle("on", m === mode); });
+      ["quote", "pattern", "archetype", "mindset", "axial", "definitions"].forEach(function (m) { $("mode-" + m).classList.toggle("on", m === mode); });
       render();
     });
   })(tabs[t]);
 
   function fillArchSelect(sel, blank) { sel.appendChild(new Option(blank, "")); A_LIST.forEach(function (a) { sel.appendChild(new Option(a.name, a.key)); }); }
   fillArchSelect($("a-select"), "— choose —"); fillArchSelect($("m-a"), "— parent A —"); fillArchSelect($("m-b"), "— parent B —");
-
-  // Axis picker — the six canonical axes (lower wheel-index archetype first).
   var axSel = $("ax-select"); axSel.appendChild(new Option("— choose an axis —", ""));
-  ["lover", "caregiver", "everyman", "ruler", "warrior", "creator"].forEach(function (k) {
-    if (arch(k)) axSel.appendChild(new Option(axisLabel(k), k));
-  });
+  ["lover", "caregiver", "everyman", "ruler", "warrior", "creator"].forEach(function (k) { if (arch(k)) axSel.appendChild(new Option(axisLabel(k), k)); });
 
-  $("a-select").addEventListener("change", function () {
-    var k = $("a-select").value;
-    if (k) { $("a-name").value = archName(k); $("a-def").value = archLonging(k); $("a-axis").value = AXQ(k) || ""; }
-    render();
-  });
-  function syncMindset() {
-    var ka = $("m-a").value, kb = $("m-b").value; $("m-formula").value = mindsetFormula(ka, kb);
-    if (ka && kb) { var nm = PAIR(ka, kb); if (nm) $("m-name").value = nm; } render();
-  }
+  $("a-select").addEventListener("change", function () { var k = $("a-select").value; if (k) { $("a-name").value = archName(k); $("a-def").value = archLonging(k); $("a-axis").value = AXQ(k) || ""; } render(); });
+  function syncMindset() { var ka = $("m-a").value, kb = $("m-b").value; $("m-formula").value = mindsetFormula(ka, kb); if (ka && kb) { var nm = PAIR(ka, kb); if (nm) $("m-name").value = nm; } render(); }
   $("m-a").addEventListener("change", syncMindset); $("m-b").addEventListener("change", syncMindset);
-  $("ax-select").addEventListener("change", function () {
-    var k = $("ax-select").value;
-    if (k) { $("ax-q").value = AXQ(k) || ""; $("ax-axis").value = axisLabel(k); }
-    render();
-  });
+  $("ax-select").addEventListener("change", function () { var k = $("ax-select").value; if (k) { $("ax-q").value = AXQ(k) || ""; $("ax-axis").value = axisLabel(k); } render(); });
 
-  ["q-text", "q-attr", "p-name", "p-band", "p-def", "p-desc", "p-freer",
-   "a-name", "a-def", "a-axis", "m-name", "m-desc", "ax-q", "ax-axis", "handle"].forEach(function (id) {
-    $(id).addEventListener("input", render);
-  });
+  ["q-text", "q-attr", "p-name", "p-band", "p-def", "p-desc", "p-freer", "a-name", "a-def", "a-axis", "m-name", "m-desc", "ax-q", "ax-axis", "d-term", "d-cat", "d-def", "handle"].forEach(function (id) { $(id).addEventListener("input", render); });
   $("download").addEventListener("click", function () { if (!$("download").disabled) download(); });
 
   render();
