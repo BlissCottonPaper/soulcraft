@@ -20,7 +20,7 @@
   .wrap { max-width: 68rem; margin: 0 auto; }
   .eyebrow { font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: rgba(253,230,138,0.8); margin: 0 0 .35rem; }
   h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2.2rem; margin: 0 0 .25rem; }
-  .lead { color: rgba(224,218,246,0.65); font-size: 14px; margin: 0 0 2rem; max-width: 40rem; }
+  .lead { color: rgba(224,218,246,0.65); font-size: 14px; margin: 0 0 2rem; max-width: 42rem; }
   .grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
   @media (min-width: 880px) { .grid { grid-template-columns: 1fr 1fr; align-items: start; } }
   .card { background: rgba(255,250,240,0.03); border: 1px solid rgba(196,181,253,0.18); border-radius: 1rem; padding: 1.5rem; }
@@ -31,13 +31,13 @@
     border-radius: .6rem; padding: .6rem .75rem; font: inherit; font-size: 15px; color: #f5f3ff; outline: none; resize: vertical;
   }
   input:focus, textarea:focus, select:focus { border-color: rgba(253,230,138,0.6); }
-  textarea { min-height: 3.5rem; line-height: 1.4; }
-  .modes { display: flex; gap: .5rem; margin-bottom: 1.25rem; }
-  .modebtn { flex: 1; padding: .6rem; border-radius: .6rem; border: 1px solid rgba(196,181,253,0.22);
-    background: rgba(0,0,0,0.2); color: rgba(224,218,246,0.8); font: inherit; font-weight: 600; cursor: pointer; }
-  .modebtn.on { border-color: rgba(253,230,138,0.6); background: rgba(253,230,138,0.12); color: #fde8b0; }
+  textarea { min-height: 3.25rem; line-height: 1.4; }
+  .tabs { display: flex; gap: .4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 5rem; padding: .55rem .5rem; border-radius: .6rem; border: 1px solid rgba(196,181,253,0.22);
+    background: rgba(0,0,0,0.2); color: rgba(224,218,246,0.8); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .tab.on { border-color: rgba(253,230,138,0.6); background: rgba(253,230,138,0.12); color: #fde8b0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
   .hint { font-size: 12px; color: rgba(224,218,246,0.5); margin: .35rem 0 0; }
-  .req { color: #fca5a5; }
   .actions { margin-top: 1.5rem; display: flex; gap: .75rem; align-items: center; }
   button.go { background: rgba(253,230,138,0.9); color: #1b1430; border: 0; border-radius: .6rem;
     padding: .7rem 1.3rem; font: inherit; font-weight: 600; cursor: pointer; }
@@ -55,36 +55,66 @@
 <body>
   <div class="wrap">
     <p class="eyebrow">The Art of Soulcraft · internal</p>
-    <h1>Instagram Post Generator</h1>
-    <p class="lead">Compose a square post in the house style, preview it live, and download a ready-to-post image. Not linked publicly.</p>
+    <h1>Instagram Content Container</h1>
+    <p class="lead">One shared visual shell, four modes. Every copy field is plain text — the tool only renders what you type. Colors and the Mindset formula come from the canonical wheel data. Download a square PNG to post manually.</p>
 
     <div class="grid">
       <div class="card">
-        <div class="modes" id="modes">
-          <button class="modebtn on" data-mode="pattern" type="button">Pattern</button>
-          <button class="modebtn" data-mode="quote" type="button">Quote</button>
+        <div class="tabs" id="tabs">
+          <button class="tab on" data-mode="quote" type="button">Quote</button>
+          <button class="tab" data-mode="pattern" type="button">Pattern</button>
+          <button class="tab" data-mode="archetype" type="button">Archetype</button>
+          <button class="tab" data-mode="mindset" type="button">Mindset</button>
         </div>
 
-        <!-- PATTERN MODE -->
-        <div class="swap on" id="mode-pattern">
-          <label>Term name <span class="req">*</span></label>
-          <input type="text" id="p-term" placeholder="e.g. The Tyrant" />
-          <label>What it protects <span class="req">*</span></label>
-          <textarea id="p-protects" placeholder="e.g. a terror of ever being at someone else's mercy"></textarea>
-          <label>What it becomes under volition <span class="req">*</span></label>
-          <textarea id="p-becomes" placeholder="e.g. The Sovereign — authority that serves the whole, not the self"></textarea>
-          <p class="hint">All three parts are required. The freed expression is never left off — the pattern alone is not a post.</p>
-        </div>
-
-        <!-- QUOTE MODE -->
-        <div class="swap" id="mode-quote">
-          <label>Pick from the collection</label>
-          <select id="q-select"></select>
+        <!-- QUOTE -->
+        <div class="swap on" id="mode-quote">
           <label>Quote</label>
-          <textarea id="q-text"></textarea>
-          <label>Attribution</label>
-          <input type="text" id="q-attr" placeholder="e.g. often attributed to Carl Jung" />
-          <p class="hint">Attribution mirrors the locked discipline: a confirmed source only when verified from a primary text, otherwise “often attributed to …”. Editable so you can tweak or add a new one.</p>
+          <textarea id="q-text" placeholder="Until you make the unconscious conscious, it will direct your life and you will call it fate."></textarea>
+          <label>Attribution — rendered as “— …”</label>
+          <input type="text" id="q-attr" placeholder="after Carl Jung" />
+        </div>
+
+        <!-- PATTERN -->
+        <div class="swap" id="mode-pattern">
+          <label>Pattern name</label>
+          <input type="text" id="p-name" placeholder="The Tyrant" />
+          <label>Bandwidth tag — gold italic</label>
+          <input type="text" id="p-band" placeholder="low bandwidth" />
+          <label>Definition — one sentence</label>
+          <textarea id="p-def" placeholder="Control gripped so tightly that no one else is allowed to hold the wheel."></textarea>
+          <label>Three descriptors — comma-separated (become tag-pills)</label>
+          <input type="text" id="p-desc" placeholder="controlling, fearful, rigid" />
+          <label>Freer expression — bold closing</label>
+          <input type="text" id="p-freer" placeholder="The Sovereign — authority that serves the whole." />
+          <p class="hint">Renders only what’s filled. The freed expression is the point of the post; keep it.</p>
+        </div>
+
+        <!-- ARCHETYPE -->
+        <div class="swap" id="mode-archetype">
+          <label>Archetype — sets the wheel-color dot</label>
+          <select id="a-select"></select>
+          <label>Name</label>
+          <input type="text" id="a-name" placeholder="Lover" />
+          <label>Definition — one line</label>
+          <input type="text" id="a-def" placeholder="longs for union" />
+          <p class="hint">The dot color is pulled from that archetype’s exact Mandala-wheel color. Name and definition are yours to edit.</p>
+        </div>
+
+        <!-- MINDSET -->
+        <div class="swap" id="mode-mindset">
+          <label>Parent archetypes — set the two dots + the formula</label>
+          <div class="two">
+            <select id="m-a"></select>
+            <select id="m-b"></select>
+          </div>
+          <label>Mindset name</label>
+          <input type="text" id="m-name" placeholder="The Charmer" />
+          <label>Formula (auto, from the two parents)</label>
+          <input type="text" id="m-formula" readonly />
+          <label>Short descriptor</label>
+          <textarea id="m-desc" placeholder="Warmth that opens any door — connection as a kind of play."></textarea>
+          <p class="hint">Two dots + the “(A × B)” formula match the real Mindsets Lexicon order. Name and descriptor are yours.</p>
         </div>
 
         <label style="margin-top:1.5rem;">Instagram handle</label>
@@ -105,38 +135,41 @@
     </div>
   </div>
 
+<script src="/assets/soulcraft-data.js"></script>
 <script>
 (function () {
   "use strict";
-  // Snapshot of the Notion "Quotes — Collected Touchstones" collection. Attribution
-  // strings already follow the locked discipline: a plain credit only for a
-  // confirmed primary source, "often attributed to …" otherwise (and a place, not
-  // a person, where the person is genuinely disputed). Edit/extend as the
-  // collection grows.
-  var QUOTES = [
-    { text: "Until you make the unconscious conscious, it will direct your life and you will call it fate.", attribution: "after Carl Jung" },
-    { text: "Who looks outside, dreams; who looks inside, awakes.", attribution: "often attributed to Carl Jung" },
-    { text: "The heart has reasons that reason cannot know.", attribution: "Blaise Pascal, Pensées" },
-    { text: "Perfection is achieved not when there is nothing left to add, but when there is nothing left to take away.", attribution: "Antoine de Saint-Exupéry" },
-    { text: "Make everything as simple as possible, but not simpler.", attribution: "often attributed to Albert Einstein" },
-    { text: "Not everything that can be counted counts, and not everything that counts can be measured.", attribution: "often attributed to Albert Einstein" },
-    { text: "The best way to find yourself is to lose yourself in the service of others.", attribution: "often attributed to Mahatma Gandhi" },
-    { text: "The unexamined life is not worth living.", attribution: "often attributed to Socrates" },
-    { text: "Know thyself.", attribution: "inscribed at the Temple of Apollo at Delphi" },
-    { text: "The wound is where the light enters.", attribution: "often attributed to Rumi" },
-    { text: "You are driving your chariot. You are not your chariot.", attribution: "Marc Simmons" },
-    { text: "The needs loosen the soil. Consciousness plants the seed.", attribution: "Marc Simmons" }
-  ];
+  var A_LIST = (typeof ARCHETYPES !== "undefined" && ARCHETYPES) || [];
+  var HUEFN = (typeof HUE === "function") ? HUE : function (i) { return i * 30; };
+  var PAIR = (typeof SOULCRAFT !== "undefined" && SOULCRAFT.pairingName) ? SOULCRAFT.pairingName : function () { return null; };
 
   var $ = function (id) { return document.getElementById(id); };
   var canvas = $("canvas"), ctx = canvas.getContext("2d");
   var W = 1080, PAD = 112, CONTENT_W = W - PAD * 2;
+  var TOP = 130, BOTTOM = 872; // content band; footer lives below
 
-  // Palette
-  var BG1 = "#241d42", BG2 = "#171230", BG3 = "#100c22";
-  var INK = "#f5f3ff", VIOLET = "rgba(224,218,246,0.82)", AMBER = "#fde8b0", AMBER_DIM = "rgba(253,230,138,0.8)";
+  // Palette (house)
+  var INK = "#f5f3ff", VIOLET = "rgba(224,218,246,0.82)", VIOLET_DIM = "rgba(224,218,246,0.6)";
+  var AMBER = "#fde8b0", AMBER_DIM = "rgba(253,230,138,0.82)";
+  var SERIF = "'Cormorant Garamond', Georgia, serif";
+  var SANS = "'Source Sans 3', system-ui, sans-serif"; // labels only
 
-  var mode = "pattern";
+  var mode = "quote";
+
+  // ---- data helpers -------------------------------------------------------
+  function archColor(key) {
+    var idx = A_LIST.map(function (a) { return a.key; }).indexOf(key);
+    if (idx < 0) return "hsl(0,0%,60%)";
+    return "hsl(" + HUEFN(idx) + ",62%,56%)"; // exact wheel color
+  }
+  function archName(key) { for (var i = 0; i < A_LIST.length; i++) if (A_LIST[i].key === key) return A_LIST[i].name; return key; }
+  function archDef(key) {
+    var a = null; for (var i = 0; i < A_LIST.length; i++) if (A_LIST[i].key === key) a = A_LIST[i];
+    if (!a) return "";
+    return "longs " + (a.longingVerb ? "to " : "for ") + a.longing;
+  }
+  function sortedKeys(k1, k2) { return [k1, k2].sort(); }
+  function mindsetFormula(k1, k2) { if (!k1 || !k2) return ""; var s = sortedKeys(k1, k2); return "(" + archName(s[0]) + " × " + archName(s[1]) + ")"; }
 
   // ---- text helpers -------------------------------------------------------
   function wrapText(text, maxWidth) {
@@ -151,33 +184,97 @@
     return lines;
   }
 
-  // Measure + vertically center a stack of text blocks between top and bottom.
-  function drawBlocks(blocks, top, bottom) {
-    var totalH = 0, i;
-    for (i = 0; i < blocks.length; i++) {
-      var b = blocks[i];
-      ctx.font = b.font; ctx.letterSpacing = b.ls || "0px";
-      b._lines = wrapText(b.text, CONTENT_W);
-      b._h = b._lines.length * b.lineHeight;
-      totalH += b._h + (b.gapAfter || 0);
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  // ---- block engine (measure, then vertically center) --------------------
+  // Block kinds: text | dot | dots | pills. align: 'left' | 'center'.
+  var PILL_H = 50, PILL_PADX = 24, PILL_GAP = 14, PILL_ROWGAP = 14, PILL_FONT = "500 27px " + SERIF;
+
+  function measure(b) {
+    if (b.type === "dot") { b._h = b.r * 2; return; }
+    if (b.type === "dots") { b._h = b.r * 2; return; }
+    if (b.type === "pills") {
+      ctx.font = PILL_FONT;
+      var rows = [], row = [], x = 0;
+      (b.words || []).forEach(function (w) {
+        var ww = ctx.measureText(w).width + PILL_PADX * 2;
+        if (x + ww > CONTENT_W && row.length) { rows.push(row); row = []; x = 0; }
+        row.push({ w: w, width: ww }); x += ww + PILL_GAP;
+      });
+      if (row.length) rows.push(row);
+      b._rows = rows;
+      b._h = rows.length ? rows.length * PILL_H + (rows.length - 1) * PILL_ROWGAP : 0;
+      return;
     }
-    var y = top + Math.max(0, ((bottom - top) - totalH) / 2);
-    ctx.textAlign = "center"; ctx.textBaseline = "top";
-    for (i = 0; i < blocks.length; i++) {
-      var bb = blocks[i];
-      ctx.font = bb.font; ctx.fillStyle = bb.color; ctx.letterSpacing = bb.ls || "0px";
-      for (var j = 0; j < bb._lines.length; j++) { ctx.fillText(bb._lines[j], W / 2, y); y += bb.lineHeight; }
-      y += (bb.gapAfter || 0);
-    }
+    ctx.font = b.font; ctx.letterSpacing = b.ls || "0px";
+    b._lines = wrapText(b.text, CONTENT_W);
+    b._h = b._lines.length * b.lineHeight;
     ctx.letterSpacing = "0px";
   }
 
-  // ---- brand marks --------------------------------------------------------
+  function draw(b, x, y, align) {
+    if (b.type === "dot") {
+      var cx = align === "left" ? x + b.r : W / 2;
+      ctx.beginPath(); ctx.arc(cx, y + b.r, b.r, 0, Math.PI * 2); ctx.fillStyle = b.color; ctx.fill();
+      return y + b.r * 2;
+    }
+    if (b.type === "dots") {
+      var cy = y + b.r, gap = b.r * 1.1;
+      var c1 = x + b.r, c2 = x + b.r + gap + b.r * 2;
+      ctx.beginPath(); ctx.arc(c1, cy, b.r, 0, Math.PI * 2); ctx.fillStyle = b.colors[0]; ctx.fill();
+      ctx.beginPath(); ctx.arc(c2, cy, b.r, 0, Math.PI * 2); ctx.fillStyle = b.colors[1]; ctx.fill();
+      return y + b.r * 2;
+    }
+    if (b.type === "pills") {
+      ctx.font = PILL_FONT; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      var yy = y;
+      b._rows.forEach(function (row) {
+        var xx = x;
+        row.forEach(function (p) {
+          ctx.fillStyle = "rgba(99,102,241,0.20)"; roundRect(xx, yy, p.width, PILL_H, PILL_H / 2); ctx.fill();
+          ctx.strokeStyle = "rgba(147,140,235,0.4)"; ctx.lineWidth = 1.5; roundRect(xx, yy, p.width, PILL_H, PILL_H / 2); ctx.stroke();
+          ctx.fillStyle = "rgba(224,218,246,0.92)"; ctx.fillText(p.w, xx + PILL_PADX, yy + PILL_H / 2 + 1);
+          xx += p.width + PILL_GAP;
+        });
+        yy += PILL_H + PILL_ROWGAP;
+      });
+      return y + b._h;
+    }
+    // text
+    ctx.font = b.font; ctx.fillStyle = b.color; ctx.letterSpacing = b.ls || "0px";
+    ctx.textAlign = align === "left" ? "left" : "center"; ctx.textBaseline = "top";
+    var tx = align === "left" ? x : W / 2;
+    for (var i = 0; i < b._lines.length; i++) { ctx.fillText(b._lines[i], tx, y); y += b.lineHeight; }
+    ctx.letterSpacing = "0px";
+    return y;
+  }
+
+  function layout(blocks, align) {
+    blocks = blocks.filter(function (b) { return b; });
+    blocks.forEach(measure);
+    blocks = blocks.filter(function (b) { return b._h > 0 || b.type === "dot" || b.type === "dots"; });
+    var total = 0; blocks.forEach(function (b) { total += b._h + (b.gapAfter || 0); });
+    if (blocks.length) total -= (blocks[blocks.length - 1].gapAfter || 0);
+    var x = align === "left" ? PAD : W / 2;
+    var y = TOP + Math.max(0, ((BOTTOM - TOP) - total) / 2);
+    for (var i = 0; i < blocks.length; i++) { y = draw(blocks[i], x, y, align); y += (blocks[i].gapAfter || 0); }
+  }
+
+  // ---- brand shell --------------------------------------------------------
+  function background() {
+    var g = ctx.createRadialGradient(W / 2, -80, 120, W / 2, 430, 1180);
+    g.addColorStop(0, "#241d42"); g.addColorStop(0.42, "#171230"); g.addColorStop(1, "#100c22");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
+    ctx.strokeStyle = "rgba(196,181,253,0.14)"; ctx.lineWidth = 2; ctx.strokeRect(40, 40, W - 80, W - 80);
+  }
   function drawMandala(cx, cy, R) {
     for (var i = 0; i < 12; i++) {
       var a = (-90 + i * 30) * Math.PI / 180;
-      ctx.beginPath();
-      ctx.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), R * 0.16, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), R * 0.16, 0, Math.PI * 2);
       ctx.fillStyle = "hsl(" + (i * 30) + ",62%,58%)"; ctx.fill();
     }
     var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.55);
@@ -185,91 +282,104 @@
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 0.55, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx, cy, R * 0.2, 0, Math.PI * 2); ctx.fillStyle = "rgb(255,252,240)"; ctx.fill();
   }
-
-  function drawFooter(handle) {
+  function footer() {
     drawMandala(W / 2, 930, 26);
     ctx.textAlign = "center"; ctx.textBaseline = "top";
-    ctx.letterSpacing = "3px";
-    ctx.font = "600 22px 'Source Sans 3', sans-serif"; ctx.fillStyle = "rgba(245,243,255,0.85)";
+    ctx.letterSpacing = "3px"; ctx.font = "600 22px " + SANS; ctx.fillStyle = "rgba(245,243,255,0.85)";
     ctx.fillText("THE ART OF SOULCRAFT", W / 2, 972);
     ctx.letterSpacing = "0px";
-    var h = String(handle || "").replace(/^@+/, "").trim() || "artofsoulcraft";
-    ctx.font = "400 21px 'Source Sans 3', sans-serif"; ctx.fillStyle = "rgba(253,230,138,0.78)";
+    var h = $("handle").value.replace(/^@+/, "").trim() || "artofsoulcraft";
+    ctx.font = "400 21px " + SANS; ctx.fillStyle = "rgba(253,230,138,0.78)";
     ctx.fillText("follow @" + h, W / 2, 1006);
+    ctx.letterSpacing = "0px";
   }
 
-  function drawLabel(text, y) {
-    ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.letterSpacing = "4px";
-    ctx.font = "600 21px 'Source Sans 3', sans-serif"; ctx.fillStyle = AMBER_DIM;
-    ctx.fillText(text, W / 2, y); ctx.letterSpacing = "0px";
-  }
-
-  // ---- render -------------------------------------------------------------
-  function background() {
-    var g = ctx.createRadialGradient(W / 2, -80, 120, W / 2, 430, 1180);
-    g.addColorStop(0, BG1); g.addColorStop(0.42, BG2); g.addColorStop(1, BG3);
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
-    // hairline inner frame — quiet, editorial
-    ctx.strokeStyle = "rgba(196,181,253,0.14)"; ctx.lineWidth = 2;
-    ctx.strokeRect(40, 40, W - 80, W - 80);
-  }
-
-  function renderPattern() {
-    var term = $("p-term").value.trim() || "The pattern";
-    var protects = $("p-protects").value.trim() || "what it is protecting";
-    var becomes = $("p-becomes").value.trim() || "what it becomes, freely chosen";
-    background();
-    // Two labelled halves, protect above the turn, freed expression below.
-    drawBlocks([
-      { text: term, font: "600 78px 'Cormorant Garamond', serif", color: INK, lineHeight: 88, gapAfter: 54 },
-      { text: "WHAT IT PROTECTS", font: "600 21px 'Source Sans 3', sans-serif", color: AMBER_DIM, ls: "4px", lineHeight: 34, gapAfter: 10 },
-      { text: protects, font: "400 37px 'Source Sans 3', sans-serif", color: VIOLET, lineHeight: 50, gapAfter: 44 },
-      { text: "+", font: "500 60px 'Cormorant Garamond', serif", color: "rgba(253,230,138,0.55)", lineHeight: 60, gapAfter: 30 },
-      { text: "UNDER VOLITION, IT BECOMES", font: "600 21px 'Source Sans 3', sans-serif", color: AMBER_DIM, ls: "4px", lineHeight: 34, gapAfter: 12 },
-      { text: becomes, font: "600 46px 'Cormorant Garamond', serif", color: AMBER, lineHeight: 58 }
-    ], 120, 860);
-    drawFooter($("handle").value);
-  }
-
+  // ---- modes --------------------------------------------------------------
   function renderQuote() {
     var text = $("q-text").value.trim() || "A line worth keeping.";
     var attr = $("q-attr").value.trim();
-    background();
-    // Big opening quotation mark, the quote, then the attribution.
     ctx.textAlign = "center"; ctx.textBaseline = "top";
-    ctx.font = "600 150px 'Cormorant Garamond', serif"; ctx.fillStyle = "rgba(253,230,138,0.28)";
-    ctx.fillText("“", W / 2, 150);
-    var blocks = [{ text: text, font: "500 italic 54px 'Cormorant Garamond', serif", color: INK, lineHeight: 70, gapAfter: attr ? 46 : 0 }];
-    if (attr) blocks.push({ text: "— " + attr, font: "400 27px 'Source Sans 3', sans-serif", color: "rgba(224,218,246,0.7)", lineHeight: 38 });
-    drawBlocks(blocks, 300, 860);
-    drawFooter($("handle").value);
+    ctx.font = "600 150px " + SERIF; ctx.fillStyle = "rgba(253,230,138,0.26)"; ctx.fillText("“", W / 2, TOP + 20);
+    layout([
+      { type: "text", text: text, font: "500 italic 56px " + SERIF, color: INK, lineHeight: 72, gapAfter: attr ? 48 : 0 },
+      attr ? { type: "text", text: "— " + attr, font: "500 32px " + SERIF, color: VIOLET_DIM, lineHeight: 42 } : null
+    ], "center");
+  }
+
+  function renderPattern() {
+    var name = $("p-name").value.trim();
+    var band = $("p-band").value.trim();
+    var def = $("p-def").value.trim();
+    var descs = $("p-desc").value.split(",").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 3);
+    var freer = $("p-freer").value.trim();
+    layout([
+      name ? { type: "text", text: name, font: "600 66px " + SERIF, color: INK, lineHeight: 76, gapAfter: band ? 8 : 26 } : null,
+      band ? { type: "text", text: band, font: "500 italic 32px " + SERIF, color: AMBER, lineHeight: 44, gapAfter: 28 } : null,
+      def ? { type: "text", text: def, font: "500 36px " + SERIF, color: VIOLET, lineHeight: 50, gapAfter: 34 } : null,
+      descs.length ? { type: "pills", words: descs, gapAfter: 40 } : null,
+      freer ? { type: "text", text: "WITH CONSCIOUS CHOICE, IT CAN BECOME", font: "600 20px " + SANS, color: AMBER_DIM, ls: "3px", lineHeight: 30, gapAfter: 14 } : null,
+      freer ? { type: "text", text: freer, font: "600 46px " + SERIF, color: AMBER, lineHeight: 58 } : null
+    ], "left");
+  }
+
+  function renderArchetype() {
+    var key = $("a-select").value;
+    var name = $("a-name").value.trim();
+    var def = $("a-def").value.trim();
+    layout([
+      key ? { type: "dot", r: 26, color: archColor(key), gapAfter: 30 } : null,
+      name ? { type: "text", text: name, font: "600 74px " + SERIF, color: INK, lineHeight: 84, gapAfter: 18 } : null,
+      def ? { type: "text", text: def, font: "500 38px " + SERIF, color: VIOLET, lineHeight: 50 } : null
+    ], "left");
+  }
+
+  function renderMindset() {
+    var ka = $("m-a").value, kb = $("m-b").value;
+    var name = $("m-name").value.trim();
+    var formula = mindsetFormula(ka, kb);
+    var desc = $("m-desc").value.trim();
+    var s = (ka && kb) ? sortedKeys(ka, kb) : null;
+    layout([
+      s ? { type: "dots", r: 22, colors: [archColor(s[0]), archColor(s[1])], gapAfter: 30 } : null,
+      name ? { type: "text", text: name, font: "600 66px " + SERIF, color: INK, lineHeight: 76, gapAfter: 10 } : null,
+      formula ? { type: "text", text: formula, font: "500 italic 32px " + SERIF, color: VIOLET_DIM, lineHeight: 44, gapAfter: 26 } : null,
+      desc ? { type: "text", text: desc, font: "500 36px " + SERIF, color: VIOLET, lineHeight: 50 } : null
+    ], "left");
   }
 
   function render() {
-    if (mode === "pattern") renderPattern(); else renderQuote();
+    background();
+    if (mode === "quote") renderQuote();
+    else if (mode === "pattern") renderPattern();
+    else if (mode === "archetype") renderArchetype();
+    else renderMindset();
+    footer();
     updateDownloadState();
   }
 
-  // ---- download state -----------------------------------------------------
-  function patternComplete() {
-    return $("p-term").value.trim() && $("p-protects").value.trim() && $("p-becomes").value.trim();
+  // ---- download -----------------------------------------------------------
+  function hasContent() {
+    if (mode === "quote") return !!$("q-text").value.trim();
+    if (mode === "pattern") return !!($("p-name").value.trim() && $("p-freer").value.trim());
+    if (mode === "archetype") return !!$("a-name").value.trim();
+    return !!($("m-name").value.trim() && $("m-a").value && $("m-b").value);
   }
   function updateDownloadState() {
-    var ok = mode === "quote" ? !!$("q-text").value.trim() : patternComplete();
+    var ok = hasContent();
     $("download").disabled = !ok;
-    $("status").textContent = ok ? "" : (mode === "pattern"
-      ? "Fill in all three parts to enable download."
-      : "Enter a quote to enable download.");
+    $("status").textContent = ok ? "" : ({
+      quote: "Enter a quote to enable download.",
+      pattern: "Needs at least a name and a freer expression.",
+      archetype: "Enter a name to enable download.",
+      mindset: "Pick both parents and enter a name."
+    })[mode];
   }
-
   function slug(s) { return String(s || "post").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "post"; }
-
   function download() {
-    var name = mode === "pattern" ? slug($("p-term").value) : slug($("q-text").value);
+    var base = mode === "quote" ? $("q-text").value : ($("" + (mode === "pattern" ? "p" : mode === "archetype" ? "a" : "m") + "-name").value);
     canvas.toBlob(function (blob) {
       var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "soulcraft-" + mode + "-" + name + ".png";
+      a.href = URL.createObjectURL(blob); a.download = "soulcraft-" + mode + "-" + slug(base) + ".png";
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
       $("status").textContent = "Downloaded.";
@@ -277,45 +387,53 @@
   }
 
   // ---- wiring -------------------------------------------------------------
-  var modeBtns = document.querySelectorAll("#modes .modebtn");
-  for (var i = 0; i < modeBtns.length; i++) {
+  var tabs = document.querySelectorAll("#tabs .tab");
+  for (var t = 0; t < tabs.length; t++) {
     (function (btn) {
       btn.addEventListener("click", function () {
         mode = btn.getAttribute("data-mode");
-        for (var k = 0; k < modeBtns.length; k++) modeBtns[k].classList.toggle("on", modeBtns[k] === btn);
-        $("mode-pattern").classList.toggle("on", mode === "pattern");
-        $("mode-quote").classList.toggle("on", mode === "quote");
+        for (var k = 0; k < tabs.length; k++) tabs[k].classList.toggle("on", tabs[k] === btn);
+        ["quote", "pattern", "archetype", "mindset"].forEach(function (m) { $("mode-" + m).classList.toggle("on", m === mode); });
         render();
       });
-    })(modeBtns[i]);
+    })(tabs[t]);
   }
 
-  // Populate the quote picker.
-  var sel = $("q-select");
-  sel.appendChild(new Option("— choose a quote —", ""));
-  QUOTES.forEach(function (q, idx) {
-    var preview = q.text.length > 60 ? q.text.slice(0, 57) + "…" : q.text;
-    sel.appendChild(new Option(preview, String(idx)));
-  });
-  sel.addEventListener("change", function () {
-    var q = QUOTES[parseInt(sel.value, 10)];
-    if (q) { $("q-text").value = q.text; $("q-attr").value = q.attribution; render(); }
-  });
+  // Archetype + Mindset selectors, seeded from canonical ARCHETYPES.
+  function fillArchSelect(sel, blankLabel) {
+    sel.appendChild(new Option(blankLabel, ""));
+    A_LIST.forEach(function (a) { sel.appendChild(new Option(a.name, a.key)); });
+  }
+  fillArchSelect($("a-select"), "— choose an archetype —");
+  fillArchSelect($("m-a"), "— parent A —");
+  fillArchSelect($("m-b"), "— parent B —");
 
-  ["p-term", "p-protects", "p-becomes", "q-text", "q-attr", "handle"].forEach(function (id) {
+  $("a-select").addEventListener("change", function () {
+    var k = $("a-select").value;
+    if (k) { $("a-name").value = archName(k); $("a-def").value = archDef(k); }
+    render();
+  });
+  function syncMindset() {
+    var ka = $("m-a").value, kb = $("m-b").value;
+    $("m-formula").value = mindsetFormula(ka, kb);
+    if (ka && kb) { var nm = PAIR(ka, kb); if (nm) $("m-name").value = nm; }
+    render();
+  }
+  $("m-a").addEventListener("change", syncMindset);
+  $("m-b").addEventListener("change", syncMindset);
+
+  ["q-text", "q-attr", "p-name", "p-band", "p-def", "p-desc", "p-freer",
+   "a-name", "a-def", "m-name", "m-desc", "handle"].forEach(function (id) {
     $(id).addEventListener("input", render);
   });
   $("download").addEventListener("click", function () { if (!$("download").disabled) download(); });
 
-  // Render once fonts are ready so the canvas uses the real house type. Render
-  // immediately too, so there's never a blank preview if fonts are slow/blocked.
   render();
   if (document.fonts && document.fonts.ready) {
     Promise.all([
-      document.fonts.load("600 78px 'Cormorant Garamond'"),
-      document.fonts.load("500 italic 54px 'Cormorant Garamond'"),
-      document.fonts.load("600 22px 'Source Sans 3'"),
-      document.fonts.load("400 27px 'Source Sans 3'")
+      document.fonts.load("600 66px 'Cormorant Garamond'"),
+      document.fonts.load("500 italic 56px 'Cormorant Garamond'"),
+      document.fonts.load("600 22px 'Source Sans 3'")
     ]).then(render).catch(render);
     document.fonts.ready.then(render);
   }
