@@ -18,7 +18,8 @@
     background: radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%);
     display: flex; align-items: flex-start; justify-content: center; padding: 4rem 1.25rem;
   }
-  .wrap { width: 100%; max-width: 30rem; }
+  .wrap { width: 100%; max-width: 30rem; transition: max-width .2s; }
+  .wrap.wide { max-width: 46rem; }
   h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2.25rem; margin: 0 0 .25rem; color: #f5f3ff; }
   .eyebrow { font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: rgba(253,230,138,0.8); margin: 0 0 1.5rem; }
   .card { background: rgba(255,250,240,0.03); border: 1px solid rgba(196,181,253,0.18); border-radius: 1rem; padding: 1.5rem; }
@@ -36,18 +37,41 @@
   button:hover { background: #fde8b0; }
   button:disabled { opacity: .6; cursor: default; }
   .err { color: #fca5a5; font-size: 13px; margin-top: .75rem; min-height: 1.1em; }
-  .stats { margin-top: 1.5rem; display: none; }
-  .stats.show { display: block; }
+
+  /* Tab navigation — data-driven from the TABS config, so new tabs need only a
+     config entry + a render function, never new layout code. */
+  .tabs { display: none; gap: .25rem; border-bottom: 1px solid rgba(196,181,253,0.14); margin-bottom: 1.25rem; }
+  .tabs.show { display: flex; }
+  .tab { background: none; color: rgba(224,218,246,0.6); font-weight: 600; border: 0;
+    border-bottom: 2px solid transparent; border-radius: 0; padding: .55rem .9rem; cursor: pointer; }
+  .tab:hover { background: none; color: #fde8b0; }
+  .tab.active { color: #fde8b0; border-bottom-color: #fde8b0; }
+  .panel { min-height: 2rem; }
+
+  /* Stats view */
   .stat { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
     padding: .7rem 0; border-bottom: 1px solid rgba(196,181,253,0.10); }
   .stat:last-child { border-bottom: 0; }
   .stat .k { font-size: 14px; color: rgba(224,218,246,0.8); }
   .stat .v { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; color: #fde8b0; }
+
+  /* Feedback view */
+  .fb-item { border: 1px solid rgba(196,181,253,0.14); border-radius: .75rem; padding: .9rem 1rem; margin-bottom: .75rem;
+    background: rgba(255,250,240,0.02); }
+  .fb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .4rem; }
+  .fb-stars { color: #fde8b0; font-size: 1rem; letter-spacing: .1em; }
+  .fb-stars.none { color: rgba(196,181,253,0.45); font-size: 13px; letter-spacing: 0; }
+  .fb-when { font-size: 12px; color: rgba(196,181,253,0.55); white-space: nowrap; }
+  .fb-msg { font-size: 14px; color: #efe9ff; white-space: pre-wrap; margin: 0 0 .5rem; }
+  .fb-msg.empty { color: rgba(224,218,246,0.4); font-style: italic; }
+  .fb-meta { font-size: 12px; color: rgba(196,181,253,0.6); display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+  .fb-meta a { color: rgba(253,230,138,0.85); }
+  .empty { color: rgba(224,218,246,0.5); text-align: center; padding: 1.5rem 0; }
   .sub { font-size: 12px; color: rgba(196,181,253,0.5); margin-top: 1rem; text-align: right; }
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="wrap" id="wrap">
     <p class="eyebrow">The Art of Soulcraft</p>
     <h1>Admin</h1>
     <div class="card">
@@ -59,7 +83,8 @@
         </div>
         <p class="err" id="err" role="alert"></p>
       </form>
-      <div class="stats" id="stats" aria-live="polite"></div>
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <div class="panel" id="panel" aria-live="polite"></div>
     </div>
     <p class="sub" id="ts"></p>
   </div>
@@ -70,46 +95,135 @@
       var keyInput = document.getElementById("key");
       var go = document.getElementById("go");
       var err = document.getElementById("err");
-      var statsEl = document.getElementById("stats");
+      var tabsEl = document.getElementById("tabs");
+      var panel = document.getElementById("panel");
       var tsEl = document.getElementById("ts");
-      var fmt = function (n) { return (n == null ? 0 : n).toLocaleString("en-US"); };
+      var wrap = document.getElementById("wrap");
 
-      function row(k, v) {
+      var adminKey = null;   // held in memory only; never stored or baked into the page
+      var activeId = null;
+
+      var fmt = function (n) { return (n == null ? 0 : n).toLocaleString("en-US"); };
+      function esc(s) {
+        return String(s == null ? "" : s).replace(/[<>&"]/g, function (c) {
+          return { "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c];
+        });
+      }
+      function when(secs) { return secs ? new Date(secs * 1000).toLocaleString() : ""; }
+
+      // ---- renderers -------------------------------------------------------
+      function statRow(k, v) {
         return '<div class="stat"><span class="k">' + k + '</span><span class="v">' + v + "</span></div>";
       }
-      function render(d) {
+      function renderStats(d) {
         var t = d.byTier || {};
-        statsEl.innerHTML =
-          row("Completed assessments", fmt(d.completedAssessments)) +
-          row("Tier · Free", fmt(t.free)) +
-          row("Tier · Full", fmt(t.full)) +
-          row("Promo code uses", fmt(d.promoCodeUses)) +
-          row("Last 7 days", fmt(d.assessmentsLast7Days)) +
-          row("Last 30 days", fmt(d.assessmentsLast30Days)) +
-          row("Emails saved", fmt(d.emailsSaved));
-        statsEl.classList.add("show");
-        if (d.generatedAt) {
-          tsEl.textContent = "as of " + new Date(d.generatedAt * 1000).toLocaleString();
+        panel.innerHTML =
+          statRow("Completed assessments", fmt(d.completedAssessments)) +
+          statRow("Tier · Free", fmt(t.free)) +
+          statRow("Tier · Full", fmt(t.full)) +
+          statRow("Promo code uses", fmt(d.promoCodeUses)) +
+          statRow("Last 7 days", fmt(d.assessmentsLast7Days)) +
+          statRow("Last 30 days", fmt(d.assessmentsLast30Days)) +
+          statRow("Emails saved", fmt(d.emailsSaved));
+      }
+      function stars(r) {
+        if (r == null) return '<span class="fb-stars none">— no rating</span>';
+        var full = "", n = Math.max(0, Math.min(5, r));
+        for (var i = 0; i < 5; i++) full += (i < n ? "★" : "☆");
+        return '<span class="fb-stars" title="' + n + ' / 5">' + full + "</span>";
+      }
+      function renderFeedback(d) {
+        var list = (d && d.feedback) || [];
+        if (!list.length) { panel.innerHTML = '<p class="empty">No feedback yet.</p>'; return; }
+        var html = "";
+        for (var i = 0; i < list.length; i++) {
+          var f = list[i];
+          var meta = [];
+          if (f.email) meta.push('<a href="mailto:' + esc(f.email) + '">' + esc(f.email) + "</a>");
+          else meta.push("no email");
+          if (f.page) meta.push(esc(f.page));
+          html +=
+            '<div class="fb-item">' +
+              '<div class="fb-top">' + stars(f.rating) + '<span class="fb-when">' + esc(when(f.created_at)) + "</span></div>" +
+              '<p class="fb-msg' + (f.message ? "" : " empty") + '">' + (f.message ? esc(f.message) : "(no message)") + "</p>" +
+              '<div class="fb-meta">' + meta.join("<span>·</span>") + "</div>" +
+            "</div>";
         }
+        panel.innerHTML = html;
       }
 
+      // ---- tab framework ---------------------------------------------------
+      // Add a tab by adding an entry here. Nothing else needs to change.
+      var TABS = [
+        { id: "stats",    label: "Stats",    endpoint: "/api/admin/stats",    render: renderStats },
+        { id: "feedback", label: "Feedback", endpoint: "/api/admin/feedback", render: renderFeedback },
+      ];
+
+      function loadTab(tab) {
+        panel.innerHTML = '<p class="empty">Loading…</p>';
+        tsEl.textContent = "";
+        return fetch(tab.endpoint, { headers: { "X-Admin-Key": adminKey } })
+          .then(function (res) {
+            if (res.status === 401) { throw new Error("Incorrect admin key."); }
+            if (!res.ok) { throw new Error("Couldn't load — please try again."); }
+            return res.json();
+          })
+          .then(function (data) {
+            tab.render(data);
+            if (data.generatedAt) tsEl.textContent = "as of " + when(data.generatedAt);
+          });
+      }
+
+      function activate(id) {
+        var tab = null;
+        for (var i = 0; i < TABS.length; i++) if (TABS[i].id === id) tab = TABS[i];
+        if (!tab) return;
+        activeId = id;
+        var btns = tabsEl.querySelectorAll(".tab");
+        for (var j = 0; j < btns.length; j++) {
+          var on = btns[j].getAttribute("data-id") === id;
+          btns[j].classList.toggle("active", on);
+          btns[j].setAttribute("aria-selected", on ? "true" : "false");
+        }
+        loadTab(tab).catch(function (ex) { panel.innerHTML = '<p class="err">' + esc(ex.message) + "</p>"; });
+      }
+
+      function buildTabs() {
+        var html = "";
+        for (var i = 0; i < TABS.length; i++) {
+          html += '<button class="tab" role="tab" data-id="' + TABS[i].id + '">' + esc(TABS[i].label) + "</button>";
+        }
+        tabsEl.innerHTML = html;
+        var btns = tabsEl.querySelectorAll(".tab");
+        for (var k = 0; k < btns.length; k++) {
+          (function (b) { b.addEventListener("click", function () { activate(b.getAttribute("data-id")); }); })(btns[k]);
+        }
+        tabsEl.classList.add("show");
+      }
+
+      // ---- auth ------------------------------------------------------------
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var key = keyInput.value;
         if (!key) { err.textContent = "Enter the admin key."; return; }
         err.textContent = "";
         go.disabled = true; go.textContent = "…";
-        statsEl.classList.remove("show");
-        // The key is only ever sent to the server for comparison against the
-        // ADMIN_KEY env var — it is never stored or baked into this page.
-        fetch("/api/admin/stats", { headers: { "X-Admin-Key": key } })
+        // Validate the key against the default tab's endpoint before revealing
+        // the dashboard. The key only ever travels in the X-Admin-Key header.
+        adminKey = key;
+        fetch(TABS[0].endpoint, { headers: { "X-Admin-Key": key } })
           .then(function (res) {
             if (res.status === 401) { throw new Error("Incorrect admin key."); }
-            if (!res.ok) { throw new Error("Couldn't load stats — please try again."); }
+            if (!res.ok) { throw new Error("Couldn't sign in — please try again."); }
             return res.json();
           })
-          .then(function (data) { render(data); })
-          .catch(function (ex) { err.textContent = ex.message || "Something went wrong."; })
+          .then(function () {
+            form.style.display = "none";
+            wrap.classList.add("wide");
+            buildTabs();
+            activate(TABS[0].id);
+          })
+          .catch(function (ex) { adminKey = null; err.textContent = ex.message || "Something went wrong."; })
           .then(function () { go.disabled = false; go.textContent = "Submit"; });
       });
     })();

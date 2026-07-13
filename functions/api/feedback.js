@@ -37,6 +37,37 @@ async function ensureFeedbackTable(env) {
 function json(obj, status) {
   return new Response(JSON.stringify(obj), { status: status || 200, headers: { "Content-Type": "application/json" } });
 }
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
+}
+
+// Best-effort notification of a new submission, via the same Resend integration
+// used for magic links and password resets. A mail failure never fails the
+// submission — the row is already stored, which is the source of truth.
+async function notify(env, { rating, message, email, page }) {
+  if (!env.RESEND_API_KEY) return;
+  const ratingLine = rating === null ? "— (no rating)" : rating + " / 5";
+  const payload = {
+    from: "The Art of Soulcraft <hello@artofsoulcraft.com>",
+    to: ["hello@artofsoulcraft.com"],
+    subject: "New Soulcraft feedback — " + ratingLine,
+    text: "Rating: " + ratingLine + "\nEmail: " + (email || "(not provided)") +
+          "\nPage: " + (page || "(unknown)") + "\n\n" + (message || "(no message)"),
+    html: "<p><strong>Rating:</strong> " + esc(ratingLine) + "<br>" +
+          "<strong>Email:</strong> " + esc(email || "(not provided)") + "<br>" +
+          "<strong>Page:</strong> " + esc(page || "(unknown)") + "</p>" +
+          "<p style=\"white-space:pre-wrap\">" + esc(message || "(no message)") + "</p>",
+  };
+  // If they left an address, replies go straight back to them.
+  if (email) payload.reply_to = email;
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + env.RESEND_API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) { /* swallow — the row is already saved */ }
+}
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -71,6 +102,9 @@ export async function onRequestPost({ request, env }) {
       .prepare("INSERT INTO feedback (rating, message, email, page, created_at) VALUES (?, ?, ?, ?, ?)")
       .bind(rating, message || null, email || null, page || null, Math.floor(Date.now() / 1000))
       .run();
+
+    // Store first (above), then notify — the email is a courtesy copy, not the record.
+    await notify(env, { rating, message, email, page });
 
     return json({ ok: true });
   } catch (err) {
