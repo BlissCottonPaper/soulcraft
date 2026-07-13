@@ -81,8 +81,8 @@
       def: "Meaning first. The first question, often unconscious, is: what does this mean? Reaching for significance before urgency or emotion. Grounded in Frankl's logotherapy — the will to meaning as a primary human drive."
     },
     pairings: {
-      title: "Pairings",
-      def: "What emerges when two archetypes combine in one person. There are 66 named Pairings in the system — each one a distinct pattern that neither archetype produces alone. Your top three archetypes generate three Pairings, which appear in your Mandala results."
+      title: "Mindsets",
+      def: "What emerges when two archetypes combine in one person. There are 66 named Mindsets in the system — each one a distinct pattern that neither archetype produces alone. Your top three archetypes generate three Mindsets, which appear in your Mandala results."
     },
     shadow: {
       title: "Shadow",

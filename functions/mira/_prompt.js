@@ -125,7 +125,7 @@ async function buildUserProfile(env, userId, email, displayName) {
   const pairTexture = BLEND_TEXTURES[pairKey] || "";
   const pairLine = pairName
     ? `${top[0].name} × ${top[1].name} → ${pairName}${pairTexture ? " — " + pairTexture : ""}`
-    : `${top[0].name} × ${top[1].name} (unnamed pairing)`;
+    : `${top[0].name} × ${top[1].name} (unnamed Mindset)`;
 
   // Growth edge (axis-aware) + disowned (quietest) voices.
   const edge = growthEdgeName(rankedNames);
@@ -149,7 +149,7 @@ async function buildUserProfile(env, userId, email, displayName) {
     "*Bandwidth stage is NOT measured by the assessment — treat every voice as Base/unknown and discover its live stage in conversation; never assert a stage from the profile.",
     "",
     "Temperament (Heart/Mind/Body/Soul): " + temperLine,
-    "Primary pairing: " + pairLine,
+    "Primary Mindset: " + pairLine,
     "Growth edge (axis-aware): " + (edge || "unknown"),
     "Disowned / quietest voices: " + disowned.join(", "),
     "",
