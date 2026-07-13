@@ -26,6 +26,11 @@
 /explore/pairings/  /explore/mindsets/  301
 /explore/pairings   /explore/mindsets/  301
 
+# Core Human Needs was a standalone page and is now folded into the Bandwidth
+# page (July 2026). 301 the old slug to the folded-in section so nothing breaks.
+/explore/core-needs/  /explore/bandwidth/#core-needs  301
+/explore/core-needs   /explore/bandwidth/#core-needs  301
+
 # The Overview page is retired — its role is now covered by How It Works. Redirect
 # any lingering links to /explore/overview there. (The /explore/ hub page itself
 # still exists to host the #the-twelve anchor used in the nav.)

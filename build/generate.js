@@ -160,7 +160,7 @@ ${sixQuestions}
       <div class="grid gap-2 max-w-2xl">
 ${linkOut("/explore/bandwidth/", "How full is your tank right now?", "Explore Bandwidth")}
 ${linkOut("/explore/temperaments/", "How do you lead — with Heart, Mind, Body, or Soul?", "Explore Temperament")}
-${linkOut("/explore/core-needs/", "What's depleting your Bandwidth?", "Explore Core Human Needs")}
+${linkOut("/explore/bandwidth/#core-needs", "What's depleting your Bandwidth?", "Explore Core Human Needs")}
       </div>
     </section>
 
@@ -537,6 +537,19 @@ function bandwidthMain() {
   const swatches = DATA.STAGE_NAMES.map((n, i) =>
     `        <div class="flex-1 text-center"><div class="h-14 md:h-20 rounded-lg mb-2" style="background:hsl(280,45%,${DATA.STAGE_LIGHT[i]}%)"></div><p class="text-xs text-violet-200/80">${n}</p></div>`
   ).join("\n");
+  // Core Human Needs — folded in from the retired standalone page (July 2026),
+  // positioned right after the fuel/gauge framing they explain.
+  const NEEDS = [
+    ["Autonomy", "Acting from genuine, self-possessed choice rather than compulsion or fear."],
+    ["Competence / Mastery", "Meeting real challenge with real, tested capability — building it, not faking it."],
+    ["Relatedness / Belonging", "Being genuinely known and connected, not merely surrounded."],
+    ["Self-Esteem", "A steady, unborrowed sense of your own worth."],
+    ["Trust", "Enough safety in yourself, others, and the world to lower your guard."],
+    ["Purpose / Meaning", "A sense that what you do matters beyond the moment."]
+  ];
+  const needsCards = NEEDS.map(([n, d]) =>
+    `        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-xl mb-1">${n}</h3><p class="text-sm text-violet-300/70">${d}</p></div>`
+  ).join("\n");
   return `    <section class="pt-16 pb-10 md:pt-24 max-w-3xl">
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">THE FIVE-STAGE CAPACITY DIMENSION</p>
       <h1 class="serif text-4xl md:text-6xl mb-5">Bandwidth</h1>
@@ -570,10 +583,35 @@ ${swatches}
       <p class="text-violet-200/80 leading-relaxed">Bandwidth is the same thing your mandala already shows you as <em>light</em>. In the geometry of the system — the cone — hue is your archetype and brightness is your stage: Devolved sits at the dark, narrow base; Transcendent at the bright, wide apex. The swatches above <em>are</em> that brightness axis. Capacity rising and light rising are one movement seen two ways.</p>
     </section>
 
+    <section id="core-needs" class="py-10 border-t border-violet-300/10 max-w-3xl scroll-mt-24">
+      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">WHAT FILLS THE TANK</p>
+      <h2 class="serif text-3xl mb-3">Core Human Needs</h2>
+      <p class="text-violet-200/80 leading-relaxed">Bandwidth is a gauge — it reads how much capacity you have, not why. The <em>why</em> is your <strong>Core Human Needs</strong>: the six that, met, give you room to expand, and starved, pull you into contraction. Your Core Human Needs are the fuel; your Bandwidth is the gauge reading how much that fuel gives you right now.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-6 max-w-3xl">Six-Plus-One</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+${needsCards}
+      </div>
+      <hr style="border:0;border-top:1px solid rgba(196,181,253,0.2);margin:2rem 0" />
+      <div class="card rounded-2xl px-6 py-6 flex items-start gap-5">
+        <div class="serif shrink-0 leading-none text-amber-200/90" style="font-size:3.25rem" aria-hidden="true">+</div>
+        <div>
+          <h3 class="serif text-xl mb-1">Plus One — Volition</h3>
+          <p class="text-sm text-violet-300/70">The six needs are necessary, but not sufficient — soil, not seed. What actually moves you is <strong class="text-violet-100 font-semibold">volition</strong>: the conscious choice to act even when a need isn't fully met. Needs make it easier to choose. Only choosing moves you.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
-      <h2 class="serif text-3xl mb-3">What fills the tank: Core Human Needs</h2>
-      <p class="text-violet-200/80 leading-relaxed mb-4">Bandwidth is a gauge — it reads how much capacity you have, not why. The <em>why</em> is your <strong>Core Human Needs</strong>: the six that, met, give you room to expand, and starved, pull you into contraction. Your Core Human Needs are the fuel; your Bandwidth is the gauge reading how much that fuel gives you right now.</p>
-      <a href="/explore/core-needs/" class="inline-block mt-2 text-amber-200 hover:text-amber-100 underline underline-offset-4">The six Core Human Needs →</a>
+      <h2 class="serif text-3xl mb-3">One dashboard, four dials</h2>
+      <p class="text-violet-200/80 leading-relaxed">Core Human Needs are the fuel tank. Bandwidth is the gauge reading. Your <a href="/explore/#the-twelve" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Archetype</a> is the engine the fuel powers. Your <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Temperament</a> is the handling — a separate dimension entirely. Different archetypes tend to run on a different "home" need, which is part of why the same low tank shows up so differently from one person to the next.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <p class="text-violet-300/70 text-sm mb-4"><strong class="text-violet-200/80">A note on borrowed capacity.</strong> Leaning on others when you're depleted — asking for help, more time, a friend to lean on — is healthy and human. The question isn't whether you borrow, but whether the borrowing is a temporary bridge back to building your own capacity, or a permanent substitute for ever developing it. Only the second is worth watching for — because it can look identical to real capacity on the surface while staying brittle underneath.</p>
+      <p class="text-violet-300/55 text-sm">Drawn from Self-Determination Theory (Deci &amp; Ryan) and Elena Aguilar's Core Human Needs synthesis, itself drawing on the work of Gabor Maté.</p>
     </section>
 
     <section class="py-14 text-center border-t border-violet-300/10">
@@ -633,49 +671,6 @@ ${cards}
 
     <section class="py-14 text-center border-t border-violet-300/10">
       <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Find your Temperament — Your Mandala</a>
-    </section>`;
-}
-
-// ---- Core Human Needs (/explore/core-needs/) — OVERVIEW (deeper page + questionnaire = future work) ----
-function coreNeedsMain() {
-  const NEEDS = [
-    ["Autonomy", "Acting from genuine, self-possessed choice rather than compulsion or fear."],
-    ["Competence / Mastery", "Meeting real challenge with real, tested capability — building it, not faking it."],
-    ["Relatedness / Belonging", "Being genuinely known and connected, not merely surrounded."],
-    ["Self-Esteem", "A steady, unborrowed sense of your own worth."],
-    ["Trust", "Enough safety in yourself, others, and the world to lower your guard."],
-    ["Purpose / Meaning", "A sense that what you do matters beyond the moment."]
-  ];
-  const cards = NEEDS.map(([n, d]) =>
-    `        <div class="card rounded-2xl px-5 py-5"><h3 class="serif text-xl mb-1">${n}</h3><p class="text-sm text-violet-300/70">${d}</p></div>`
-  ).join("\n");
-  return `    <section class="pt-16 pb-10 md:pt-24 max-w-3xl">
-      <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">THE FUEL BEHIND YOUR BANDWIDTH</p>
-      <h1 class="serif text-4xl md:text-6xl mb-5">Core Human Needs</h1>
-      <p class="text-violet-200/85 text-lg leading-relaxed">Six needs that, met, give you room to expand — and starved, pull you into contraction. Your Core Human Needs sit alongside <a href="/explore/bandwidth/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Bandwidth</a>, not inside it: <strong>your Core Human Needs are the fuel; your Bandwidth is the gauge</strong> reading how much capacity that fuel gives you right now.</p>
-    </section>
-
-    <section class="py-10 border-t border-violet-300/10">
-      <h2 class="serif text-3xl mb-6 max-w-3xl">The six</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-${cards}
-      </div>
-    </section>
-
-    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
-      <h2 class="serif text-3xl mb-3">The plus one — volition</h2>
-      <p class="text-violet-200/80 leading-relaxed">The six needs are necessary, but not sufficient — soil, not seed. What actually moves you is <strong class="text-violet-100 font-semibold">volition</strong>: the conscious choice to act even when a need isn't fully met. Needs make it easier to choose. Only choosing moves you.</p>
-    </section>
-
-    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
-      <h2 class="serif text-3xl mb-3">One dashboard, four dials</h2>
-      <p class="text-violet-200/80 leading-relaxed">Core Human Needs are the fuel tank. Bandwidth is the gauge reading. Your <a href="/explore/#the-twelve" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Archetype</a> is the engine the fuel powers. Your <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Temperament</a> is the handling — a separate dimension entirely. Different archetypes tend to run on a different "home" need, which is part of why the same low tank shows up so differently from one person to the next.</p>
-    </section>
-
-    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
-      <p class="text-violet-300/70 text-sm mb-4"><strong class="text-violet-200/80">A note on borrowed capacity.</strong> Leaning on others when you're depleted — asking for help, more time, a friend to lean on — is healthy and human. The question isn't whether you borrow, but whether the borrowing is a temporary bridge back to building your own capacity, or a permanent substitute for ever developing it. Only the second is worth watching for — because it can look identical to real capacity on the surface while staying brittle underneath.</p>
-      <p class="text-violet-300/55 text-sm">Drawn from Self-Determination Theory (Deci &amp; Ryan) and Elena Aguilar's Core Human Needs synthesis, itself drawing on the work of Gabor Maté.</p>
-      <p class="text-violet-300/45 text-xs mt-4 italic">This is an overview. A fuller Core Human Needs treatment — and a dedicated way to read your own six — is planned, not yet built.</p>
     </section>`;
 }
 
@@ -2064,14 +2059,6 @@ write("explore/temperaments/index.html", page({
   canonical: "https://artofsoulcraft.com/explore/temperaments/",
   active: "explore",
   main: temperamentsMain()
-}));
-
-write("explore/core-needs/index.html", page({
-  title: "Core Human Needs — the fuel behind your Bandwidth | The Art of Soulcraft",
-  description: "The six Core Human Needs — autonomy, competence, relatedness, self-esteem, trust, purpose — that fuel your capacity. Drawn from Self-Determination Theory (Deci & Ryan) and Elena Aguilar's synthesis.",
-  canonical: "https://artofsoulcraft.com/explore/core-needs/",
-  active: "explore",
-  main: coreNeedsMain()
 }));
 
 write("explore/growth-edge/index.html", page({
