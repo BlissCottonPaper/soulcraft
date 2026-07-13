@@ -9,16 +9,23 @@
 
    Bump CACHE_VERSION whenever the cached asset list changes; the old cache is
    dropped on activate so a returning visitor can't get wedged on stale files.
-   ============================================================================ */
-const CACHE_VERSION = "soulcraft-static-v1";
 
-// Only truly static, safe-to-cache assets. NOT index.html and NOT /api/*.
+   site-chrome.js is deliberately NOT cached here. It is the shared nav / footer /
+   feedback-widget / analytics script and changes on nearly every release; a
+   cache-first copy silently strands returning visitors on old chrome (this is
+   what hid the feedback widget for returning PWA users — the widget lives in
+   this file, and the cached pre-widget copy kept being served). It is served
+   network-first below instead, so the current chrome always wins.
+   ============================================================================ */
+const CACHE_VERSION = "soulcraft-static-v2";
+
+// Only truly static, rarely-changing assets. NOT index.html, NOT /api/*, and
+// NOT site-chrome.js (see header note — that one is network-first).
 const PRECACHE = [
   "/manifest.json",
   "/favicon.svg",
   "/icon-192.png",
   "/icon-512.png",
-  "/assets/site-chrome.js",
 ];
 
 self.addEventListener("install", (event) => {
@@ -48,6 +55,22 @@ self.addEventListener("fetch", (event) => {
   // Never serve HTML navigations or API calls from cache — always live.
   const isDoc = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
   if (isDoc || url.pathname.startsWith("/api/")) return;
+
+  // site-chrome.js: network-first. It's the shared chrome (nav, footer, feedback
+  // widget, analytics) and must never be served stale. Fall back to cache only
+  // when offline, and refresh the cache on every successful fetch.
+  if (url.pathname === "/assets/site-chrome.js") {
+    event.respondWith(
+      fetch(req).then((res) => {
+        if (res && res.ok && res.type === "basic") {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy)).catch(() => {});
+        }
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
 
   // Static assets: cache-first, then fill the cache on first network fetch.
   event.respondWith(

@@ -605,6 +605,17 @@ function TwelveWithin() {
     const [miraBusy, setMiraBusy] = useState(false);
     const [miraError, setMiraError] = useState("");
     const [miraActivated, setMiraActivated] = useState(null); // null | 'tier' | 'skipped'
+    const [displayName, setDisplayName] = useState(null); // logged-in name for a warm results greeting
+
+    // Ask "who's logged in?" once on mount. Purely additive: used only to greet a
+    // signed-in person by name on the results page. Anonymous visitors get null and
+    // no greeting — a clean, graceful fallback.
+    useEffect(() => {
+        fetch("/api/me", { credentials: "same-origin" })
+            .then((r) => r.json())
+            .then((d) => { if (d && d.authenticated && d.display_name) setDisplayName(String(d.display_name)); })
+            .catch(() => { /* no greeting on failure — silent, non-blocking */ });
+    }, []);
 
     useEffect(() => {
         // Save the moment results are shown. The payment gate already ran before the
@@ -1304,6 +1315,11 @@ function TwelveWithin() {
                 // section (gold rule + eyebrow + serif). The #your-mandala anchor lives
                 // here so a toggle lands above the whole title sequence.
                 React.createElement("div", { id: "your-mandala", className: "text-center mb-2", style: { scrollMarginTop: "5rem" } },
+                    // Warm, personalized greeting for a signed-in visitor. Context-aware:
+                    // "Welcome back" when they've returned to a saved/restored reading,
+                    // "Hello" on a fresh completion (they never left). Falls back to nothing
+                    // (the existing eyebrow stands alone) when there's no name.
+                    displayName && !isSample && React.createElement("p", { className: "text-amber-200/90 text-xl mb-3", style: serif }, (restored ? "Welcome back, " : "Hello, ") + displayName + "."),
                     React.createElement("div", { className: "mx-auto mb-3 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
                     React.createElement("p", { className: "text-[11px] tracking-[0.4em] text-amber-200/70 mb-1", style: sans }, "YOUR MANDALA"),
                     React.createElement("h3", { className: "text-2xl mb-2", style: { ...serif, color: "#efe9ff" } }, "Your Loudest Voices"),
