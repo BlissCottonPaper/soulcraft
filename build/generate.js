@@ -1907,8 +1907,11 @@ function companionMain() {
     // "Tell me more…" — a lightweight continuation for when Mira's reply didn't
     // end in a question and the person isn't sure how to pick it back up.
     $('mira-goon').addEventListener('click', function(){ if(streaming) return; sendMessage('Tell me more.', false); });
-    // First-ever session → hidden bootstrap so Mira opens in her own voice.
-    if(!hasHistory){ sendMessage('[first session — begin]', true); }
+    // Mira opens in her own voice whenever you enter the room — never to an empty
+    // screen. A hidden bootstrap turn triggers it: a guided welcome on the first
+    // session, or a warm "gathering the threads" greeting on return. Entering the
+    // room is the invitation, so this isn't reaching out unbidden.
+    sendMessage(hasHistory ? '[returning session — greet warmly and gather the threads]' : '[first session — begin]', true);
     input.focus();
   }
 
