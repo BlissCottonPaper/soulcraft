@@ -30,8 +30,8 @@ module.exports = {
     blindSpots: `Can use understanding as distance — a way to stay safely outside of what it's examining. May mistake cleverness for wisdom. Struggles to act under uncertainty, since acting always means committing before all the evidence is in.`,
     dreams: `To understand something true and important before it dies. To pass on real insight, not just information. To be trusted not because it's always right, but because it's always honest.`,
     stages: [
-      `Being right as identity; truth used to win arguments rather than to understand. Truth fully collapsed into ego-status.`,
-      `A disappointed idealist — truth curdled into blanket contempt for everyone and everything. Still fear-reacting, not yet fully ego-captured.`,
+      `A disappointed idealist whose truth has curdled into blanket contempt for everyone and everything — the certainty that zaps the life out of a room. Truth fully collapsed into ego-protection.`,
+      `Being right as identity; truth used to win arguments rather than to understand. Annoying and defended, but still fear-reacting — not yet fully ego-captured.`,
       `Everyday Sage — seeks to understand how things work, values insight over quick answers.`,
       `Mature understanding — shares insight generously, holds certainty loosely.`,
       `Teaches not to be right, but to set someone else free — wisdom entirely at others' service.`
