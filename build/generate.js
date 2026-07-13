@@ -139,6 +139,7 @@ function overviewMain() {
 ${grid}
       </div>
       <p class="text-violet-300/55 text-sm mt-4 italic">Individual archetype pages are in progress.</p>
+      <p class="mt-5"><a href="/explore/pairings/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">Browse all ${pairCount} Mindsets — the patterns your top three voices create →</a></p>
     </section>
 
     <section id="pairings" class="py-12 border-t border-violet-300/10 scroll-mt-20 max-w-2xl">
@@ -661,6 +662,11 @@ ${cards}
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-3">The plus one — volition</h2>
+      <p class="text-violet-200/80 leading-relaxed">The six needs are necessary, but not sufficient — soil, not seed. What actually moves you is <strong class="text-violet-100 font-semibold">volition</strong>: the conscious choice to act even when a need isn't fully met. Needs make it easier to choose. Only choosing moves you.</p>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
       <h2 class="serif text-3xl mb-3">One dashboard, four dials</h2>
       <p class="text-violet-200/80 leading-relaxed">Core Human Needs are the fuel tank. Bandwidth is the gauge reading. Your <a href="/explore/#the-twelve" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Archetype</a> is the engine the fuel powers. Your <a href="/explore/temperaments/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Temperament</a> is the handling — a separate dimension entirely. Different archetypes tend to run on a different "home" need, which is part of why the same low tank shows up so differently from one person to the next.</p>
     </section>
@@ -907,9 +913,16 @@ ${q}
       <p class="${body}">It won't tell you what you are. It will show you what's already true — and what's waiting to be heard.</p>
     </section>
 
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">Soulcraft doesn't do this work alone.</p>
+      <p class="${body} mb-4">Mira, your Soulcraft companion, is built directly on your Mandala — she's there for the ordinary Tuesday, not just the big questions.</p>
+      <a href="/companion/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">Meet Mira →</a>
+    </section>
+
     <section class="py-14 border-t border-violet-300/10 text-center">
       <p class="serif text-3xl md:text-4xl text-violet-50 mb-6">Find your voices.</p>
       <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the assessment →</a>
+      <p class="mt-8"><a href="/how-it-works/" class="text-violet-300/70 hover:text-amber-100 text-sm underline underline-offset-4">Next: How It Works →</a></p>
     </section>`;
 }
 
@@ -952,7 +965,8 @@ ${link}
 
 ${section("1", "Who are you, at your core?", tip("mandala", "The Mandala"),
   `      <p class="${body} mb-4">At the heart of Soulcraft are twelve archetypes — twelve fundamental patterns of human motivation. You carry all twelve. But three speak louder than the rest, and three are so quiet you may not recognize them in yourself at all.</p>
-      <p class="${body}">The assessment doesn't ask you to choose who you are. It asks you to choose, repeatedly, between two things that feel true — and your pattern of choices reveals what's actually driving you. The result is your Mandala: a visual map of your twelve voices, ranked from loudest to quietest.</p>`,
+      <p class="${body} mb-4">The assessment doesn't ask you to choose who you are. It asks you to choose, repeatedly, between two things that feel true — and your pattern of choices reveals what's actually driving you. The result is your Mandala: a visual map of your twelve voices, ranked from loudest to quietest.</p>
+      <p class="${body}">Your top three voices don't just rank — they combine. Each pairing creates a <a href="/explore/pairings/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Mindset</a>: a lens neither produces alone.</p>`,
   outLink("/explore/#the-twelve", "Explore the twelve archetypes →"))}
 
 ${section("2", "Who are you pretending not to be?", tip("shadow", "The Shadow"),
@@ -978,7 +992,8 @@ ${section("5", "What do you do with all of this?", tip("integration", "Integrati
       <ol class="space-y-3 mb-1">
 ${integration}
       </ol>
-      <p class="${body} mt-5">This is how the map becomes a guide.</p>`,
+      <p class="${body} mt-5">This is how the map becomes a guide.</p>
+      <p class="${body} mt-4">And you don't have to hold the practice alone: <a href="/companion/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Mira</a>, your Soulcraft companion, is built on your Mandala and returns to these questions with you — week after week, the ongoing practice partner for the work.</p>`,
   "")}
 
     <section class="py-14 border-t border-violet-300/10 text-center">
@@ -990,7 +1005,9 @@ ${integration}
 // A Mindset is the named pattern that emerges when two archetypes combine
 // (e.g. Sage × Creator → The Inventor). Route/anchor stay /pairings for links.
 function pairingsLexiconMain() {
-  const keys = Object.keys(DATA.BLEND_NAMES).sort();
+  // Sort alphabetically by Mindset NAME (not by archetype key), so the grid reads
+  // A→Z left-to-right, top-to-bottom rather than grouping by first archetype.
+  const keys = Object.keys(DATA.BLEND_NAMES).sort((k1, k2) => DATA.BLEND_NAMES[k1].localeCompare(DATA.BLEND_NAMES[k2]));
   const cards = keys.map((k) => {
     const [ka, kb] = k.split("|");
     const a = DATA.ARCHETYPES.find((x) => x.key === ka);
