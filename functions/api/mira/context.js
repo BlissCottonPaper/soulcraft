@@ -4,7 +4,8 @@
 // One call the /companion page uses to decide what to render: gate (no
 // subscription), onboarding (subscribed but no belief lens), or chat.
 //   GET -> { authenticated, companion_active, companion_tier, email,
-//            belief_set, belief_traditions, belief_open_all, belief_openness }
+//            belief_set, belief_traditions, belief_open_all, belief_openness,
+//            belief_other, belief_declined }
 // Never throws to the client. Needs the D1 binding env.DB.
 // ============================================================
 
@@ -32,14 +33,17 @@ export async function onRequestGet({ request, env }) {
     let row = null;
     try {
       row = await env.DB
-        .prepare("SELECT belief_traditions, belief_open_all, belief_openness FROM users WHERE id = ?")
+        .prepare("SELECT belief_traditions, belief_open_all, belief_openness, belief_other, belief_declined FROM users WHERE id = ?")
         .bind(user.id).first();
     } catch (e) { row = null; }
 
     let traditions = [];
     try { traditions = JSON.parse((row && row.belief_traditions) || "[]") || []; } catch (e) { traditions = []; }
     const openAll = row && Number(row.belief_open_all) === 1;
-    const beliefSet = (row && row.belief_traditions !== null && row.belief_traditions !== undefined) && (openAll || traditions.length > 0);
+    const declined = row && Number(row.belief_declined) === 1;
+    const other = row && row.belief_other ? String(row.belief_other) : "";
+    // The lens is "set" once the person has made any of the four kinds of choice.
+    const beliefSet = declined || openAll || traditions.length > 0 || other.trim().length > 0;
 
     // Has this person ever spoken with Mira? Drives the first-ever bootstrap turn.
     let hasHistory = false;
@@ -62,6 +66,8 @@ export async function onRequestGet({ request, env }) {
       belief_traditions: traditions,
       belief_open_all: !!openAll,
       belief_openness: (row && row.belief_openness) || "home",
+      belief_other: other,
+      belief_declined: !!declined,
       has_history: hasHistory,
     });
   } catch (err) {

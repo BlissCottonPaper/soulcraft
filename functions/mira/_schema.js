@@ -18,6 +18,11 @@ export async function ensureMiraSchema(env) {
     "ALTER TABLE users ADD COLUMN belief_traditions TEXT",
     "ALTER TABLE users ADD COLUMN belief_open_all INTEGER DEFAULT 0",
     "ALTER TABLE users ADD COLUMN belief_openness TEXT",
+    // A self-named tradition ("Other"), stored verbatim for understanding who
+    // uses Soulcraft. And a decline flag: "prefer not to answer" — no identity
+    // claim stored, routed to the neutral/secular default at prompt time.
+    "ALTER TABLE users ADD COLUMN belief_other TEXT",
+    "ALTER TABLE users ADD COLUMN belief_declined INTEGER DEFAULT 0",
     // Session 3.2 front door: a 30-day Mira trial granted by the $29 purchase or a
     // WHITEDOT redemption. Unix seconds; access is live while now < this value.
     "ALTER TABLE users ADD COLUMN companion_trial_until INTEGER",
