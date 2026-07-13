@@ -126,9 +126,9 @@
   var EXPLORE_ITEMS = [
     { href: "/how-it-works/", label: "How It Works" },
     { href: "/explore/#the-twelve", label: "The Twelve Archetypes" },
+    { href: "/explore/mindsets/", label: "Mindsets" },
     { href: "/explore/bandwidth/", label: "Bandwidth" },
     { href: "/explore/temperaments/", label: "Temperament" },
-    { href: "/explore/#pairings", label: "Mindsets" },
     { href: "/explore/shadow/", label: "Shadow" },
     { divider: true },
     { href: "/integration-guide/", label: "Integration Guide" }

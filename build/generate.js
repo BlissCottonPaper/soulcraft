@@ -139,13 +139,14 @@ function overviewMain() {
 ${grid}
       </div>
       <p class="text-violet-300/55 text-sm mt-4 italic">Individual archetype pages are in progress.</p>
+      <p class="mt-5"><a href="/explore/mindsets/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">Browse all ${pairCount} Mindsets — the patterns your top three voices create →</a></p>
     </section>
 
     <section id="pairings" class="py-12 border-t border-violet-300/10 scroll-mt-20 max-w-2xl">
       <h2 class="serif text-3xl md:text-4xl mb-1">Mindsets</h2>
       <p class="text-violet-300/45 italic serif text-lg mb-4">Two become one.</p>
       <p class="text-violet-300/75 mb-5">When two archetypes combine, something new emerges that neither produces alone — both stay present and distinct, yet together they name a pattern of their own. The Creator and the Mystic read as <span class="text-amber-100">${magician}</span>; the Explorer and the Creator, <span class="text-amber-100">${cartographer}</span>.</p>
-      <a href="/explore/pairings/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">The full ${pairCount} Mindsets Lexicon →</a>
+      <a href="/explore/mindsets/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">The full ${pairCount} Mindsets Lexicon →</a>
     </section>
 
     <section class="py-12 border-t border-violet-300/10 max-w-2xl">
@@ -523,6 +524,7 @@ function shadowMain() {
       <p class="text-violet-200/80 leading-relaxed mb-4">Notice your strongest reactions to people who lead with your shadow archetypes. Notice where you feel contempt, bafflement, or the particular irritation of someone doing something you tell yourself you'd never do. That feeling is the entry point.</p>
       <p class="text-violet-200/80 leading-relaxed">The Shadow Mandala gives you the map. The integration practices give you somewhere to go. The work itself happens in the space between — in the moment of recognition, when something you've been calling "not me" starts to look familiar.</p>
       <p class="text-violet-200/80 leading-relaxed mt-4">That's the threshold. That's where the BridgeTender works.</p>
+      <p class="text-violet-200/80 leading-relaxed mt-4"><a href="/companion/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Mira</a> can meet you at the threshold. Bring her the moment — the flash of contempt, the reaction you can't quite explain. She won't tell you what it means. She'll help you look at it.</p>
     </section>
 
     <section class="py-16 border-t border-violet-300/10 max-w-3xl">
@@ -658,6 +660,11 @@ function coreNeedsMain() {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
 ${cards}
       </div>
+    </section>
+
+    <section class="py-10 border-t border-violet-300/10 max-w-3xl">
+      <h2 class="serif text-3xl mb-3">The plus one — volition</h2>
+      <p class="text-violet-200/80 leading-relaxed">The six needs are necessary, but not sufficient — soil, not seed. What actually moves you is <strong class="text-violet-100 font-semibold">volition</strong>: the conscious choice to act even when a need isn't fully met. Needs make it easier to choose. Only choosing moves you.</p>
     </section>
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
@@ -907,9 +914,16 @@ ${q}
       <p class="${body}">It won't tell you what you are. It will show you what's already true — and what's waiting to be heard.</p>
     </section>
 
+    <section class="py-8 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <p class="${lead}">Soulcraft doesn't do this work alone.</p>
+      <p class="${body} mb-4">Mira, your Soulcraft companion, is built directly on your Mandala — she's there for the ordinary Tuesday, not just the big questions.</p>
+      <a href="/companion/" class="inline-block text-amber-200 hover:text-amber-100 underline underline-offset-4">Meet Mira →</a>
+    </section>
+
     <section class="py-14 border-t border-violet-300/10 text-center">
       <p class="serif text-3xl md:text-4xl text-violet-50 mb-6">Find your voices.</p>
       <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the assessment →</a>
+      <p class="mt-8"><a href="/how-it-works/" class="text-violet-300/70 hover:text-amber-100 text-sm underline underline-offset-4">Next: How It Works →</a></p>
     </section>`;
 }
 
@@ -952,7 +966,8 @@ ${link}
 
 ${section("1", "Who are you, at your core?", tip("mandala", "The Mandala"),
   `      <p class="${body} mb-4">At the heart of Soulcraft are twelve archetypes — twelve fundamental patterns of human motivation. You carry all twelve. But three speak louder than the rest, and three are so quiet you may not recognize them in yourself at all.</p>
-      <p class="${body}">The assessment doesn't ask you to choose who you are. It asks you to choose, repeatedly, between two things that feel true — and your pattern of choices reveals what's actually driving you. The result is your Mandala: a visual map of your twelve voices, ranked from loudest to quietest.</p>`,
+      <p class="${body} mb-4">The assessment doesn't ask you to choose who you are. It asks you to choose, repeatedly, between two things that feel true — and your pattern of choices reveals what's actually driving you. The result is your Mandala: a visual map of your twelve voices, ranked from loudest to quietest.</p>
+      <p class="${body}">Your top three voices don't just rank — they combine. Each pairing creates a <a href="/explore/mindsets/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Mindset</a>: a lens neither produces alone.</p>`,
   outLink("/explore/#the-twelve", "Explore the twelve archetypes →"))}
 
 ${section("2", "Who are you pretending not to be?", tip("shadow", "The Shadow"),
@@ -978,7 +993,8 @@ ${section("5", "What do you do with all of this?", tip("integration", "Integrati
       <ol class="space-y-3 mb-1">
 ${integration}
       </ol>
-      <p class="${body} mt-5">This is how the map becomes a guide.</p>`,
+      <p class="${body} mt-5">This is how the map becomes a guide.</p>
+      <p class="${body} mt-4">And you don't have to hold the practice alone: <a href="/companion/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Mira</a>, your Soulcraft companion, is built on your Mandala and returns to these questions with you — week after week, the ongoing practice partner for the work.</p>`,
   "")}
 
     <section class="py-14 border-t border-violet-300/10 text-center">
@@ -986,11 +1002,13 @@ ${integration}
     </section>`;
 }
 
-// ---- Mindsets Lexicon (/explore/pairings/) — all 66 named Mindsets ----------
+// ---- Mindsets Lexicon (/explore/mindsets/) — all 66 named Mindsets ----------
 // A Mindset is the named pattern that emerges when two archetypes combine
 // (e.g. Sage × Creator → The Inventor). Route/anchor stay /pairings for links.
 function pairingsLexiconMain() {
-  const keys = Object.keys(DATA.BLEND_NAMES).sort();
+  // Sort alphabetically by Mindset NAME (not by archetype key), so the grid reads
+  // A→Z left-to-right, top-to-bottom rather than grouping by first archetype.
+  const keys = Object.keys(DATA.BLEND_NAMES).sort((k1, k2) => DATA.BLEND_NAMES[k1].localeCompare(DATA.BLEND_NAMES[k2]));
   const cards = keys.map((k) => {
     const [ka, kb] = k.split("|");
     const a = DATA.ARCHETYPES.find((x) => x.key === ka);
@@ -2037,10 +2055,10 @@ write("explore/shadow/index.html", page({
   main: shadowMain()
 }));
 
-write("explore/pairings/index.html", page({
+write("explore/mindsets/index.html", page({
   title: "The Mindsets Lexicon — all 66 | The Art of Soulcraft",
   description: "All 66 Mindsets — the named pattern that emerges when two of the twelve archetypes combine. One for every pair of the twelve.",
-  canonical: "https://artofsoulcraft.com/explore/pairings/",
+  canonical: "https://artofsoulcraft.com/explore/mindsets/",
   active: "explore",
   main: pairingsLexiconMain()
 }));
@@ -2188,7 +2206,7 @@ write("companion/index.html", page({
   const lex = fs.readFileSync(path.join(dir, "stage-lexicon.md"), "utf8");
 
   // The 66 Pairings lexicon, built from the canonical data (verbatim from The 66 —
-  // Blend Lexicon) exactly like the on-screen /explore/pairings page, so Mira
+  // Blend Lexicon) exactly like the on-screen /explore/mindsets page, so Mira
   // knows every pairing the same way she knows the 12×5 stage grid. One line per
   // pairing: Voice × Voice → Blend — texture. Sorted for a byte-stable prompt.
   const pairKeys = Object.keys(DATA.BLEND_NAMES).sort();
