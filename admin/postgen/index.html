@@ -78,7 +78,6 @@
           <label>Pattern name</label><input type="text" id="p-name" placeholder="Cynicism" />
           <label>Bandwidth tag — gold italic (plain language)</label><input type="text" id="p-band" placeholder="low bandwidth" />
           <label>Definition — one sentence</label><textarea id="p-def" placeholder="Discernment that's stopped believing anything can go right."></textarea>
-          <label>Three descriptors — comma-separated (plain, bullet-joined)</label><input type="text" id="p-desc" placeholder="real, costly, protective" />
           <label>Freer expression — the payoff (gold)</label><input type="text" id="p-freer" placeholder="Discernment that leaves room for hope." />
           <p class="hint">Protective Patterns Atlas or archetype Bandwidth-stage names — same structure.</p>
         </div>
@@ -236,14 +235,13 @@
   }
   function renderPattern() {
     var name = $("p-name").value.trim(), band = $("p-band").value.trim(), def = $("p-def").value.trim();
-    var descs = $("p-desc").value.split(",").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 3);
     var freer = $("p-freer").value.trim();
+    // Structure (intentionally simplified — no descriptor row):
+    // Name → bandwidth tag → definition → lead-in → Freer Expression.
     layout([
       name ? { type: "text", text: name, font: "600 66px " + SERIF, color: INK, lineHeight: 76, gapAfter: band ? 6 : 26 } : null,
       band ? { type: "text", text: band, font: "500 italic 32px " + SERIF, color: AMBER, lineHeight: 44, gapAfter: 28 } : null,
-      def ? { type: "text", text: def, font: "500 36px " + SERIF, color: VIOLET, lineHeight: 50, gapAfter: 22 } : null,
-      // Descriptors: plain text, bullet-joined, soft muted white, smaller than the definition. No pills.
-      descs.length ? { type: "text", text: descs.join("   ·   "), font: "500 28px " + SERIF, color: SOFT_WHITE, lineHeight: 40, gapAfter: 40 } : null,
+      def ? { type: "text", text: def, font: "500 36px " + SERIF, color: VIOLET, lineHeight: 50, gapAfter: 40 } : null,
       freer ? { type: "text", text: "With conscious choice, it can become:", font: "500 32px " + SERIF, color: "rgba(245,243,255,0.92)", lineHeight: 42, gapAfter: 12 } : null,
       freer ? { type: "text", text: freer, font: "500 46px " + SERIF, color: AMBER, lineHeight: 58 } : null
     ], "leftblock");
@@ -335,7 +333,7 @@
   $("m-a").addEventListener("change", syncMindset); $("m-b").addEventListener("change", syncMindset);
   $("ax-select").addEventListener("change", function () { var k = $("ax-select").value; if (k) { $("ax-q").value = AXQ(k) || ""; $("ax-axis").value = axisLabel(k); } render(); });
 
-  ["q-text", "q-attr", "p-name", "p-band", "p-def", "p-desc", "p-freer", "a-name", "a-def", "a-axis", "m-name", "m-desc", "ax-q", "ax-axis", "d-term", "d-cat", "d-def", "handle"].forEach(function (id) { $(id).addEventListener("input", render); });
+  ["q-text", "q-attr", "p-name", "p-band", "p-def", "p-freer", "a-name", "a-def", "a-axis", "m-name", "m-desc", "ax-q", "ax-axis", "d-term", "d-cat", "d-def", "handle"].forEach(function (id) { $(id).addEventListener("input", render); });
   $("download").addEventListener("click", function () { if (!$("download").disabled) download(); });
 
   render();
