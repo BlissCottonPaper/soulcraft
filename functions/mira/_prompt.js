@@ -11,7 +11,7 @@
 // site's results page and Mira always agree.
 // ============================================================
 
-import { PROMPT_TEMPLATE, STAGE_LEXICON } from "./_content.js";
+import { PROMPT_TEMPLATE, STAGE_LEXICON, PAIRING_LEXICON } from "./_content.js";
 import SOULCRAFT from "../../assets/soulcraft-data.js";
 import { ensureMiraSchema } from "./_schema.js";
 
@@ -202,6 +202,7 @@ export function staticSystemText() {
   if (_staticCache) return _staticCache;
   let out = PROMPT_TEMPLATE
     .replace("{{STAGE_LEXICON}}", STAGE_LEXICON.trim())
+    .replace("{{PAIRING_LEXICON}}", PAIRING_LEXICON.trim())
     .replace("{{USER_PROFILE}}", POINTER)
     .replace("{{SESSION_SUMMARIES}}", POINTER)
     .replace("{{SAVED_INSIGHTS}}", POINTER)

@@ -56,6 +56,9 @@
      Centered via left/calc so the breathing keyframes keep the transform for scale. */
   #mira-orb{position:fixed;left:calc(50% - 30px);bottom:5.75rem;width:60px;height:60px;margin:0;z-index:6;pointer-events:none;}
   @media(max-width:480px){#mira-orb{width:52px;height:52px;left:calc(50% - 26px);bottom:5.25rem;}}
+  /* The floating orb is a mobile-only placeholder until the color-morphing
+     Mandala orb replaces it — hide it on tablet/desktop widths. */
+  @media(min-width:768px){#mira-orb{display:none;}}
   .mira-title{text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:1.9rem;color:#f5f3ff;margin:.25rem 0 .1rem;}
   .mira-sub{text-align:center;color:rgba(224,218,246,0.72);font-size:14.5px;margin:0 auto 1.25rem;max-width:30rem;}
   .mira-msgs{display:flex;flex-direction:column;gap:.85rem;margin:1rem 0;padding-bottom:5.5rem;}
@@ -401,8 +404,21 @@
     // re-tapping — the engine auto-restarts while the mic stays on. If the
     // browser can't do speech recognition, the mic button just hides.
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    var mic=$('mira-mic'), recog=null, recording=false;
+    var mic=$('mira-mic'), recog=null, recording=false, restartTimer=null;
     function paintMic(){ if(mic) mic.className='mira-iconbtn mira-mic'+(recording?' recording':''); }
+    function clearRestart(){ if(restartTimer){ clearTimeout(restartTimer); restartTimer=null; } }
+    // Restart is ALWAYS DEFERRED — never call start() synchronously inside onend.
+    // Chrome throws InvalidStateError when start() runs in the onend call stack
+    // (the just-ended audio session isn't released yet); the old synchronous
+    // restart hit that on the very first pause, the catch cleared 'recording',
+    // and the mic died with no restart. A short timer escapes that stack (and
+    // absorbs Chrome's rapid-restart throttling). A failed start reschedules
+    // rather than giving up — only a permission/hardware error truly stops us.
+    function scheduleRestart(){
+      if(!recording || restartTimer) return;
+      restartTimer=setTimeout(function(){ restartTimer=null; if(recording) safeStart(); }, 250);
+    }
+    function safeStart(){ try{ startRecog(); }catch(e){ scheduleRestart(); } }
     function startRecog(){
       recog=new SR();
       recog.lang=(navigator.language||'en-US');
@@ -422,24 +438,28 @@
         input.value=baseText+sep+finalAdded+interim; grow();
       };
       recog.onerror=function(e){
-        // Permission/hardware errors are terminal — stop, don't loop-restart.
+        // Permission/hardware errors are terminal. Everything else (no-speech,
+        // aborted, network) is transient — leave 'recording' on so onend's
+        // deferred restart keeps us listening through the pause.
         if(e && (e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture')){ recording=false; }
       };
       recog.onend=function(){
-        // A pause (or short-utterance timeout) ends the engine. If the mic is
-        // still meant to be on, restart seamlessly; otherwise settle into off.
-        if(recording){ try{ startRecog(); }catch(e){ recording=false; paintMic(); } }
-        else { paintMic(); input.focus(); }
+        // A pause (or Chrome's short-utterance timeout) ends the engine. If the
+        // mic is still meant to be on, restart on a timer (never synchronously);
+        // otherwise settle into off.
+        if(recording){ scheduleRestart(); } else { paintMic(); input.focus(); }
       };
       recog.start();
     }
-    // stopMic clears the intent FIRST so the onend that stop() triggers won't restart.
-    function stopMic(){ recording=false; try{ if(recog) recog.stop(); }catch(e){} paintMic(); }
+    // stopMic clears intent FIRST and cancels any pending restart, so nothing revives it.
+    function stopMic(){ recording=false; clearRestart(); try{ if(recog) recog.stop(); }catch(e){} paintMic(); }
     if(mic){
       if(!SR){ mic.className='mira-iconbtn mira-mic mira-hide-hard'; }
       else {
         mic.addEventListener('click', function(){
           if(recording){ stopMic(); return; }
+          // First start is direct (inside the user gesture, as Chrome requires);
+          // only auto-restarts are deferred.
           try{ recording=true; paintMic(); ga('mira_voice_input_started'); startRecog(); }
           catch(err){ recording=false; paintMic(); }
         });
