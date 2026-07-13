@@ -173,13 +173,23 @@ function joinAnd(list) {
   return list.slice(0, -1).join(", ") + ", and " + list[list.length - 1];
 }
 export function beliefLens(userRow) {
+  // "Prefer not to answer": the person shared no identity claim. Route to the
+  // same neutral default as secular — psychology-first, no tradition-specific
+  // language — without asserting a belief they didn't state.
+  if (userRow && Number(userRow.belief_declined) === 1) {
+    return "This person preferred not to name a tradition — work psychology-first, and use no tradition-specific language.";
+  }
   const openAll = userRow && Number(userRow.belief_open_all) === 1;
   if (openAll) return "This person is open to all traditions — draw freely, and let the parallels surprise them.";
   let trads = [];
   try { trads = JSON.parse((userRow && userRow.belief_traditions) || "[]") || []; } catch (e) { trads = []; }
-  const onlySecular = trads.length === 0 || (trads.length === 1 && trads[0] === "secular");
+  const other = userRow && userRow.belief_other ? String(userRow.belief_other).trim() : "";
+  const onlySecular = !other && (trads.length === 0 || (trads.length === 1 && trads[0] === "secular"));
   if (onlySecular) return "This person is secular; work psychology-first.";
+  // Honor a self-named tradition ("Other") in their own words alongside any
+  // chosen from the list — Mira speaks the language they named.
   const labels = trads.map((t) => TRADITION_LABELS[t] || t);
+  if (other) labels.push(other);
   const openness = (userRow && userRow.belief_openness) || "home";
   const tail = openness === "parallels"
     ? " and welcomes parallels between them."
@@ -217,14 +227,14 @@ async function dynamicBlock(env, userId, email) {
   let userRow = null;
   try {
     userRow = await env.DB
-      .prepare("SELECT email, display_name, belief_traditions, belief_open_all, belief_openness FROM users WHERE id = ?")
+      .prepare("SELECT email, display_name, belief_traditions, belief_open_all, belief_openness, belief_other, belief_declined FROM users WHERE id = ?")
       .bind(userId)
       .first();
   } catch (e) {
     // display_name may not exist yet on an un-migrated DB — retry without it.
     try {
       userRow = await env.DB
-        .prepare("SELECT email, belief_traditions, belief_open_all, belief_openness FROM users WHERE id = ?")
+        .prepare("SELECT email, belief_traditions, belief_open_all, belief_openness, belief_other, belief_declined FROM users WHERE id = ?")
         .bind(userId)
         .first();
     } catch (e2) { userRow = null; }
