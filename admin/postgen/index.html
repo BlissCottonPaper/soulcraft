@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<title>Post Generator — The Art of Soulcraft (internal)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: #f5f3ff;
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    background: radial-gradient(1200px 700px at 50% -8%, #241d42 0%, #171230 42%, #100c22 100%);
+    padding: 2.5rem 1.25rem 4rem;
+  }
+  .wrap { max-width: 68rem; margin: 0 auto; }
+  .eyebrow { font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: rgba(253,230,138,0.8); margin: 0 0 .35rem; }
+  h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2.2rem; margin: 0 0 .25rem; }
+  .lead { color: rgba(224,218,246,0.65); font-size: 14px; margin: 0 0 2rem; max-width: 40rem; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+  @media (min-width: 880px) { .grid { grid-template-columns: 1fr 1fr; align-items: start; } }
+  .card { background: rgba(255,250,240,0.03); border: 1px solid rgba(196,181,253,0.18); border-radius: 1rem; padding: 1.5rem; }
+  label { display: block; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: rgba(224,218,246,0.65); margin: 1rem 0 .4rem; }
+  label:first-of-type { margin-top: 0; }
+  input[type="text"], textarea, select {
+    width: 100%; background: rgba(0,0,0,0.22); border: 1px solid rgba(196,181,253,0.25);
+    border-radius: .6rem; padding: .6rem .75rem; font: inherit; font-size: 15px; color: #f5f3ff; outline: none; resize: vertical;
+  }
+  input:focus, textarea:focus, select:focus { border-color: rgba(253,230,138,0.6); }
+  textarea { min-height: 3.5rem; line-height: 1.4; }
+  .modes { display: flex; gap: .5rem; margin-bottom: 1.25rem; }
+  .modebtn { flex: 1; padding: .6rem; border-radius: .6rem; border: 1px solid rgba(196,181,253,0.22);
+    background: rgba(0,0,0,0.2); color: rgba(224,218,246,0.8); font: inherit; font-weight: 600; cursor: pointer; }
+  .modebtn.on { border-color: rgba(253,230,138,0.6); background: rgba(253,230,138,0.12); color: #fde8b0; }
+  .hint { font-size: 12px; color: rgba(224,218,246,0.5); margin: .35rem 0 0; }
+  .req { color: #fca5a5; }
+  .actions { margin-top: 1.5rem; display: flex; gap: .75rem; align-items: center; }
+  button.go { background: rgba(253,230,138,0.9); color: #1b1430; border: 0; border-radius: .6rem;
+    padding: .7rem 1.3rem; font: inherit; font-weight: 600; cursor: pointer; }
+  button.go:hover { background: #fde8b0; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  .note { font-size: 12.5px; color: rgba(224,218,246,0.55); }
+  .preview-wrap { position: sticky; top: 1.5rem; }
+  .canvas-frame { width: 100%; max-width: 34rem; margin: 0 auto; border-radius: 1rem; overflow: hidden;
+    border: 1px solid rgba(196,181,253,0.18); box-shadow: 0 18px 50px rgba(0,0,0,0.5); }
+  canvas { display: block; width: 100%; height: auto; }
+  .swap { display: none; }
+  .swap.on { display: block; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">The Art of Soulcraft · internal</p>
+    <h1>Instagram Post Generator</h1>
+    <p class="lead">Compose a square post in the house style, preview it live, and download a ready-to-post image. Not linked publicly.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="modes" id="modes">
+          <button class="modebtn on" data-mode="pattern" type="button">Pattern</button>
+          <button class="modebtn" data-mode="quote" type="button">Quote</button>
+        </div>
+
+        <!-- PATTERN MODE -->
+        <div class="swap on" id="mode-pattern">
+          <label>Term name <span class="req">*</span></label>
+          <input type="text" id="p-term" placeholder="e.g. The Tyrant" />
+          <label>What it protects <span class="req">*</span></label>
+          <textarea id="p-protects" placeholder="e.g. a terror of ever being at someone else's mercy"></textarea>
+          <label>What it becomes under volition <span class="req">*</span></label>
+          <textarea id="p-becomes" placeholder="e.g. The Sovereign — authority that serves the whole, not the self"></textarea>
+          <p class="hint">All three parts are required. The freed expression is never left off — the pattern alone is not a post.</p>
+        </div>
+
+        <!-- QUOTE MODE -->
+        <div class="swap" id="mode-quote">
+          <label>Pick from the collection</label>
+          <select id="q-select"></select>
+          <label>Quote</label>
+          <textarea id="q-text"></textarea>
+          <label>Attribution</label>
+          <input type="text" id="q-attr" placeholder="e.g. often attributed to Carl Jung" />
+          <p class="hint">Attribution mirrors the locked discipline: a confirmed source only when verified from a primary text, otherwise “often attributed to …”. Editable so you can tweak or add a new one.</p>
+        </div>
+
+        <label style="margin-top:1.5rem;">Instagram handle</label>
+        <input type="text" id="handle" value="artofsoulcraft" />
+
+        <div class="actions">
+          <button class="go" id="download" type="button">Download image</button>
+          <span class="note" id="status"></span>
+        </div>
+      </div>
+
+      <div class="preview-wrap">
+        <div class="canvas-frame">
+          <canvas id="canvas" width="1080" height="1080"></canvas>
+        </div>
+        <p class="note" style="text-align:center;margin-top:.75rem;">1080 × 1080 · PNG</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  // Snapshot of the Notion "Quotes — Collected Touchstones" collection. Attribution
+  // strings already follow the locked discipline: a plain credit only for a
+  // confirmed primary source, "often attributed to …" otherwise (and a place, not
+  // a person, where the person is genuinely disputed). Edit/extend as the
+  // collection grows.
+  var QUOTES = [
+    { text: "Until you make the unconscious conscious, it will direct your life and you will call it fate.", attribution: "after Carl Jung" },
+    { text: "Who looks outside, dreams; who looks inside, awakes.", attribution: "often attributed to Carl Jung" },
+    { text: "The heart has reasons that reason cannot know.", attribution: "Blaise Pascal, Pensées" },
+    { text: "Perfection is achieved not when there is nothing left to add, but when there is nothing left to take away.", attribution: "Antoine de Saint-Exupéry" },
+    { text: "Make everything as simple as possible, but not simpler.", attribution: "often attributed to Albert Einstein" },
+    { text: "Not everything that can be counted counts, and not everything that counts can be measured.", attribution: "often attributed to Albert Einstein" },
+    { text: "The best way to find yourself is to lose yourself in the service of others.", attribution: "often attributed to Mahatma Gandhi" },
+    { text: "The unexamined life is not worth living.", attribution: "often attributed to Socrates" },
+    { text: "Know thyself.", attribution: "inscribed at the Temple of Apollo at Delphi" },
+    { text: "The wound is where the light enters.", attribution: "often attributed to Rumi" },
+    { text: "You are driving your chariot. You are not your chariot.", attribution: "Marc Simmons" },
+    { text: "The needs loosen the soil. Consciousness plants the seed.", attribution: "Marc Simmons" }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = $("canvas"), ctx = canvas.getContext("2d");
+  var W = 1080, PAD = 112, CONTENT_W = W - PAD * 2;
+
+  // Palette
+  var BG1 = "#241d42", BG2 = "#171230", BG3 = "#100c22";
+  var INK = "#f5f3ff", VIOLET = "rgba(224,218,246,0.82)", AMBER = "#fde8b0", AMBER_DIM = "rgba(253,230,138,0.8)";
+
+  var mode = "pattern";
+
+  // ---- text helpers -------------------------------------------------------
+  function wrapText(text, maxWidth) {
+    var words = String(text || "").trim().split(/\s+/), lines = [], cur = "";
+    if (!words[0]) return [];
+    for (var i = 0; i < words.length; i++) {
+      var t = cur ? cur + " " + words[i] : words[i];
+      if (ctx.measureText(t).width > maxWidth && cur) { lines.push(cur); cur = words[i]; }
+      else cur = t;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  // Measure + vertically center a stack of text blocks between top and bottom.
+  function drawBlocks(blocks, top, bottom) {
+    var totalH = 0, i;
+    for (i = 0; i < blocks.length; i++) {
+      var b = blocks[i];
+      ctx.font = b.font; ctx.letterSpacing = b.ls || "0px";
+      b._lines = wrapText(b.text, CONTENT_W);
+      b._h = b._lines.length * b.lineHeight;
+      totalH += b._h + (b.gapAfter || 0);
+    }
+    var y = top + Math.max(0, ((bottom - top) - totalH) / 2);
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for (i = 0; i < blocks.length; i++) {
+      var bb = blocks[i];
+      ctx.font = bb.font; ctx.fillStyle = bb.color; ctx.letterSpacing = bb.ls || "0px";
+      for (var j = 0; j < bb._lines.length; j++) { ctx.fillText(bb._lines[j], W / 2, y); y += bb.lineHeight; }
+      y += (bb.gapAfter || 0);
+    }
+    ctx.letterSpacing = "0px";
+  }
+
+  // ---- brand marks --------------------------------------------------------
+  function drawMandala(cx, cy, R) {
+    for (var i = 0; i < 12; i++) {
+      var a = (-90 + i * 30) * Math.PI / 180;
+      ctx.beginPath();
+      ctx.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), R * 0.16, 0, Math.PI * 2);
+      ctx.fillStyle = "hsl(" + (i * 30) + ",62%,58%)"; ctx.fill();
+    }
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.55);
+    g.addColorStop(0, "rgba(255,252,240,0.9)"); g.addColorStop(1, "rgba(255,246,214,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 0.55, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, R * 0.2, 0, Math.PI * 2); ctx.fillStyle = "rgb(255,252,240)"; ctx.fill();
+  }
+
+  function drawFooter(handle) {
+    drawMandala(W / 2, 930, 26);
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.letterSpacing = "3px";
+    ctx.font = "600 22px 'Source Sans 3', sans-serif"; ctx.fillStyle = "rgba(245,243,255,0.85)";
+    ctx.fillText("THE ART OF SOULCRAFT", W / 2, 972);
+    ctx.letterSpacing = "0px";
+    var h = String(handle || "").replace(/^@+/, "").trim() || "artofsoulcraft";
+    ctx.font = "400 21px 'Source Sans 3', sans-serif"; ctx.fillStyle = "rgba(253,230,138,0.78)";
+    ctx.fillText("follow @" + h, W / 2, 1006);
+  }
+
+  function drawLabel(text, y) {
+    ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.letterSpacing = "4px";
+    ctx.font = "600 21px 'Source Sans 3', sans-serif"; ctx.fillStyle = AMBER_DIM;
+    ctx.fillText(text, W / 2, y); ctx.letterSpacing = "0px";
+  }
+
+  // ---- render -------------------------------------------------------------
+  function background() {
+    var g = ctx.createRadialGradient(W / 2, -80, 120, W / 2, 430, 1180);
+    g.addColorStop(0, BG1); g.addColorStop(0.42, BG2); g.addColorStop(1, BG3);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
+    // hairline inner frame — quiet, editorial
+    ctx.strokeStyle = "rgba(196,181,253,0.14)"; ctx.lineWidth = 2;
+    ctx.strokeRect(40, 40, W - 80, W - 80);
+  }
+
+  function renderPattern() {
+    var term = $("p-term").value.trim() || "The pattern";
+    var protects = $("p-protects").value.trim() || "what it is protecting";
+    var becomes = $("p-becomes").value.trim() || "what it becomes, freely chosen";
+    background();
+    // Two labelled halves, protect above the turn, freed expression below.
+    drawBlocks([
+      { text: term, font: "600 78px 'Cormorant Garamond', serif", color: INK, lineHeight: 88, gapAfter: 54 },
+      { text: "WHAT IT PROTECTS", font: "600 21px 'Source Sans 3', sans-serif", color: AMBER_DIM, ls: "4px", lineHeight: 34, gapAfter: 10 },
+      { text: protects, font: "400 37px 'Source Sans 3', sans-serif", color: VIOLET, lineHeight: 50, gapAfter: 44 },
+      { text: "+", font: "500 60px 'Cormorant Garamond', serif", color: "rgba(253,230,138,0.55)", lineHeight: 60, gapAfter: 30 },
+      { text: "UNDER VOLITION, IT BECOMES", font: "600 21px 'Source Sans 3', sans-serif", color: AMBER_DIM, ls: "4px", lineHeight: 34, gapAfter: 12 },
+      { text: becomes, font: "600 46px 'Cormorant Garamond', serif", color: AMBER, lineHeight: 58 }
+    ], 120, 860);
+    drawFooter($("handle").value);
+  }
+
+  function renderQuote() {
+    var text = $("q-text").value.trim() || "A line worth keeping.";
+    var attr = $("q-attr").value.trim();
+    background();
+    // Big opening quotation mark, the quote, then the attribution.
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.font = "600 150px 'Cormorant Garamond', serif"; ctx.fillStyle = "rgba(253,230,138,0.28)";
+    ctx.fillText("“", W / 2, 150);
+    var blocks = [{ text: text, font: "500 italic 54px 'Cormorant Garamond', serif", color: INK, lineHeight: 70, gapAfter: attr ? 46 : 0 }];
+    if (attr) blocks.push({ text: "— " + attr, font: "400 27px 'Source Sans 3', sans-serif", color: "rgba(224,218,246,0.7)", lineHeight: 38 });
+    drawBlocks(blocks, 300, 860);
+    drawFooter($("handle").value);
+  }
+
+  function render() {
+    if (mode === "pattern") renderPattern(); else renderQuote();
+    updateDownloadState();
+  }
+
+  // ---- download state -----------------------------------------------------
+  function patternComplete() {
+    return $("p-term").value.trim() && $("p-protects").value.trim() && $("p-becomes").value.trim();
+  }
+  function updateDownloadState() {
+    var ok = mode === "quote" ? !!$("q-text").value.trim() : patternComplete();
+    $("download").disabled = !ok;
+    $("status").textContent = ok ? "" : (mode === "pattern"
+      ? "Fill in all three parts to enable download."
+      : "Enter a quote to enable download.");
+  }
+
+  function slug(s) { return String(s || "post").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "post"; }
+
+  function download() {
+    var name = mode === "pattern" ? slug($("p-term").value) : slug($("q-text").value);
+    canvas.toBlob(function (blob) {
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "soulcraft-" + mode + "-" + name + ".png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      $("status").textContent = "Downloaded.";
+    }, "image/png");
+  }
+
+  // ---- wiring -------------------------------------------------------------
+  var modeBtns = document.querySelectorAll("#modes .modebtn");
+  for (var i = 0; i < modeBtns.length; i++) {
+    (function (btn) {
+      btn.addEventListener("click", function () {
+        mode = btn.getAttribute("data-mode");
+        for (var k = 0; k < modeBtns.length; k++) modeBtns[k].classList.toggle("on", modeBtns[k] === btn);
+        $("mode-pattern").classList.toggle("on", mode === "pattern");
+        $("mode-quote").classList.toggle("on", mode === "quote");
+        render();
+      });
+    })(modeBtns[i]);
+  }
+
+  // Populate the quote picker.
+  var sel = $("q-select");
+  sel.appendChild(new Option("— choose a quote —", ""));
+  QUOTES.forEach(function (q, idx) {
+    var preview = q.text.length > 60 ? q.text.slice(0, 57) + "…" : q.text;
+    sel.appendChild(new Option(preview, String(idx)));
+  });
+  sel.addEventListener("change", function () {
+    var q = QUOTES[parseInt(sel.value, 10)];
+    if (q) { $("q-text").value = q.text; $("q-attr").value = q.attribution; render(); }
+  });
+
+  ["p-term", "p-protects", "p-becomes", "q-text", "q-attr", "handle"].forEach(function (id) {
+    $(id).addEventListener("input", render);
+  });
+  $("download").addEventListener("click", function () { if (!$("download").disabled) download(); });
+
+  // Render once fonts are ready so the canvas uses the real house type. Render
+  // immediately too, so there's never a blank preview if fonts are slow/blocked.
+  render();
+  if (document.fonts && document.fonts.ready) {
+    Promise.all([
+      document.fonts.load("600 78px 'Cormorant Garamond'"),
+      document.fonts.load("500 italic 54px 'Cormorant Garamond'"),
+      document.fonts.load("600 22px 'Source Sans 3'"),
+      document.fonts.load("400 27px 'Source Sans 3'")
+    ]).then(render).catch(render);
+    document.fonts.ready.then(render);
+  }
+})();
+</script>
+</body>
+</html>
