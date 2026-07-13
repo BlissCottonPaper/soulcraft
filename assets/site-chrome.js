@@ -36,6 +36,7 @@
       chrome.injectAnalytics();
       chrome.trackReturnVisit();
       chrome.registerServiceWorker();
+      chrome.wireFeedback();
     };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
     else run();
@@ -120,7 +121,32 @@
     ".sc-mobile a.sc-m-sub{padding-left:2.5rem;font-size:15px;color:rgba(224,218,246,0.72);}",
     ".sc-m-divider{height:1px;background:rgba(196,181,253,0.12);margin:.35rem 1.5rem;}",
     "@media(max-width:767px){.sc-links{display:none;} .sc-burger{display:flex;}}",
-    "@media(min-width:768px){.sc-mobile{display:none !important;}}"
+    "@media(min-width:768px){.sc-mobile{display:none !important;}}",
+    // --- Floating feedback widget (sitewide, no login) ---
+    ".sc-fb-btn{position:fixed;right:1.1rem;bottom:1.1rem;z-index:40;width:3.25rem;height:3.25rem;border-radius:50%;border:1px solid rgba(253,230,138,0.4);background:#1a1533;color:#fde8b0;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;font-family:'Source Sans 3',system-ui,sans-serif;}",
+    ".sc-fb-btn:hover{transform:translateY(-2px);background:#241d44;}",
+    ".sc-fb-btn svg{width:1.5rem;height:1.5rem;}",
+    ".sc-fb-panel{position:fixed;right:1.1rem;bottom:5.25rem;z-index:41;width:20rem;max-width:calc(100vw - 2rem);background:#15102b;border:1px solid rgba(196,181,253,0.2);border-radius:1rem;padding:1.1rem 1.1rem 1.25rem;box-shadow:0 16px 44px rgba(0,0,0,0.5);font-family:'Source Sans 3',system-ui,sans-serif;color:#e0daf6;display:none;}",
+    ".sc-fb-panel.sc-fb-open{display:block;}",
+    ".sc-fb-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.3rem;color:#f5f3ff;margin:0 1.5rem .1rem 0;}",
+    ".sc-fb-sub{font-size:13px;color:rgba(224,218,246,0.6);margin:0 0 .8rem;}",
+    ".sc-fb-stars{display:flex;gap:.35rem;margin:0 0 .8rem;}",
+    ".sc-fb-star{background:none;border:none;cursor:pointer;font-size:1.6rem;line-height:1;color:rgba(196,181,253,0.35);padding:0;transition:color .12s;}",
+    ".sc-fb-star.sc-on,.sc-fb-star:hover{color:#fde8b0;}",
+    ".sc-fb-txt,.sc-fb-email{width:100%;box-sizing:border-box;border-radius:.6rem;border:1px solid rgba(196,181,253,0.24);background:rgba(0,0,0,0.22);color:#efe9ff;font:inherit;font-size:14px;padding:.55rem .7rem;margin:0 0 .6rem;}",
+    ".sc-fb-txt{min-height:4.5rem;resize:vertical;}",
+    ".sc-fb-email{margin-bottom:.8rem;}",
+    ".sc-fb-txt::placeholder,.sc-fb-email::placeholder{color:rgba(224,218,246,0.4);}",
+    ".sc-fb-txt:focus,.sc-fb-email:focus{outline:none;border-color:rgba(253,230,138,0.55);}",
+    ".sc-fb-send{width:100%;padding:.6rem;border-radius:.6rem;border:1px solid rgba(253,230,138,0.5);background:rgba(253,230,138,0.14);color:#fde8b0;font:inherit;font-size:15px;cursor:pointer;}",
+    ".sc-fb-send:hover{background:rgba(253,230,138,0.22);}",
+    ".sc-fb-send:disabled{opacity:.5;cursor:default;}",
+    ".sc-fb-msg{font-size:13px;margin:.6rem 0 0;min-height:1em;}",
+    ".sc-fb-msg.sc-fb-err{color:#fca5a5;}",
+    ".sc-fb-msg.sc-fb-ok{color:#a7f3d0;}",
+    ".sc-fb-close{position:absolute;top:.5rem;right:.7rem;background:none;border:none;color:rgba(224,218,246,0.5);font-size:1.25rem;cursor:pointer;line-height:1;}",
+    ".sc-fb-close:hover{color:#e0daf6;}",
+    "@media print{.sc-fb-btn,.sc-fb-panel{display:none !important;}}"
   ].join("");
 
   var EXPLORE_ITEMS = [
@@ -445,6 +471,87 @@
     });
   }
 
+  // --- Floating feedback widget --------------------------------------------
+  // A chat-bubble button at bottom-right, sitewide, no login. Opens a small
+  // panel: a 1–5 rating, a note, an optional follow-up email. Submits to
+  // /api/feedback, which stores it in the `feedback` D1 table. The markup is
+  // injected at runtime (not baked) so it appears identically on every page.
+  function feedbackHtml() {
+    var starsHtml = "";
+    for (var n = 1; n <= 5; n++) {
+      starsHtml += '<button type="button" class="sc-fb-star" data-v="' + n +
+        '" role="radio" aria-checked="false" aria-label="' + n + ' out of 5">★</button>';
+    }
+    return '' +
+      '<button id="sc-fb-btn" class="sc-fb-btn" type="button" aria-label="Give feedback" aria-expanded="false" title="How are we doing?">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
+      '</button>' +
+      '<div id="sc-fb-panel" class="sc-fb-panel" role="dialog" aria-label="Send feedback">' +
+        '<button class="sc-fb-close" id="sc-fb-close" type="button" aria-label="Close feedback">×</button>' +
+        '<p class="sc-fb-title">How are we doing?</p>' +
+        '<p class="sc-fb-sub">Your honest take helps us shape Soulcraft.</p>' +
+        '<div class="sc-fb-stars" id="sc-fb-stars" role="radiogroup" aria-label="Rating from 1 to 5">' + starsHtml + '</div>' +
+        '<textarea id="sc-fb-txt" class="sc-fb-txt" maxlength="5000" placeholder="What\'s working? What\'s not?"></textarea>' +
+        '<input id="sc-fb-email" class="sc-fb-email" type="email" maxlength="200" placeholder="Email (optional — if you\'d like us to follow up)">' +
+        '<button id="sc-fb-send" class="sc-fb-send" type="button">Send feedback</button>' +
+        '<p class="sc-fb-msg" id="sc-fb-msg" aria-live="polite"></p>' +
+      '</div>';
+  }
+
+  function wireFeedback() {
+    if (typeof document === "undefined") return;
+    if (document.getElementById("sc-fb-btn")) return;        // inject once per page
+    document.body.insertAdjacentHTML("beforeend", feedbackHtml());
+    var btn = document.getElementById("sc-fb-btn");
+    var panel = document.getElementById("sc-fb-panel");
+    var closeBtn = document.getElementById("sc-fb-close");
+    var stars = panel.querySelectorAll(".sc-fb-star");
+    var txt = document.getElementById("sc-fb-txt");
+    var email = document.getElementById("sc-fb-email");
+    var send = document.getElementById("sc-fb-send");
+    var msg = document.getElementById("sc-fb-msg");
+    var rating = 0;
+    function setRating(v) {
+      rating = v;
+      for (var i = 0; i < stars.length; i++) {
+        stars[i].classList.toggle("sc-on", i < v);
+        stars[i].setAttribute("aria-checked", (i + 1) === v ? "true" : "false");
+      }
+    }
+    for (var i = 0; i < stars.length; i++) {
+      (function (b) { b.addEventListener("click", function () { setRating(parseInt(b.getAttribute("data-v"), 10)); }); })(stars[i]);
+    }
+    function openPanel() { panel.classList.add("sc-fb-open"); btn.setAttribute("aria-expanded", "true"); setTimeout(function () { txt.focus(); }, 40); }
+    function closePanel() { panel.classList.remove("sc-fb-open"); btn.setAttribute("aria-expanded", "false"); }
+    btn.addEventListener("click", function () { panel.classList.contains("sc-fb-open") ? closePanel() : openPanel(); });
+    closeBtn.addEventListener("click", closePanel);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && panel.classList.contains("sc-fb-open")) closePanel(); });
+    send.addEventListener("click", function () {
+      var message = (txt.value || "").trim();
+      var mail = (email.value || "").trim();
+      if (!rating && !message) { msg.className = "sc-fb-msg sc-fb-err"; msg.textContent = "Add a rating or a note first."; return; }
+      if (mail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { msg.className = "sc-fb-msg sc-fb-err"; msg.textContent = "That email doesn't look right."; return; }
+      msg.className = "sc-fb-msg"; msg.textContent = ""; send.disabled = true;
+      fetch("/api/feedback", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: rating || null, message: message, email: mail, page: location.pathname })
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          send.disabled = false;
+          if (res.ok && res.j && res.j.ok) {
+            try { if (window.gtag) window.gtag("event", "feedback_submitted", { rating: rating || 0 }); } catch (e) {}
+            msg.className = "sc-fb-msg sc-fb-ok"; msg.textContent = "Thank you — we hear you.";
+            setRating(0); txt.value = ""; email.value = "";
+            setTimeout(closePanel, 1400);
+          } else {
+            msg.className = "sc-fb-msg sc-fb-err"; msg.textContent = (res.j && res.j.error) || "Couldn't send just now — please try again.";
+          }
+        })
+        .catch(function () { send.disabled = false; msg.className = "sc-fb-msg sc-fb-err"; msg.textContent = "Couldn't reach the server — please try again."; });
+    });
+  }
+
   return {
     CSS: CSS,
     headerHtml: headerHtml,
@@ -458,6 +565,8 @@
     applyAuthNav: applyAuthNav,
     injectAnalytics: injectAnalytics,
     trackReturnVisit: trackReturnVisit,
-    registerServiceWorker: registerServiceWorker
+    registerServiceWorker: registerServiceWorker,
+    feedbackHtml: feedbackHtml,
+    wireFeedback: wireFeedback
   };
 });
