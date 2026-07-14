@@ -532,6 +532,78 @@ function shadowMain() {
     </section>`;
 }
 
+// ---- Bandwidth starburst visualization -------------------------------------
+// A single STILL image (drawn once to a crisp, DPR-scaled canvas — no animation),
+// purely geometric, matching the logo / mandala language. The mandala you know —
+// a ring of the twelve base-archetype colours + a white centre dot — with the
+// Bandwidth spectrum applied along every axis: dark and isolated at the devolved
+// rim, brightening inward to a shared white field of light at the transcendent
+// centre. Twelve tapered hue rays => a starburst. General educational picture,
+// not tied to any user's data.
+function bandwidthWheelViz() {
+  return `    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-3 max-w-3xl">Twelve voices, one center</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-8 max-w-3xl">One picture of the whole idea. Each of the twelve spokes is one archetype, drawn as its Bandwidth spectrum — dim and alone out in the dark at the rim (that's Devolved), brightening as it moves inward. The ring of colour is the mandala you already know: each voice at Base. Keep going and every axis converges into a single white field of light at the center — the integrated self, where no one voice is driving. Closer in means more Bandwidth; further out, more devolved and isolated.</p>
+      <figure class="mx-auto" style="max-width:480px;">
+        <canvas id="bw-wheel" role="img" aria-label="A starburst of twelve coloured rays around a white centre. Each ray is one archetype: a dim, isolated point out in the dark at the rim (Devolved) that brightens along its axis to a shared field of white light at the centre (Transcendent). A ring of the twelve base colours marks the middle — the mandala." class="rounded-2xl border border-violet-300/10" style="width:100%;height:auto;display:block;"></canvas>
+        <figcaption class="text-center text-sm text-violet-300/70 mt-3">Dim and alone at the edge (Devolved) · the base-colour mandala in the ring · one shared field of light at the center (Transcendent)</figcaption>
+      </figure>
+    </section>
+    <script>
+    (function(){
+      var c=document.getElementById('bw-wheel'); if(!c||!c.getContext) return;
+      var ctx=c.getContext('2d'), N=12;
+      function draw(){
+        var w=c.clientWidth||(c.parentNode&&c.parentNode.clientWidth)||460;
+        var D=Math.max(240,w), dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
+        c.width=Math.round(D*dpr); c.height=Math.round(D*dpr); c.style.height=D+'px';
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        var cx=D/2, cy=D/2, Ro=D*0.44, Rbase=Ro*0.52, i, a, hue, g, bx, by;
+        var R=function(deg){ return deg*Math.PI/180; };
+        g=ctx.createRadialGradient(cx,cy,0,cx,cy,D*0.64);
+        g.addColorStop(0,'#211a3c'); g.addColorStop(0.52,'#15102b'); g.addColorStop(1,'#0b0817');
+        ctx.fillStyle=g; ctx.fillRect(0,0,D,D);
+        // tapered hue rays — bright & wide at the integrated centre, fading to a dim
+        // point in dark space at the devolved rim (the bandwidth spectrum per axis)
+        var w0=R(9.5), r0=Ro*0.05;
+        for(i=0;i<N;i++){ a=R(-90+i*30); hue=i*30;
+          ctx.save(); ctx.beginPath();
+          ctx.moveTo(cx+r0*Math.cos(a-w0), cy+r0*Math.sin(a-w0));
+          ctx.lineTo(cx+Ro*Math.cos(a),    cy+Ro*Math.sin(a));
+          ctx.lineTo(cx+r0*Math.cos(a+w0), cy+r0*Math.sin(a+w0));
+          ctx.closePath(); ctx.clip();
+          g=ctx.createRadialGradient(cx,cy,0,cx,cy,Ro);
+          g.addColorStop(0.00,'hsla('+hue+',72%,95%,0.92)');
+          g.addColorStop(0.15,'hsla('+hue+',72%,82%,0.88)');
+          g.addColorStop(0.40,'hsla('+hue+',66%,60%,0.72)');
+          g.addColorStop(0.72,'hsla('+hue+',60%,44%,0.38)');
+          g.addColorStop(1.00,'hsla('+hue+',55%,30%,0.00)');
+          ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.fillRect(0,0,D,D);
+          ctx.restore(); }
+        // dim, isolated devolved points out near each rim tip
+        for(i=0;i<N;i++){ a=R(-90+i*30); hue=i*30;
+          ctx.fillStyle='hsla('+hue+',52%,36%,0.92)';
+          ctx.beginPath(); ctx.arc(cx+Ro*0.9*Math.cos(a), cy+Ro*0.9*Math.sin(a), D*0.007,0,7); ctx.fill(); }
+        // base-colour mandala ring: twelve dots with a soft white rim
+        for(i=0;i<N;i++){ a=R(-90+i*30); hue=i*30; bx=cx+Rbase*Math.cos(a); by=cy+Rbase*Math.sin(a);
+          g=ctx.createRadialGradient(bx,by,0,bx,by,D*0.03);
+          g.addColorStop(0,'hsla('+hue+',66%,66%,0.5)'); g.addColorStop(1,'hsla('+hue+',66%,60%,0)');
+          ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.beginPath(); ctx.arc(bx,by,D*0.03,0,7); ctx.fill(); ctx.restore();
+          ctx.fillStyle='hsl('+hue+',62%,58%)'; ctx.beginPath(); ctx.arc(bx,by,D*0.0125,0,7); ctx.fill();
+          ctx.lineWidth=D*0.0025; ctx.strokeStyle='rgba(255,252,240,0.85)'; ctx.stroke(); }
+        // white hub — the integrated centre
+        g=ctx.createRadialGradient(cx,cy,0,cx,cy,Ro*0.36);
+        g.addColorStop(0,'rgba(255,254,248,0.98)'); g.addColorStop(0.4,'rgba(238,230,255,0.55)'); g.addColorStop(1,'rgba(238,230,255,0)');
+        ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy,Ro*0.36,0,7); ctx.fill(); ctx.restore();
+        ctx.fillStyle='rgba(255,254,250,0.98)'; ctx.beginPath(); ctx.arc(cx,cy,D*0.014,0,7); ctx.fill();
+      }
+      var rt; window.addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(draw,160); });
+      if(document.readyState!=='loading') draw(); else document.addEventListener('DOMContentLoaded',draw);
+    })();
+    </script>
+`;
+}
+
 // ---- Bandwidth (/explore/bandwidth/) — DEEP, from Notion "CORE DEFINITION OF ATTUNEMENT" ----
 function bandwidthMain() {
   const swatches = DATA.STAGE_NAMES.map((n, i) =>
@@ -577,6 +649,8 @@ ${swatches}
         <p class="text-violet-300/75"><strong class="text-violet-100 block mb-1">Transcendent</strong>Maximally expansive. Capacity overflowing, freely extended outward to others and the whole.</p>
       </div>
     </section>
+
+${bandwidthWheelViz()}
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
       <h2 class="serif text-3xl mb-3">One dimension, two views: brightness is capacity</h2>
