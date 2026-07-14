@@ -104,6 +104,8 @@
     ".sc-foot a{color:rgba(224,218,246,0.85);text-decoration:none;}.sc-foot a:hover{color:#fde68a;}",
     ".sc-foot-brand{font-family:'Cormorant Garamond',Georgia,serif;color:rgba(224,218,246,0.7);margin:0;}",
     ".sc-foot-tagline{font-size:12.5px;color:rgba(196,181,253,0.45);margin:0;}",
+    ".sc-foot-admin{display:inline-block;margin-top:.75rem;font-size:11px;color:rgba(196,181,253,0.3);text-decoration:none;}",
+    ".sc-foot-admin:hover{color:rgba(196,181,253,0.6);}",
     "#sc-return-banner{position:relative;display:flex;align-items:center;justify-content:center;gap:.75rem;background:rgba(253,230,138,0.12);border-bottom:1px solid rgba(253,230,138,0.22);font-family:'Source Sans 3',system-ui,sans-serif;padding:.5rem 2.5rem;text-align:center;}",
     ".sc-return-link{color:#fde8b0;text-decoration:none;font-size:14px;font-weight:600;}",
     ".sc-return-link:hover{color:#fff6d8;text-decoration:underline;}",
@@ -244,6 +246,10 @@
           '</div>' +
         '</div>' +
         '<p class="sc-foot-tagline">You are not one of twelve types. You are all twelve.</p>' +
+        // Deliberately low-key: plain, dim text, not in the main nav. The /admin
+        // page is itself password-gated (X-Admin-Key), so this link only leads to
+        // a prompt — nothing behind it opens without the existing admin key.
+        '<a class="sc-foot-admin" href="/admin/">Admin</a>' +
       '</div></footer>';
   }
 
