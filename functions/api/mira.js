@@ -38,6 +38,10 @@ function json(obj, status) {
 // person never sees the brackets — and persists the name to users.display_name.
 const OPEN = "⟦", CLOSE = "⟧";                  // ⟦ ⟧
 const NAME_MARKER_G = /⟦\s*remember-name:\s*([^⟧]*?)\s*⟧/g;
+const SUGGEST_MARKER_G = /⟦\s*suggest:\s*([^⟧]*?)\s*⟧/g;
+// Strip ANY complete ⟦…⟧ marker from visible text — so a new marker type can
+// never leak just because it isn't the name marker.
+const ANY_MARKER_G = /⟦[^⟧]*⟧/g;
 
 function cleanName(v) {
   if (typeof v !== "string") return null;
@@ -49,17 +53,29 @@ function extractName(raw) {
   const m = NAME_MARKER_G.exec(raw);
   return m ? cleanName(m[1]) : null;
 }
+// Parse the ⟦suggest: …⟧ marker into 1–2 clean, length-capped follow-up
+// questions (pipe-separated in the marker). Returns [] when absent or empty.
+function extractSuggestions(raw) {
+  SUGGEST_MARKER_G.lastIndex = 0;
+  const m = SUGGEST_MARKER_G.exec(raw);
+  if (!m) return [];
+  return m[1].split("|")
+    .map((s) => s.replace(/["']/g, "").replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s.slice(0, 160));
+}
 // The prefix of `raw` that is SAFE to emit now: everything except a trailing,
 // still-unclosed "⟦…" fragment (which might turn into a marker), with any
 // COMPLETE markers already removed.
 function safeCleanedPrefix(raw) {
   const lastOpen = raw.lastIndexOf(OPEN);
   const holdFrom = (lastOpen >= 0 && raw.indexOf(CLOSE, lastOpen) === -1) ? lastOpen : raw.length;
-  return raw.slice(0, holdFrom).replace(NAME_MARKER_G, "");
+  return raw.slice(0, holdFrom).replace(ANY_MARKER_G, "");
 }
 // Final cleanup: strip complete markers, drop any leftover unclosed fragment.
 function stripMarkers(raw) {
-  let out = raw.replace(NAME_MARKER_G, "");
+  let out = raw.replace(ANY_MARKER_G, "");
   const lastOpen = out.lastIndexOf(OPEN);
   if (lastOpen >= 0 && out.indexOf(CLOSE, lastOpen) === -1) out = out.slice(0, lastOpen);
   return out;
@@ -238,7 +254,11 @@ export async function onRequestPost(context) {
         if (finalClean.length > sentLen) {
           await writer.write(enc.encode("data: " + JSON.stringify({ text: finalClean.slice(sentLen) }) + "\n\n"));
         }
-        await writer.write(enc.encode("data: " + JSON.stringify({ done: true }) + "\n\n"));
+        // Content-aware follow-up chips, parsed from Mira's own reply (no extra
+        // API call). Empty array when she emitted none, or the marker got cut off
+        // by the token limit — the client simply shows no chips in that case.
+        const suggestions = extractSuggestions(raw);
+        await writer.write(enc.encode("data: " + JSON.stringify({ done: true, suggestions }) + "\n\n"));
       } catch (e) {
         try { await writer.write(enc.encode("data: " + JSON.stringify({ error: true }) + "\n\n")); } catch (e2) {}
       } finally {
