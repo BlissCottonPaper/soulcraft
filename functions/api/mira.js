@@ -15,6 +15,7 @@ import { getSessionUser } from "./_auth.js";
 import { ensureMiraSchema, miraAccess } from "../mira/_schema.js";
 import { assembleMiraSystem } from "../mira/_prompt.js";
 import { detectCrisis } from "../mira/_crisis.js";
+import { detectPatterns, patternNote, getPatternEntry, formatEntry } from "../mira/_patterns.js";
 
 // Static instruction for the summarizer — kept as its own constant so it can be
 // sent as a cache_control'd block (static-first). It's short (well under the
@@ -173,6 +174,14 @@ export async function onRequestPost(context) {
     // replies (her prompt handles it too), this is the guaranteed backstop.
     const crisis = detectCrisis(message);
 
+    // Protective-pattern recognition (R-33/R-40): a second deterministic pass,
+    // like the crisis layer. Returns candidate patterns (0/1/many) from the Atlas
+    // index — never asserts one. A single confident match is treated as confirmed
+    // and pulls that one full entry (stage 2); multiple matches inject only a
+    // lightweight disambiguation note (stage 1). Best-effort; never blocks a reply.
+    let patternCandidates = [];
+    try { patternCandidates = detectPatterns(message); } catch (e) { patternCandidates = []; }
+
     // Fold the prior session into memory before we assemble the prompt.
     await lazySummarize(env, user.id, sessionId);
 
@@ -191,6 +200,20 @@ export async function onRequestPost(context) {
     // System as [static (cache_control ephemeral), dynamic] blocks — static-first
     // so Anthropic's prompt cache lands on the large, unchanging framework prefix.
     const system = await assembleMiraSystem(env, user.id, user.email);
+
+    // Two-stage protective-pattern context (this turn only, never cached/persisted):
+    //  - exactly one candidate → pull that one full entry (stage 2)
+    //  - several candidates    → inject only the lightweight disambiguation note (stage 1)
+    try {
+      if (patternCandidates.length === 1) {
+        const entry = await getPatternEntry(patternCandidates[0].id);
+        const block = entry ? formatEntry(entry) : patternNote(patternCandidates);
+        if (block) system.push({ type: "text", text: block });
+      } else if (patternCandidates.length > 1) {
+        const block = patternNote(patternCandidates);
+        if (block) system.push({ type: "text", text: block });
+      }
+    } catch (e) { /* best-effort; pattern context never blocks a reply */ }
 
     const upstream = await anthropic(env, {
       model: CHAT_MODEL,

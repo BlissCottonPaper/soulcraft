@@ -1,0 +1,175 @@
+#!/usr/bin/env node
+// ============================================================================
+// scripts/export-protective-patterns.mjs
+// ----------------------------------------------------------------------------
+// Repeatable export of the Atlas of Protective Patterns from Notion into the two
+// data files the runtime uses:
+//
+//   functions/mira/patterns-index.js  — small, always loaded. One row per
+//       canonical pattern: id, name, recognition sentence (Core Logic), the
+//       parsed Trigger Phrases array, and the crosswalk Aliases/Merges that
+//       point at it.
+//   functions/mira/patterns-full.js   — large, imported on demand only. Every
+//       non-empty property plus the page-body markdown, keyed by Pattern ID.
+//
+// This is NOT a one-time snapshot: source data is still being filled in (the
+// content-side ledger entries were pending at build time). Re-run this whenever
+// Notion changes to regenerate both files.
+//
+// Usage:
+//   NOTION_TOKEN=secret_xxx node scripts/export-protective-patterns.mjs
+//   (needs:  npm i @notionhq/client)
+//
+// The two Notion databases (IDs are stable):
+//   Canonical Patterns   — 638b9b2e-3341-4cbd-b650-84a10a5016c2
+//   Terms/Crosswalk      — d4e19169-595f-45d8-8f52-5626ac009f72
+// ============================================================================
+
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const CANONICAL_DB = "638b9b2e-3341-4cbd-b650-84a10a5016c2";
+const CROSSWALK_DB = "d4e19169-595f-45d8-8f52-5626ac009f72";
+
+// Crosswalk rows we import as extra recognition terms: only Aliases and Merges.
+const ALIAS_DISPOSITIONS = new Set(["Alias", "Merged into Canonical Pattern"]);
+// ...but never these taxonomy types — they must not be trigger-matched like an
+// ordinary pattern (safety/clinical terms, traits, healthy behaviors, wounds).
+const EXCLUDED_TAXONOMY = new Set([
+  "Safety-framework term",
+  "Symptom or diagnostic indicator",
+  "Defense mechanism or clinical concept",
+  "Trait or temperament",
+  "Healthy behavior or contextual adaptation",
+  "Core wound or learned expectation",
+]);
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OUT_DIR = path.join(__dirname, "..", "functions", "mira");
+
+// ---- Notion property extraction -------------------------------------------
+const rich = (arr) => (Array.isArray(arr) ? arr.map((t) => t.plain_text).join("") : "");
+function extractProp(p) {
+  if (!p) return "";
+  switch (p.type) {
+    case "title": return rich(p.title);
+    case "rich_text": return rich(p.rich_text);
+    case "url": return p.url || "";
+    case "number": return p.number == null ? "" : p.number;
+    case "select": return p.select ? p.select.name : "";
+    case "multi_select": return (p.multi_select || []).map((o) => o.name);
+    case "relation": return (p.relation || []).map((r) => r.id);
+    default: return "";
+  }
+}
+function pageProps(page) {
+  const out = {};
+  for (const [name, prop] of Object.entries(page.properties || {})) out[name] = extractProp(prop);
+  return out;
+}
+
+// ---- Page body -> markdown -------------------------------------------------
+const HEAD = { heading_1: "# ", heading_2: "## ", heading_3: "### " };
+async function blockMarkdown(notion, blockId) {
+  const lines = [];
+  let cursor;
+  do {
+    const res = await notion.blocks.children.list({ block_id: blockId, start_cursor: cursor, page_size: 100 });
+    for (const b of res.results) {
+      const t = b.type;
+      if (HEAD[t]) lines.push(HEAD[t] + rich(b[t].rich_text));
+      else if (t === "paragraph") lines.push(rich(b.paragraph.rich_text));
+      else if (t === "bulleted_list_item") lines.push("- " + rich(b.bulleted_list_item.rich_text));
+      else if (t === "numbered_list_item") lines.push("1. " + rich(b.numbered_list_item.rich_text));
+      else if (t === "quote") lines.push("> " + rich(b.quote.rich_text));
+      else if (t === "toggle") lines.push(rich(b.toggle.rich_text));
+      else if (t === "callout") lines.push(rich(b.callout.rich_text));
+    }
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+  return lines.join("\n").trim();
+}
+
+async function queryAll(notion, database_id, filter) {
+  const rows = [];
+  let cursor;
+  do {
+    const res = await notion.databases.query({ database_id, start_cursor: cursor, page_size: 100, ...(filter ? { filter } : {}) });
+    rows.push(...res.results);
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+  return rows;
+}
+
+const parseTriggers = (s) => String(s || "").split(";").map((x) => x.trim()).filter(Boolean);
+const nonEmpty = (v) => !(v === "" || v == null || (Array.isArray(v) && v.length === 0));
+
+function writeIndex(index) {
+  const body = index
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((e) => "  " + JSON.stringify(e))
+    .join(",\n");
+  const out =
+    "// GENERATED by scripts/export-protective-patterns.mjs from Notion — do not edit by hand.\n" +
+    "// Small index: always loaded. One row per canonical protective pattern.\n" +
+    "export const PATTERN_INDEX = [\n" + body + "\n];\n";
+  fs.writeFileSync(path.join(OUT_DIR, "patterns-index.js"), out);
+}
+function writeFull(full) {
+  const keys = Object.keys(full).sort();
+  const body = keys.map((k) => "  " + JSON.stringify(k) + ": " + JSON.stringify(full[k])).join(",\n");
+  const out =
+    "// GENERATED by scripts/export-protective-patterns.mjs from Notion — do not edit by hand.\n" +
+    "// Large; imported dynamically on demand only. Every non-empty property plus the\n" +
+    "// page-body markdown, keyed by Pattern ID.\n" +
+    "export const PATTERN_FULL = {\n" + body + "\n};\n";
+  fs.writeFileSync(path.join(OUT_DIR, "patterns-full.js"), out);
+}
+
+async function main() {
+  const token = process.env.NOTION_TOKEN;
+  if (!token) { console.error("Set NOTION_TOKEN."); process.exit(1); }
+  const { Client } = await import("@notionhq/client");
+  const notion = new Client({ auth: token });
+
+  // Canonical patterns
+  const patternPages = await queryAll(notion, CANONICAL_DB);
+  const byPageId = {}; // notion page id -> Pattern ID
+  const index = [];
+  const full = {};
+  for (const page of patternPages) {
+    const props = pageProps(page);
+    const id = props["Pattern ID"];
+    const name = props["Canonical Name"];
+    if (!id || !name) continue;
+    byPageId[page.id] = id;
+    index.push({ id, name, recognition: props["Core Logic"] || "", triggers: parseTriggers(props["Trigger Phrases"]), aliases: [] });
+    const kept = {};
+    for (const [k, v] of Object.entries(props)) if (k !== "url" && nonEmpty(v)) kept[k] = v;
+    full[id] = { name, properties: kept, body: await blockMarkdown(notion, page.id) };
+  }
+  const indexById = Object.fromEntries(index.map((e) => [e.id, e]));
+
+  // Crosswalk aliases / merges -> attach as aliases on their canonical destination
+  const crossRows = await queryAll(notion, CROSSWALK_DB);
+  for (const row of crossRows) {
+    const p = pageProps(row);
+    if (!ALIAS_DISPOSITIONS.has(p["Disposition"])) continue;
+    if (EXCLUDED_TAXONOMY.has(p["Taxonomy Detail"])) continue;
+    const term = p["Term"];
+    if (!term) continue;
+    for (const destPageId of (p["Canonical Destination"] || [])) {
+      const patternId = byPageId[destPageId];
+      const entry = patternId && indexById[patternId];
+      if (entry && !entry.aliases.includes(term)) entry.aliases.push(term);
+    }
+  }
+
+  writeIndex(index);
+  writeFull(full);
+  const aliasCount = index.reduce((n, e) => n + e.aliases.length, 0);
+  console.log(`Wrote ${index.length} patterns · ${index.reduce((n, e) => n + e.triggers.length, 0)} triggers · ${aliasCount} aliases`);
+}
+main().catch((e) => { console.error(e); process.exit(1); });
