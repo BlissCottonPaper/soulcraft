@@ -73,10 +73,10 @@
   .mira-save{background:none;border:0;color:rgba(196,181,253,0.7);font-size:12.5px;cursor:pointer;padding:.25rem .1rem;margin-top:.15rem;}
   .mira-save:hover{color:#fde8b0;} .mira-save:disabled{cursor:default;opacity:.8;}
   /* Content-aware follow-up chips, from Mira's latest reply. They live in the
-     dock, flush against the top of the input, so their relationship to what you
-     type is obvious. Tapping one loads it into the input to edit or send — it
-     never auto-sends. Collapses to nothing when there are no suggestions. */
-  .mira-chips{display:flex;flex-wrap:wrap;gap:.4rem;padding:0 .1rem;margin:0;}
+     dock just above the "Tell me more…" nudge and the input — stacked, each on
+     its own line, longer one on top. Tapping one loads it into the input to edit
+     or send — it never auto-sends. Collapses to nothing when there are none. */
+  .mira-chips{display:flex;flex-direction:column;align-items:flex-start;gap:.35rem;padding:0 .1rem .3rem;margin:0;}
   .mira-chips:empty{display:none;}
   .mira-chip{background:rgba(196,181,253,0.08);border:1px solid rgba(196,181,253,0.3);color:rgba(224,218,246,0.9);border-radius:999px;font-size:12.5px;line-height:1.35;padding:.32rem .72rem;cursor:pointer;font-family:inherit;text-align:left;}
   .mira-chip:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;}
@@ -225,10 +225,12 @@
     </div>
     <div class="mira-msgs" id="mira-msgs" aria-live="polite"></div>
     <div class="mira-dock">
-      <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Tell me more…</button></div>
-      <!-- Content-aware follow-up chips for Mira's latest reply — sit flush above
-           the input so their tie to what you type is immediate. Empty = hidden. -->
+      <!-- Content-aware follow-up chips for Mira's latest reply — stacked above,
+           longer one on top. Empty = hidden. -->
       <div class="mira-chips" id="mira-chips"></div>
+      <!-- "Tell me more…" rests right-aligned directly above the Send/mic, without
+           crowding the chips above it. -->
+      <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Tell me more…</button></div>
       <div class="mira-inputbar">
         <button class="mira-iconbtn mira-lantern" id="mira-lantern" type="button" title="The Lantern — a little light, any time" aria-label="Open the Lantern — support and resources">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8"/><path d="M12 2v3"/><path d="M6.5 8a5.5 5.5 0 0 1 11 0v7a3 3 0 0 1-3 3h-5a3 3 0 0 1-3-3z"/><path d="M9 21h6"/><circle cx="12" cy="12" r="2.2"/></svg>
@@ -350,6 +352,9 @@
     var box=$('mira-chips'); if(!box) return;
     box.innerHTML='';
     if(!list || !list.length) return;
+    // Longer suggestion on top, so the shorter one sits nearest the nudge and
+    // never crowds "Tell me more…" resting above the Send/mic.
+    list=list.slice().sort(function(a,b){ return (b?b.length:0)-(a?a.length:0); });
     for(var i=0;i<list.length;i++){
       (function(q){
         var c=document.createElement('button'); c.className='mira-chip'; c.type='button'; c.textContent=q;
@@ -530,16 +535,21 @@
     // session, or a warm "gathering the threads" greeting on return. Entering the
     // room is the invitation, so this isn't reaching out unbidden.
     //
-    // On return she re-greets only after a real break since your last visit or
-    // message (GREET_GAP_MS) — a refresh or quick re-entry mid-session won't
-    // trigger a fresh greeting every time.
+    // On return she re-greets after a real break since your last visit or message
+    // (GREET_GAP_MS) — OR whenever the transcript is empty, which is always true on
+    // a fresh page load, since past messages aren't replayed into the view. That
+    // keeps the promise above: entering the room never lands on an empty screen.
+    // The gap only suppresses a re-greet in the rare in-app case where messages
+    // are already on screen (e.g. returning from the belief-lens editor).
     var GREET_GAP_MS = 30 * 60 * 1000; // 30 minutes
     var lastVisit = 0;
     try{ lastVisit = parseInt(localStorage.getItem('mira_last_visit')||'0',10)||0; }catch(e){}
     var afterBreak = !lastVisit || (Date.now() - lastVisit) >= GREET_GAP_MS;
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){} // record this visit
+    var msgsEl = $('mira-msgs');
+    var transcriptEmpty = !(msgsEl && msgsEl.children && msgsEl.children.length);
     if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
-    else if(afterBreak){ sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
+    else if(afterBreak || transcriptEmpty){ sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
     input.focus();
   }
 
