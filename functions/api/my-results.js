@@ -34,7 +34,7 @@ export async function onRequestGet({ request, env }) {
       if (!linkRow || linkRow.expires_at < now) {
         return new Response(JSON.stringify({ error: "Invalid or expired link" }), {
           status: 401,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
         });
       }
       userId = linkRow.user_id;
@@ -46,7 +46,7 @@ export async function onRequestGet({ request, env }) {
     if (!userId) {
       return new Response(JSON.stringify({ error: "Missing token" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
       });
     }
 
@@ -78,12 +78,12 @@ export async function onRequestGet({ request, env }) {
         totalAttempts: history.length,
         history,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" } }
     );
   } catch (err) {
     return new Response(JSON.stringify({ error: "Server error", detail: err.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
     });
   }
 }

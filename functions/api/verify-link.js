@@ -18,7 +18,7 @@ export async function onRequestGet({ request, env }) {
     if (!token || !resultId) {
       return new Response(JSON.stringify({ error: "Missing token or result id" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
       });
     }
 
@@ -36,14 +36,14 @@ export async function onRequestGet({ request, env }) {
     if (!linkRow) {
       return new Response(JSON.stringify({ error: "Invalid link" }), {
         status: 404,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
       });
     }
 
     if (linkRow.expires_at < now) {
       return new Response(JSON.stringify({ error: "This link has expired. Enter your email again to get a fresh one." }), {
         status: 410,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
       });
     }
 
@@ -69,7 +69,7 @@ export async function onRequestGet({ request, env }) {
     if (!result) {
       return new Response(JSON.stringify({ error: "Result not found" }), {
         status: 404,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
       });
     }
 
@@ -85,12 +85,12 @@ export async function onRequestGet({ request, env }) {
         fullPurchased: !!result.full_purchased,
         createdAt: result.created_at,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" } }
     );
   } catch (err) {
     return new Response(JSON.stringify({ error: "Server error", detail: err.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
     });
   }
 }
@@ -112,7 +112,7 @@ export async function onRequestGetPublic({ params, env }) {
   if (!result) {
     return new Response(JSON.stringify({ error: "Not found or not public" }), {
       status: 404,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" },
     });
   }
 
@@ -123,6 +123,6 @@ export async function onRequestGetPublic({ params, env }) {
       archetypeScores: JSON.parse(result.archetype_scores),
       temperamentScores: JSON.parse(result.channel_scores),
     }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
+    { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" } }
   );
 }

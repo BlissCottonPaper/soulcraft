@@ -381,6 +381,14 @@
   // Out" when signed in, "Log In" when signed out. The existing "My Results"
   // (magic-link) link stays for non-registered users either way.
   function doLogout() {
+    // Clear per-user client state before leaving, so the next person on this
+    // browser can't resurface the previous account's saved Mandala via the
+    // "Return to Your Mandala" snapshot (or a stale pending-purchase snapshot).
+    try {
+      localStorage.removeItem("soulcraft_result_token");
+      localStorage.removeItem("soulcraft_pending");
+      localStorage.removeItem("mira_last_visit");
+    } catch (e) { /* storage unavailable — nothing to clear */ }
     fetch("/api/logout", { method: "POST", credentials: "same-origin" })
       .then(function () { window.location.href = "/"; })
       .catch(function () { window.location.href = "/"; });
