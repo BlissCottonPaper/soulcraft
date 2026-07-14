@@ -50,15 +50,8 @@
     box-shadow:0 0 42px 8px rgba(150,110,220,0.32), inset 0 0 26px rgba(255,240,205,0.28);
     animation:orb-breathe 6s ease-in-out infinite;}
   @keyframes orb-breathe{0%,100%{transform:scale(1);opacity:.92;box-shadow:0 0 36px 6px rgba(150,110,220,0.28)}50%{transform:scale(1.06);opacity:1;box-shadow:0 0 54px 13px rgba(184,146,244,0.46)}}
-  .orb.streaming{animation:orb-shimmer 1.7s ease-in-out infinite;}
-  @keyframes orb-shimmer{0%,100%{transform:scale(1.02);filter:hue-rotate(0deg)}50%{transform:scale(1.08);filter:hue-rotate(20deg)}}
-  /* Chat orb: fixed near the bottom (future Lantern position) so it never scrolls away.
-     Centered via left/calc so the breathing keyframes keep the transform for scale. */
-  #mira-orb{position:fixed;left:calc(50% - 30px);bottom:5.75rem;width:60px;height:60px;margin:0;z-index:6;pointer-events:none;}
-  @media(max-width:480px){#mira-orb{width:52px;height:52px;left:calc(50% - 26px);bottom:5.25rem;}}
-  /* The floating orb is a mobile-only placeholder until the color-morphing
-     Mandala orb replaces it — hide it on tablet/desktop widths. */
-  @media(min-width:768px){#mira-orb{display:none;}}
+  /* (The floating chat orb was removed — the breathing .orb above is still used
+     as a static brand mark on the loading, gate, front-door and onboarding views.) */
   .mira-title{text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:1.9rem;color:#f5f3ff;margin:.25rem 0 .1rem;}
   .mira-sub{text-align:center;color:rgba(224,218,246,0.72);font-size:14.5px;margin:0 auto 1.25rem;max-width:30rem;}
   .mira-msgs{display:flex;flex-direction:column;gap:.85rem;margin:1rem 0;padding-bottom:5.5rem;}
@@ -213,7 +206,6 @@
 
   <!-- CHAT -->
   <div id="mira-chat" class="mira-hide">
-    <div class="orb" id="mira-orb"></div>
     <p class="mira-trial mira-hide" id="mira-trial"></p>
     <!-- Deterministic crisis banner — raised by the server's independent check,
          regardless of Mira's own reply. Hidden until triggered. -->
@@ -374,7 +366,6 @@
   var streaming=false;
   function setStreaming(on){
     streaming=on;
-    var orb=$('mira-orb'); if(orb) orb.className='orb'+(on?' streaming':'');
     $('mira-input').disabled=on; $('mira-sendbtn').disabled=on;
   }
   // Crisis banner. Once it fires it PINS to the top of the viewport and stays

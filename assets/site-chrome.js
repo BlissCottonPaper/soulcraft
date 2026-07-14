@@ -479,7 +479,13 @@
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
     if (typeof window === "undefined" || window.location.protocol === "file:") return;
     window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/service-worker.js").catch(function () { /* non-fatal */ });
+      navigator.serviceWorker.register("/service-worker.js").then(function (reg) {
+        // Force an update check on every load. An already-installed PWA otherwise
+        // only re-checks the worker occasionally, so a stale worker (e.g. one from
+        // before a code change) can keep controlling the app for a while. This makes
+        // a new worker install promptly; it activates on the next navigation.
+        if (reg && reg.update) { try { reg.update(); } catch (e) { /* ignore */ } }
+      }).catch(function () { /* non-fatal */ });
     });
   }
 
