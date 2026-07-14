@@ -418,7 +418,7 @@
             return pump();
           });
         }
-        function finalize(){ setStreaming(false); touch(); if(full){ addSave(bubble, full); addChips(bubble, sugg); scrollDown(); } else { bubble.textContent='(no reply)'; } }
+        function finalize(){ setStreaming(false); touch(); if(full){ addChips(bubble, sugg); addSave(bubble, full); scrollDown(); } else { bubble.textContent='(no reply)'; } }
         return pump();
       })
       .catch(function(){ bubble.textContent='Connection lost — please try again.'; setStreaming(false); });
@@ -529,8 +529,8 @@
     try{ lastVisit = parseInt(localStorage.getItem('mira_last_visit')||'0',10)||0; }catch(e){}
     var afterBreak = !lastVisit || (Date.now() - lastVisit) >= GREET_GAP_MS;
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){} // record this visit
-    if(!hasHistory){ sendMessage('[first session — begin]', true); }
-    else if(afterBreak){ sendMessage('[returning session — greet warmly and gather the threads]', true); }
+    if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
+    else if(afterBreak){ sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
     input.focus();
   }
 

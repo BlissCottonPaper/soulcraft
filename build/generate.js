@@ -1950,8 +1950,8 @@ function companionMain() {
     try{ lastVisit = parseInt(localStorage.getItem('mira_last_visit')||'0',10)||0; }catch(e){}
     var afterBreak = !lastVisit || (Date.now() - lastVisit) >= GREET_GAP_MS;
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){} // record this visit
-    if(!hasHistory){ sendMessage('[first session — begin]', true); }
-    else if(afterBreak){ sendMessage('[returning session — greet warmly and gather the threads]', true); }
+    if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
+    else if(afterBreak){ sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
     input.focus();
   }
 
