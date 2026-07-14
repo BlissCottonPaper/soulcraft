@@ -215,11 +215,14 @@
     ctx.beginPath(); ctx.arc(cx, cy, R * 0.2, 0, Math.PI * 2); ctx.fillStyle = "rgb(255,252,240)"; ctx.fill();
   }
   function footer() {
-    drawMandala(W / 2, 928, 24);
+    // The whole footer — logo mark + wordmark + follow CTA — scaled up ~25% as one
+    // proportional unit (mandala 24→30, wordmark 30→38, follow 20→25), nudged up so
+    // it still clears the inset border.
+    drawMandala(W / 2, 906, 30);
     ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.letterSpacing = "0px";
-    ctx.font = "500 30px " + SERIF; ctx.fillStyle = "rgba(245,243,255,0.9)"; ctx.fillText("The Art of Soulcraft", W / 2, 966);
+    ctx.font = "500 38px " + SERIF; ctx.fillStyle = "rgba(245,243,255,0.9)"; ctx.fillText("The Art of Soulcraft", W / 2, 954);
     var h = $("handle").value.replace(/^@+/, "").trim() || "artofsoulcraft";
-    ctx.font = "400 20px " + SANS; ctx.fillStyle = "rgba(253,230,138,0.78)"; ctx.letterSpacing = "0.5px"; ctx.fillText("follow @" + h, W / 2, 1006); ctx.letterSpacing = "0px";
+    ctx.font = "400 25px " + SANS; ctx.fillStyle = "rgba(253,230,138,0.78)"; ctx.letterSpacing = "0.6px"; ctx.fillText("follow @" + h, W / 2, 1004); ctx.letterSpacing = "0px";
   }
   function catLabel(text) { return { type: "text", text: text, font: "600 21px " + SANS, color: AMBER_DIM, ls: "4px", lineHeight: 32, gapAfter: 18 }; }
   function bigQuoteMark() { ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.font = "600 150px " + SERIF; ctx.fillStyle = "rgba(253,230,138,0.26)"; ctx.fillText("“", W / 2, TOP + 10); }
