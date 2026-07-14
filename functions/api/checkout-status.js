@@ -14,7 +14,7 @@
 // ============================================================
 
 function json(obj, status) {
-  return new Response(JSON.stringify(obj), { status: status || 200, headers: { "Content-Type": "application/json" } });
+  return new Response(JSON.stringify(obj), { status: status || 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Vary": "Cookie" } });
 }
 
 export async function onRequestGet({ request, env }) {
