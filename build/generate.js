@@ -590,7 +590,7 @@ ${swatches}
     </section>
 
     <section class="py-10 border-t border-violet-300/10">
-      <h2 class="serif text-3xl mb-6 max-w-3xl">Six + One</h2>
+      <h2 class="serif text-3xl mb-6 max-w-3xl">Six + <span class="text-amber-200">One</span></h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
 ${needsCards}
       </div>
