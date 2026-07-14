@@ -113,7 +113,11 @@
     ".sc-burger{display:none;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;margin-right:-.4rem;background:none;border:0;cursor:pointer;color:#f5f3ff;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-appearance:none;appearance:none;}",
     ".sc-burger:hover{color:#fde8b0;}",
     ".sc-burger svg{display:block;pointer-events:none;}",
-    ".sc-mobile{display:none;border-top:1px solid rgba(196,181,253,0.10);background:rgba(16,12,34,0.98);padding:.4rem 0 .8rem;}",
+    // The drawer lives inside a position:sticky header, so if it grows taller than
+    // the viewport its bottom items (Mira, My Results, Contact) get pinned below the
+    // fold with no way to scroll to them. Bound it to the viewport height (minus the
+    // 4rem nav) and let it scroll internally so every item is always reachable.
+    ".sc-mobile{display:none;border-top:1px solid rgba(196,181,253,0.10);background:rgba(16,12,34,0.98);padding:.4rem 0 .8rem;max-height:calc(100vh - 4rem);max-height:calc(100dvh - 4rem);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}",
     ".sc-mobile.sc-open{display:block;}",
     ".sc-mobile a{display:block;padding:.6rem 1.5rem;font-size:16px;color:rgba(224,218,246,0.9);text-decoration:none;}",
     ".sc-mobile a:hover,.sc-mobile a.sc-active{color:#fde8b0;}",
