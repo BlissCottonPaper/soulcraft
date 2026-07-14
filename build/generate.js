@@ -1493,6 +1493,11 @@ function companionMain() {
   .mira-row.her .mira-bubble{background:rgba(255,250,240,0.04);color:#efe9ff;border:1px solid rgba(196,181,253,0.18);border-bottom-left-radius:.35rem;}
   .mira-save{background:none;border:0;color:rgba(196,181,253,0.7);font-size:12.5px;cursor:pointer;padding:.25rem .1rem;margin-top:.15rem;}
   .mira-save:hover{color:#fde8b0;} .mira-save:disabled{cursor:default;opacity:.8;}
+  /* Content-aware follow-up chips beneath a Mira reply. Tapping one loads it into
+     the input for the person to edit or send — it never auto-sends. */
+  .mira-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0 .1rem;}
+  .mira-chip{background:rgba(196,181,253,0.08);border:1px solid rgba(196,181,253,0.3);color:rgba(224,218,246,0.9);border-radius:999px;font-size:12.5px;line-height:1.35;padding:.32rem .72rem;cursor:pointer;font-family:inherit;text-align:left;}
+  .mira-chip:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;}
   /* The dock (nudge + input) sticks to the bottom together. */
   .mira-dock{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(16,12,34,0) 0%,#100c22 32%);padding-top:.4rem;}
   .mira-nudge{display:flex;justify-content:flex-end;padding:0 .1rem .35rem;}
@@ -1751,6 +1756,28 @@ function companionMain() {
       .then(function(r){ if(r.ok){ btn.textContent='Saved \\u2713'; ga('mira_insight_saved'); } else { btn.textContent='\\u2726 Save this insight'; btn.disabled=false; } })
       .catch(function(){ btn.disabled=false; });
   }
+  // Content-aware follow-up chips, from Mira's own reply (parsed server-side).
+  // Tapping one loads that question into the input for the person to edit or
+  // add to — it deliberately does NOT auto-send.
+  function addChips(bubble, list){
+    if(!list || !list.length) return;
+    var wrap=document.createElement('div'); wrap.className='mira-chips';
+    for(var i=0;i<list.length;i++){
+      (function(q){
+        var c=document.createElement('button'); c.className='mira-chip'; c.type='button'; c.textContent=q;
+        c.addEventListener('click', function(){
+          if(streaming) return;
+          var inp=$('mira-input'); inp.value=q;
+          inp.dispatchEvent(new Event('input')); // let the textarea grow to fit
+          inp.focus();
+          try{ inp.setSelectionRange(q.length, q.length); }catch(e){}
+          ga('mira_suggestion_used');
+        });
+        wrap.appendChild(c);
+      })(list[i]);
+    }
+    bubble.parentNode.appendChild(wrap);
+  }
 
   var streaming=false;
   function setStreaming(on){
@@ -1788,7 +1815,7 @@ function companionMain() {
     // Keep the "last visit" fresh on every send, so an active session doesn't
     // read as a break and re-greet on the next refresh (see the gap logic in wireChat).
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){}
-    var bubble=addRow('her'); var full=''; setStreaming(true);
+    var bubble=addRow('her'); var full=''; var sugg=null; setStreaming(true);
     fetch('/api/mira',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:SESSION})})
       .then(function(res){
         if(res.status===401){ location.href='/login/?next=/companion/'; return null; }
@@ -1807,12 +1834,12 @@ function companionMain() {
               if(!dline) continue;
               var payload=dline.slice(5).replace(/^\\s+/,'');
               if(!payload) continue;
-              try{ var ev=JSON.parse(payload); if(ev.crisis){ pinCrisis(true); } if(ev.text){ full+=ev.text; bubble.innerHTML=renderMira(full); scrollDown(); } }catch(e){}
+              try{ var ev=JSON.parse(payload); if(ev.crisis){ pinCrisis(true); } if(ev.suggestions){ sugg=ev.suggestions; } if(ev.text){ full+=ev.text; bubble.innerHTML=renderMira(full); scrollDown(); } }catch(e){}
             }
             return pump();
           });
         }
-        function finalize(){ setStreaming(false); touch(); if(full){ addSave(bubble, full); } else { bubble.textContent='(no reply)'; } }
+        function finalize(){ setStreaming(false); touch(); if(full){ addChips(bubble, sugg); addSave(bubble, full); scrollDown(); } else { bubble.textContent='(no reply)'; } }
         return pump();
       })
       .catch(function(){ bubble.textContent='Connection lost — please try again.'; setStreaming(false); });

@@ -291,7 +291,7 @@ async function dynamicBlock(env, userId, email) {
     parts.push(
       "",
       "Remembering their name (system mechanic — do this silently):",
-      "You don't know their name yet. If they tell you what they'd like to be called, use it warmly in your reply, and then, on its very last line, write exactly ⟦remember-name: NAME⟧ one time — replacing NAME with what they gave you (just the name, no quotes). The server strips this marker before your message is shown, so they never see the ⟦ ⟧ brackets; it simply lets the system remember their name. Emit it only once, only after they've actually told you, and never write those brackets for any other reason."
+      "You don't know their name yet. If they tell you what they'd like to be called, use it warmly in your reply, and then write exactly ⟦remember-name: NAME⟧ one time — replacing NAME with what they gave you (just the name, no quotes) — placed just before the ⟦suggest: …⟧ marker that ends every reply. The server strips this marker before your message is shown, so they never see the ⟦ ⟧ brackets; it simply lets the system remember their name. Emit it only once, and only after they've actually told you."
     );
   }
 
