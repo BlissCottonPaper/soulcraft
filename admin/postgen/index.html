@@ -143,7 +143,7 @@
 
   // Fixed, generous type sizes — deliberately NOT scaled to character count, so a
   // longer or corrected quote never renders smaller than a short one.
-  var QUOTE_SIZE = 56, AXIAL_SIZE = 60;
+  var QUOTE_SIZE = 72, AXIAL_SIZE = 76;
 
   var mode = "quote";
 
@@ -215,14 +215,16 @@
     ctx.beginPath(); ctx.arc(cx, cy, R * 0.2, 0, Math.PI * 2); ctx.fillStyle = "rgb(255,252,240)"; ctx.fill();
   }
   function footer() {
-    // The whole footer — logo mark + wordmark + follow CTA — scaled up ~25% as one
-    // proportional unit (mandala 24→30, wordmark 30→38, follow 20→25), nudged up so
-    // it still clears the inset border.
-    drawMandala(W / 2, 906, 30);
+    // The whole footer — logo mark + wordmark + follow CTA — sized for comfortable
+    // legibility at Instagram feed scale (verified against real 1080² exports, not
+    // the editor preview). A prior +25% pass still read small on a phone, so this
+    // goes further: mandala 30→34, wordmark 38→52, follow 25→34, laid out down the
+    // 872–1040 band (content ends at 872, inset border at 1040) so nothing clips.
+    drawMandala(W / 2, 901, 33);
     ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.letterSpacing = "0px";
-    ctx.font = "500 38px " + SERIF; ctx.fillStyle = "rgba(245,243,255,0.9)"; ctx.fillText("The Art of Soulcraft", W / 2, 954);
+    ctx.font = "500 52px " + SERIF; ctx.fillStyle = "rgba(245,243,255,0.9)"; ctx.fillText("The Art of Soulcraft", W / 2, 942);
     var h = $("handle").value.replace(/^@+/, "").trim() || "artofsoulcraft";
-    ctx.font = "400 25px " + SANS; ctx.fillStyle = "rgba(253,230,138,0.78)"; ctx.letterSpacing = "0.6px"; ctx.fillText("follow @" + h, W / 2, 1004); ctx.letterSpacing = "0px";
+    ctx.font = "400 34px " + SANS; ctx.fillStyle = "rgba(253,230,138,0.78)"; ctx.letterSpacing = "0.6px"; ctx.fillText("follow @" + h, W / 2, 1000); ctx.letterSpacing = "0px";
   }
   function catLabel(text) { return { type: "text", text: text, font: "600 21px " + SANS, color: AMBER_DIM, ls: "4px", lineHeight: 32, gapAfter: 18 }; }
   function bigQuoteMark() { ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.font = "600 150px " + SERIF; ctx.fillStyle = "rgba(253,230,138,0.26)"; ctx.fillText("“", W / 2, TOP + 10); }
@@ -242,7 +244,7 @@
     // Structure (intentionally simplified — no descriptor row):
     // Name → bandwidth tag → definition → lead-in → Freer Expression.
     layout([
-      name ? { type: "text", text: name, font: "600 66px " + SERIF, color: INK, lineHeight: 76, gapAfter: band ? 6 : 26 } : null,
+      name ? { type: "text", text: name, font: "600 84px " + SERIF, color: INK, lineHeight: 96, gapAfter: band ? 6 : 26 } : null,
       band ? { type: "text", text: band, font: "500 italic 32px " + SERIF, color: AMBER, lineHeight: 44, gapAfter: 28 } : null,
       def ? { type: "text", text: def, font: "500 36px " + SERIF, color: VIOLET, lineHeight: 50, gapAfter: 40 } : null,
       freer ? { type: "text", text: "With conscious choice, it can become:", font: "500 32px " + SERIF, color: "rgba(245,243,255,0.92)", lineHeight: 42, gapAfter: 12 } : null,
@@ -254,7 +256,7 @@
     layout([
       key ? { type: "dot", r: 26, color: archColor(key), gapAfter: 26 } : null,
       catLabel("ARCHETYPE"),
-      name ? { type: "text", text: name, font: "600 78px " + SERIF, color: INK, lineHeight: 88, gapAfter: 14 } : null,
+      name ? { type: "text", text: name, font: "600 98px " + SERIF, color: INK, lineHeight: 110, gapAfter: 14 } : null,
       def ? { type: "text", text: def, font: "500 38px " + SERIF, color: VIOLET, lineHeight: 50, gapAfter: axis ? 26 : 0 } : null,
       axis ? { type: "text", text: "“" + axis + "”", font: "500 italic 33px " + SERIF, color: INDIGO, lineHeight: 46 } : null
     ], "center");
@@ -265,7 +267,7 @@
     layout([
       s ? { type: "dots", r: 22, colors: [archColor(s[0]), archColor(s[1])], gapAfter: 24 } : null,
       catLabel("MINDSET"),
-      name ? { type: "text", text: name, font: "600 62px " + SERIF, color: INK, lineHeight: 72, gapAfter: 8 } : null,
+      name ? { type: "text", text: name, font: "600 78px " + SERIF, color: INK, lineHeight: 90, gapAfter: 8 } : null,
       (ka && kb) ? { type: "text", text: mindsetFormula(ka, kb), font: "500 italic 31px " + SERIF, color: INDIGO, lineHeight: 42, gapAfter: 22 } : null,
       desc ? { type: "text", text: desc, font: "500 35px " + SERIF, color: VIOLET, lineHeight: 48 } : null
     ], "center");
@@ -282,7 +284,7 @@
   function renderDefinitions() {
     var term = $("d-term").value.trim(), cat = $("d-cat").value.trim(), def = $("d-def").value.trim();
     layout([
-      term ? { type: "text", text: term, font: "600 74px " + SERIF, color: INK, lineHeight: 84, gapAfter: cat ? 12 : 26 } : null,
+      term ? { type: "text", text: term, font: "600 94px " + SERIF, color: INK, lineHeight: 106, gapAfter: cat ? 12 : 26 } : null,
       cat ? { type: "text", text: cat.toUpperCase(), font: "600 22px " + SANS, color: INDIGO, ls: "3px", lineHeight: 32, gapAfter: 30 } : null,
       def ? { type: "text", text: def, font: "500 37px " + SERIF, color: VIOLET, lineHeight: 51 } : null
     ], "leftblock");
