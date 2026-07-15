@@ -13,7 +13,7 @@
 // ============================================================
 
 import { getSessionUser } from "../_auth.js";
-import { setInductionStatus, getInductionStatus } from "../../mira/_schema.js";
+import { setInductionStatus, getInductionStatus, getLatestResultId, markResultsReviewed } from "../../mira/_schema.js";
 
 function json(obj, status) {
   return new Response(JSON.stringify(obj), {
@@ -34,6 +34,12 @@ export async function onRequestPost({ request, env }) {
     if (!status) return json({ error: "Unknown action." }, 400);
 
     await setInductionStatus(env, user.id, status);
+    // Completing anchors the Results Refresh baseline to the current reading, so a
+    // later retake is what surfaces the refresh offer (not this first walk).
+    if (status === "completed") {
+      const lid = await getLatestResultId(env, user.id);
+      if (lid) await markResultsReviewed(env, user.id, lid);
+    }
     return json({ ok: true, status: await getInductionStatus(env, user.id) });
   } catch (err) {
     return json({ error: "Server error." }, 500);

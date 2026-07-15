@@ -12,11 +12,13 @@
 // ============================================================
 
 import { getSessionUser } from "./_auth.js";
-import { ensureMiraSchema, miraAccess, getInductionStatus, setInductionStatus } from "../mira/_schema.js";
+import { ensureMiraSchema, miraAccess, getInductionStatus, setInductionStatus,
+         getLatestResultId, markResultsReviewed, noteResultsOffered } from "../mira/_schema.js";
 import { assembleMiraSystem } from "../mira/_prompt.js";
 import { detectCrisis } from "../mira/_crisis.js";
 import { detectPatterns, patternNote, getPatternEntry, formatEntry } from "../mira/_patterns.js";
 import { buildOrientationBlock, INDUCTION_COMPLETE_MARKER } from "../mira/_orientation.js";
+import { resultsRefreshHint, RESULTS_REVIEWED_MARKER } from "../mira/_refresh.js";
 
 // Static instruction for the summarizer — kept as its own constant so it can be
 // sent as a cache_control'd block (static-first). It's short (well under the
@@ -47,6 +49,9 @@ const ANY_MARKER_G = /⟦[^⟧]*⟧/g;
 // Silent end-of-orientation signal Mira writes once at the close of the induction.
 // Already stripped from visible text by ANY_MARKER_G; we only detect it here.
 const INDUCTION_DONE_RE = new RegExp("⟦\\s*" + INDUCTION_COMPLETE_MARKER + "\\s*⟧");
+// Silent signal Mira writes once she has actually walked a returning user through
+// their updated results. Also stripped from visible text; we only detect it here.
+const RESULTS_REVIEWED_RE = new RegExp("⟦\\s*" + RESULTS_REVIEWED_MARKER + "\\s*⟧");
 
 function cleanName(v) {
   if (typeof v !== "string") return null;
@@ -197,6 +202,17 @@ export async function onRequestPost(context) {
       } catch (e) { runInduction = false; }
     }
 
+    // Is this the opening turn of the session? (Checked BEFORE we insert this
+    // message.) The Results Refresh offer rides only the opener, so it can join
+    // Mira's greeting at most once per session and never build mid-conversation.
+    let isSessionOpener = false;
+    try {
+      const prior = await env.DB
+        .prepare("SELECT COUNT(*) AS n FROM mira_messages WHERE user_id = ? AND session_id = ?")
+        .bind(user.id, sessionId).first();
+      isSessionOpener = !(prior && Number(prior.n) > 0);
+    } catch (e) { isSessionOpener = false; }
+
     // Fold the prior session into memory before we assemble the prompt.
     await lazySummarize(env, user.id, sessionId);
 
@@ -239,6 +255,21 @@ export async function onRequestPost(context) {
         const block = buildOrientationBlock();
         if (block) system.push({ type: "text", text: block });
       } catch (e) { /* orientation is best-effort */ }
+    }
+
+    // Results Refresh (post-G11 retakes): on a session opener, if a returning
+    // graduate's newest results differ from the ones Mira last acknowledged, offer
+    // — gently, once — to walk through what changed. Never during the induction
+    // itself. Best-effort; a missing offer never blocks a reply.
+    if (!runInduction && isSessionOpener) {
+      try {
+        const refresh = await resultsRefreshHint(env, user.id);
+        if (refresh && refresh.hint) {
+          system.push({ type: "text", text: refresh.hint });
+          // Count this opener's offer toward the rest-after-cap budget.
+          await noteResultsOffered(env, user.id, refresh.latestId, refresh.priorOfferId, refresh.priorCount);
+        }
+      } catch (e) { /* refresh is best-effort */ }
     }
 
     const upstream = await anthropic(env, {
@@ -312,7 +343,21 @@ export async function onRequestPost(context) {
         let inductionComplete = false;
         if (runInduction && INDUCTION_DONE_RE.test(raw)) {
           inductionComplete = true;
-          try { await setInductionStatus(env, user.id, "completed"); } catch (e) { /* best-effort */ }
+          try {
+            await setInductionStatus(env, user.id, "completed");
+            // Anchor the Results Refresh baseline to the reading they just walked,
+            // so the refresh only ever fires on a LATER retake.
+            const lid = await getLatestResultId(env, user.id);
+            if (lid) await markResultsReviewed(env, user.id, lid);
+          } catch (e) { /* best-effort */ }
+        }
+        // If Mira walked a returning user through their updated results, record it
+        // so the offer stops. Cheap: only queries when the marker is present.
+        if (!runInduction && RESULTS_REVIEWED_RE.test(raw)) {
+          try {
+            const lid = await getLatestResultId(env, user.id);
+            if (lid) await markResultsReviewed(env, user.id, lid);
+          } catch (e) { /* best-effort */ }
         }
         await writer.write(enc.encode("data: " + JSON.stringify({ done: true, suggestions, induction_complete: inductionComplete }) + "\n\n"));
       } catch (e) {
