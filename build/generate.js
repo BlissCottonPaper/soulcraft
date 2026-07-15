@@ -1051,6 +1051,11 @@ ${integration}
       <p class="${body} mt-4">And you don't have to hold the practice alone: <a href="/companion/" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">Mira</a>, your Soulcraft companion, is built on your Mandala and returns to these questions with you — week after week, the ongoing practice partner for the work.</p>`,
   "")}
 
+    <section id="how-the-assessment-works" class="py-9 border-t border-violet-300/10 max-w-2xl mx-auto">
+      <h2 class="serif text-2xl md:text-3xl text-violet-50 leading-snug mb-4">How the assessment works</h2>
+      <p class="text-violet-200/85 text-[16px] leading-relaxed">You won't rate yourself on a scale. Instead, you'll face 66 pairs of statements and choose which one sounds more like you — even when both do, even when neither quite does. That's deliberate. When you rate yourself, everything scores high; when you're forced to choose, a pattern emerges that rating can't fake. Each of your twelve voices faces the others again and again, and the ones you keep choosing rise. The result isn't a grade — it's a ranking: which voices speak loudest in you, compared only to you, never to anyone else. There are no wrong answers, and there's no way to game it. (For the psychologically curious: this is an ipsative forced-choice instrument.)</p>
+    </section>
+
     <section class="py-14 border-t border-violet-300/10 text-center">
       <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the assessment →</a>
     </section>`;
