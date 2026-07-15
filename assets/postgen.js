@@ -209,7 +209,10 @@
       ctx.strokeStyle = "rgba(196,181,253,0.14)"; ctx.lineWidth = 2; ctx.strokeRect(40, 40, W - 80, W - 80);
     }
     function drawMandala(cx, cy, R) {
-      for (var i = 0; i < 12; i++) { var a = (-90 + i * 30) * Math.PI / 180; ctx.beginPath(); ctx.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), R * 0.16, 0, Math.PI * 2); ctx.fillStyle = "hsl(" + (i * 30) + ",62%,58%)"; ctx.fill(); }
+      // Palette comes from the shared wheel data (HUEFN = HUE from
+      // assets/soulcraft-data.js), never a re-typed hue formula, so this footer
+      // mark stays in lock-step with the site + reel palette.
+      for (var i = 0; i < 12; i++) { var a = (-90 + i * 30) * Math.PI / 180; ctx.beginPath(); ctx.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), R * 0.16, 0, Math.PI * 2); ctx.fillStyle = "hsl(" + HUEFN(i) + ",62%,58%)"; ctx.fill(); }
       var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.55); g.addColorStop(0, "rgba(255,252,240,0.9)"); g.addColorStop(1, "rgba(255,246,214,0)");
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 0.55, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(cx, cy, R * 0.2, 0, Math.PI * 2); ctx.fillStyle = "rgb(255,252,240)"; ctx.fill();
