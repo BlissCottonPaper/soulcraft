@@ -36,3 +36,9 @@
 # still exists to host the #the-twelve anchor used in the nav.)
 /explore/overview/  /how-it-works/  301
 /explore/overview   /how-it-works/  301
+
+# The static Post Generator (/admin/postgen) was absorbed into the admin
+# dashboard's POSTS tab (R-46). 301 the old URL to the tab; the admin shell reads
+# the #posts hash after sign-in and opens that tab. Keep both slash forms working.
+/admin/postgen/  /admin/#posts  301
+/admin/postgen   /admin/#posts  301
