@@ -77,6 +77,11 @@ const KINDS = {
     page: "SELECT id, rating, message, email, page, created_at FROM feedback ORDER BY id DESC LIMIT ?1 OFFSET ?2",
     map: (r) => ({ id: r.id, rating: r.rating, message: r.message, email: r.email, page: r.page, created_at: r.created_at }),
   },
+  contacts: {
+    count: "SELECT COUNT(*) AS n FROM contacts",
+    page: "SELECT id, name, email, message, created_at FROM contacts ORDER BY id DESC LIMIT ?1 OFFSET ?2",
+    map: (r) => ({ id: r.id, name: r.name, email: r.email, message: r.message, created_at: r.created_at }),
+  },
 };
 
 // Best-effort "loudest three" label from the stored archetype_scores JSON, so

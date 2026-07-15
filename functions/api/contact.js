@@ -1,14 +1,14 @@
 // ============================================================
 // /functions/api/contact.js
 // ============================================================
-// Contact / "Work with us" form → email to Marc via Resend.
+// Contact / "Work with us" form → stored in D1 AND emailed to Marc via Resend.
 //
-// Requires two things configured in the Cloudflare Pages project
-// (Settings → Environment variables / bindings), NOT yet set up:
-//   • RESEND_API_KEY — a Resend API key (secret)
-//   • a verified sender domain in Resend matching FROM below
-// Until RESEND_API_KEY exists the endpoint returns a clean 503 and the
-// form shows a "try again later" message — it never 500s the page.
+// The submission is CAPTURED FIRST in the D1 `contacts` table (self-healing
+// schema), so it's never lost and is visible in the admin dashboard's Contact
+// drill-down. The notification email via Resend is best-effort on top: if
+// RESEND_API_KEY (a Resend API key, plus a verified sender domain matching FROM)
+// isn't configured yet, the form still succeeds on the stored copy — it only
+// fails if BOTH the store and the email fail.
 // ============================================================
 
 const RECIPIENT = "marcgsimmons@gmail.com";            // temporary; can move to a branded inbox later
@@ -38,31 +38,46 @@ export async function onRequestPost({ request, env }) {
       return json({ error: "That message is a little long — please trim it." }, 400);
     }
 
-    if (!env.RESEND_API_KEY) {
-      // Not configured yet — fail gracefully so the form can say "try later".
-      return json({ error: "The contact form isn't live just yet. Please try again soon." }, 503);
+    // --- 1) Capture in D1 first (self-healing schema) — the durable copy. ---
+    let stored = false;
+    if (env.DB) {
+      try {
+        await env.DB.prepare(
+          "CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, message TEXT, created_at INTEGER NOT NULL)"
+        ).run();
+        await env.DB.prepare(
+          "INSERT INTO contacts (name, email, message, created_at) VALUES (?, ?, ?, ?)"
+        ).bind(name, email, message, Math.floor(Date.now() / 1000)).run();
+        stored = true;
+      } catch (e) { stored = false; }
     }
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Authorization": "Bearer " + env.RESEND_API_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: FROM,
-        to: [RECIPIENT],
-        // Marc's reply goes straight back to the person who wrote in.
-        reply_to: email,
-        subject: "New message from Soulcraft — " + name,
-        text: "Name: " + name + "\nEmail: " + email + "\n\n" + message,
-        html: "<p><strong>Name:</strong> " + esc(name) + "<br><strong>Email:</strong> " + esc(email) +
-              "</p><p style=\"white-space:pre-wrap\">" + esc(message) + "</p>",
-      }),
-    });
-
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      return json({ error: "Couldn't send your message just now — please try again.", detail: detail.slice(0, 300) }, 502);
+    // --- 2) Notification email via Resend — best-effort on top of the store. ---
+    let emailed = false;
+    if (env.RESEND_API_KEY) {
+      try {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + env.RESEND_API_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: FROM,
+            to: [RECIPIENT],
+            // Marc's reply goes straight back to the person who wrote in.
+            reply_to: email,
+            subject: "New message from Soulcraft — " + name,
+            text: "Name: " + name + "\nEmail: " + email + "\n\n" + message,
+            html: "<p><strong>Name:</strong> " + esc(name) + "<br><strong>Email:</strong> " + esc(email) +
+                  "</p><p style=\"white-space:pre-wrap\">" + esc(message) + "</p>",
+          }),
+        });
+        emailed = res.ok;
+      } catch (e) { emailed = false; }
     }
-    return json({ ok: true });
+
+    // The message is safely captured if either path worked. Only when BOTH fail
+    // (no DB binding AND no/failed email) do we ask the person to try again.
+    if (stored || emailed) return json({ ok: true });
+    return json({ error: "Couldn't send your message just now — please try again." }, 502);
   } catch (err) {
     return json({ error: "Server error", detail: err.message }, 500);
   }

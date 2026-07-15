@@ -183,7 +183,8 @@
           statRow("Last 30 days", fmt(d.assessmentsLast30Days)) +
           statLink("emails", "Emails saved", fmt(d.emailsSaved)) +
           statLink("purchases", "Purchases", fmt(d.purchases)) +
-          statLink("feedback", "Feedback entries", fmt(d.feedbackCount));
+          statLink("feedback", "Feedback entries", fmt(d.feedbackCount)) +
+          statLink("contacts", "Contact messages", fmt(d.contactsCount));
         var btns = pane.querySelectorAll("button[data-drill]");
         for (var i = 0; i < btns.length; i++) {
           (function (b) {
@@ -235,6 +236,9 @@
         } else if (kind === "feedback") {
           main = r.message ? esc(r.message) : "(no message)";
           sub = [(r.rating != null ? r.rating + "★" : ""), r.email ? esc(r.email) : "", r.page ? esc(r.page) : ""].filter(Boolean).join(" · ");
+        } else if (kind === "contacts") {
+          main = r.message ? esc(r.message) : "(no message)";
+          sub = [r.name ? esc(r.name) : "", r.email ? '<a href="mailto:' + esc(r.email) + '">' + esc(r.email) + "</a>" : ""].filter(Boolean).join(" · ");
         } else {
           main = esc(JSON.stringify(r));
         }

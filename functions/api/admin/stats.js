@@ -92,6 +92,12 @@ export async function onRequestGet({ request, env }) {
       const fbRow = await env.DB.prepare("SELECT COUNT(*) AS n FROM feedback").first();
       feedbackCount = Number((fbRow && fbRow.n) || 0);
     } catch (e) { feedbackCount = 0; }
+    // Contact-form submissions (table may not exist until the first message).
+    let contactsCount = 0;
+    try {
+      const cRow = await env.DB.prepare("SELECT COUNT(*) AS n FROM contacts").first();
+      contactsCount = Number((cRow && cRow.n) || 0);
+    } catch (e) { contactsCount = 0; }
 
     const n = (v) => Number(v || 0);
 
