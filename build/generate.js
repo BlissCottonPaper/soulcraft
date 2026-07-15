@@ -532,6 +532,63 @@ function shadowMain() {
     </section>`;
 }
 
+// ---- Bandwidth starburst visualization -------------------------------------
+// A single STILL image (drawn once to a crisp, DPR-scaled canvas — no animation),
+// purely geometric, matching the logo / mandala language. The mandala you know —
+// a ring of the twelve base-archetype colours + a white centre dot — with the
+// Bandwidth spectrum applied along every axis: dark and isolated at the devolved
+// rim, brightening inward to a shared white field of light at the transcendent
+// centre. Twelve tapered hue rays => a starburst. General educational picture,
+// not tied to any user's data.
+function bandwidthWheelViz() {
+  return `    <section class="py-10 border-t border-violet-300/10">
+      <h2 class="serif text-3xl mb-3 max-w-3xl">Twelve voices, one center</h2>
+      <p class="text-violet-200/80 leading-relaxed mb-8 max-w-3xl">One picture of the whole idea. Each of the twelve archetypes runs along its own axis as its five Bandwidth stages: a dim point out in the dark at the rim (that's Devolved), each step inward brighter than the last, up to Transcendent nearest the center. The middle dot on each axis, ringed in white, is Base — the mandala you already know. Every axis is capped by the single white dot at the center: the integrated self, where no one voice is driving. Closer to the center means more Bandwidth; further out, more devolved and isolated.</p>
+      <figure class="mx-auto" style="max-width:480px;">
+        <canvas id="bw-wheel" role="img" aria-label="Twelve archetype axes around a white center dot. Each axis is five evenly-spaced dots of the same size, dark at the outer rim (Devolved) and brightening step by step toward the center (Transcendent); the middle dot carries a white ring (Base). A single white dot at the center caps every axis." class="rounded-2xl border border-violet-300/10" style="width:100%;height:auto;display:block;"></canvas>
+        <figcaption class="text-center text-sm text-violet-300/70 mt-3">Five stages per axis, dark to light — Devolved at the rim, Transcendent near the center. The white-ringed middle dot is Base (the mandala); the white center dot caps every axis.</figcaption>
+      </figure>
+    </section>
+    <script>
+    (function(){
+      var c=document.getElementById('bw-wheel'); if(!c||!c.getContext) return;
+      var ctx=c.getContext('2d'), N=12;
+      function draw(){
+        var w=c.clientWidth||(c.parentNode&&c.parentNode.clientWidth)||460;
+        var D=Math.max(240,w), dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
+        c.width=Math.round(D*dpr); c.height=Math.round(D*dpr); c.style.height=D+'px';
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        var cx=D/2, cy=D/2, Ro=D*0.44, i, s, a, hue, r, x, y, g;
+        var R=function(deg){ return deg*Math.PI/180; };
+        var SL=[30,42,55,67,79];       // stage lightness: Devolved..Transcendent
+        var dotR=D*0.0135;             // every dot the same size
+        // dark backdrop (no halo — flat)
+        g=ctx.createRadialGradient(cx,cy,0,cx,cy,D*0.64);
+        g.addColorStop(0,'#1c1636'); g.addColorStop(0.55,'#141029'); g.addColorStop(1,'#0c0819');
+        ctx.fillStyle=g; ctx.fillRect(0,0,D,D);
+        // five evenly-spaced same-size dots per archetype axis (no drawn axis line):
+        // dark at the outer rim (Devolved) → light toward the center (Transcendent),
+        // only brightness changes. The 3rd dot (Base) keeps the white ring.
+        for(i=0;i<N;i++){ a=R(-90+i*30); hue=i*30;
+          for(s=0;s<5;s++){
+            r=Ro*((5-s)/5);            // s0 Devolved → 1.0 (rim) … s4 Transcendent → 0.2 (inner)
+            x=cx+r*Math.cos(a); y=cy+r*Math.sin(a);
+            ctx.fillStyle='hsl('+hue+',62%,'+SL[s]+'%)';
+            ctx.beginPath(); ctx.arc(x,y,dotR,0,7); ctx.fill();
+            if(s===2){ ctx.lineWidth=Math.max(1.5,D*0.0026); ctx.strokeStyle='rgba(255,252,240,0.9)'; ctx.stroke(); }
+          }
+        }
+        // white center dot — the 6th point, capping every axis
+        ctx.fillStyle='rgba(255,254,250,0.98)';
+        ctx.beginPath(); ctx.arc(cx,cy,dotR,0,7); ctx.fill();
+      }
+      var rt; window.addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(draw,160); });
+      if(document.readyState!=='loading') draw(); else document.addEventListener('DOMContentLoaded',draw);
+    })();
+    </script>
+`;
+}
+
 // ---- Bandwidth (/explore/bandwidth/) — DEEP, from Notion "CORE DEFINITION OF ATTUNEMENT" ----
 function bandwidthMain() {
   const swatches = DATA.STAGE_NAMES.map((n, i) =>
@@ -577,6 +634,8 @@ ${swatches}
         <p class="text-violet-300/75"><strong class="text-violet-100 block mb-1">Transcendent</strong>Maximally expansive. Capacity overflowing, freely extended outward to others and the whole.</p>
       </div>
     </section>
+
+${bandwidthWheelViz()}
 
     <section class="py-10 border-t border-violet-300/10 max-w-3xl">
       <h2 class="serif text-3xl mb-3">One dimension, two views: brightness is capacity</h2>
@@ -1105,11 +1164,6 @@ ${questions}
       <p class="${lead}">The destination.</p>
       <p class="${body} mb-4">At the center of your Mandala is a white dot. It represents what every tradition has pointed toward: all twelve voices operating without ego driving any of them. In full service. In full concert.</p>
       <p class="${body}">You don't arrive there by becoming someone else. You arrive by finally, fully becoming yourself — voice by voice, crossing by crossing, one rung at a time.</p>
-    </section>
-
-    <section class="py-14 border-t border-violet-300/10 text-center max-w-2xl mx-auto">
-      <p class="text-violet-200/85 text-lg italic serif mb-6">Ready to go deeper? The coaching curriculum takes this practice into a structured eight-session journey.</p>
-      <a href="mailto:hello@artofsoulcraft.com" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Learn more →</a>
     </section>`;
 }
 
