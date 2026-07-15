@@ -77,6 +77,7 @@ export async function onRequestGet({ request, env }) {
            SUM(CASE WHEN ${DONE} AND tier <> 'free' THEN 1 ELSE 0 END)                       AS tier_full,
            SUM(CASE WHEN shadow_unlocked = 1 AND full_purchased = 0 AND promo_redeemed = 0 THEN 1 ELSE 0 END) AS shadow_addon,
            SUM(CASE WHEN promo_redeemed = 1 THEN 1 ELSE 0 END)                               AS promo_uses,
+           SUM(CASE WHEN full_purchased = 1 THEN 1 ELSE 0 END)                               AS purchases,
            SUM(CASE WHEN ${DONE} AND created_at >= ?1 THEN 1 ELSE 0 END)                     AS last7,
            SUM(CASE WHEN ${DONE} AND created_at >= ?2 THEN 1 ELSE 0 END)                     AS last30
          FROM results`
@@ -85,6 +86,18 @@ export async function onRequestGet({ request, env }) {
       .first();
 
     const emailsRow = await env.DB.prepare("SELECT COUNT(*) AS n FROM users").first();
+    // Feedback table may not exist yet (no submissions) — count defensively.
+    let feedbackCount = 0;
+    try {
+      const fbRow = await env.DB.prepare("SELECT COUNT(*) AS n FROM feedback").first();
+      feedbackCount = Number((fbRow && fbRow.n) || 0);
+    } catch (e) { feedbackCount = 0; }
+    // Contact-form submissions (table may not exist until the first message).
+    let contactsCount = 0;
+    try {
+      const cRow = await env.DB.prepare("SELECT COUNT(*) AS n FROM contacts").first();
+      contactsCount = Number((cRow && cRow.n) || 0);
+    } catch (e) { contactsCount = 0; }
 
     const n = (v) => Number(v || 0);
 
@@ -96,9 +109,11 @@ export async function onRequestGet({ request, env }) {
       },
       shadowAddOnPurchases: n(row && row.shadow_addon),
       promoCodeUses: n(row && row.promo_uses),
+      purchases: n(row && row.purchases),
       assessmentsLast7Days: n(row && row.last7),
       assessmentsLast30Days: n(row && row.last30),
       emailsSaved: n(emailsRow && emailsRow.n),
+      feedbackCount: feedbackCount,
       generatedAt: now,
     });
   } catch (err) {

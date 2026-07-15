@@ -93,6 +93,8 @@
     ".sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}",
     ".sc-menu a:hover{color:#fde68a;}",
     ".sc-menu-divider{height:1px;background:rgba(196,181,253,0.16);margin:.4rem 1rem;}",
+    ".sc-avatar{display:inline-flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(253,230,138,0.18);color:#fde8b0;font-size:11px;font-weight:600;text-transform:uppercase;}",
+    "#sc-acct-btn{gap:.4rem;}",
     "#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}",
     ".sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1.25rem;}",
     ".sc-foot-top{display:flex;flex-direction:column;gap:1rem;}",
@@ -106,6 +108,12 @@
     ".sc-foot-tagline{font-size:12.5px;color:rgba(196,181,253,0.45);margin:0;}",
     ".sc-foot-admin{display:inline-block;margin-top:.75rem;font-size:11px;color:rgba(196,181,253,0.3);text-decoration:none;}",
     ".sc-foot-admin:hover{color:rgba(196,181,253,0.6);}",
+    // Social icons — hidden entirely until a handle is configured (see SOCIAL).
+    ".sc-foot-social{display:flex;gap:.9rem;margin-top:.35rem;}",
+    "@media(min-width:768px){.sc-foot-social{justify-content:flex-end;}}",
+    ".sc-foot .sc-foot-social-link{display:inline-flex;align-items:center;justify-content:center;color:rgba(196,181,253,0.55);transition:color .15s;}",
+    ".sc-foot .sc-foot-social-link:hover{color:#fde68a;}",
+    ".sc-foot-social svg{width:1.2rem;height:1.2rem;display:block;}",
     "#sc-return-banner{position:relative;display:flex;align-items:center;justify-content:center;gap:.75rem;background:rgba(253,230,138,0.12);border-bottom:1px solid rgba(253,230,138,0.22);font-family:'Source Sans 3',system-ui,sans-serif;padding:.5rem 2.5rem;text-align:center;}",
     ".sc-return-link{color:#fde8b0;text-decoration:none;font-size:14px;font-weight:600;}",
     ".sc-return-link:hover{color:#fff6d8;text-decoration:underline;}",
@@ -231,6 +239,40 @@
       '</nav>' + mobile + '</header>';
   }
 
+  // --- Social handles (single source of truth) ------------------------------
+  // The footer social icons. Each handle is EMPTY by default; a platform's icon
+  // is rendered ONLY once its `handle` is filled in here — so nothing shows for
+  // a channel we haven't set up yet. To turn one on, set its handle (the part
+  // after `base`, e.g. "artofsoulcraft"). This is the ONE place these links live.
+  var SOCIAL = [
+    { key: "instagram", label: "Instagram", handle: "", base: "https://www.instagram.com/",
+      icon: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.012-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" },
+    { key: "tiktok", label: "TikTok", handle: "", base: "https://www.tiktok.com/@",
+      icon: "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" },
+    { key: "youtube", label: "YouTube", handle: "", base: "https://www.youtube.com/@",
+      icon: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" },
+    { key: "pinterest", label: "Pinterest", handle: "", base: "https://www.pinterest.com/",
+      icon: "M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C24 5.367 18.635.001 12.017.001z" },
+    { key: "facebook", label: "Facebook", handle: "", base: "https://www.facebook.com/",
+      icon: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" }
+  ];
+
+  // Render the social-icon row from SOCIAL. Icons appear ONLY for platforms
+  // whose handle is set; returns "" (nothing) when none are configured, so the
+  // footer shows no empty row until at least one handle exists.
+  function socialHtml() {
+    var items = SOCIAL.filter(function (s) { return s.handle && String(s.handle).trim(); });
+    if (!items.length) return "";
+    var links = items.map(function (s) {
+      var href = s.base + encodeURIComponent(String(s.handle).trim());
+      return '<a class="sc-foot-social-link" href="' + href + '" target="_blank"' +
+        ' rel="me noopener noreferrer" aria-label="' + s.label + '" title="' + s.label + '">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">' +
+        '<path d="' + s.icon + '"/></svg></a>';
+    }).join("");
+    return '<div class="sc-foot-social" role="list" aria-label="Social media">' + links + '</div>';
+  }
+
   function footerHtml() {
     return '' +
       '<footer id="site-footer"><div class="sc-foot">' +
@@ -243,6 +285,12 @@
               '<a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span>' +
               '<a href="/terms/">Terms</a>' +
             '</div>' +
+            // Utility row — FAQ · Contact, sitting with the social icons.
+            '<div class="sc-foot-row">' +
+              '<a href="/faq/">FAQ</a><span class="sc-foot-sep" aria-hidden="true">·</span>' +
+              '<a href="/contact/">Contact</a>' +
+            '</div>' +
+            socialHtml() +
           '</div>' +
         '</div>' +
         '<p class="sc-foot-tagline">You are not one of twelve types. You are all twelve.</p>' +
@@ -410,22 +458,57 @@
     try { return /^\/(account|login|register|forgot-password|reset-password)(\/|$)/.test(location.pathname); } catch (e) { return false; }
   }
 
-  function renderAuthNav(authed) {
+  // Small HTML escaper for the (self-only) display name / initial rendered into
+  // the account menu — the name is the viewer's own data, but escape anyway.
+  function escNav(s) {
+    return String(s == null ? "" : s).replace(/[<>&"]/g, function (c) {
+      return { "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c];
+    });
+  }
+
+  // `d` is the /api/me payload: { authenticated, email, display_name, ... }.
+  // Logged OUT → a "Log in" link. Logged IN → a name/avatar dropdown holding
+  // My Results · My Account · Log out. The rest of the main nav is untouched.
+  function renderAuthNav(d) {
     if (typeof document === "undefined") return;
+    var authed = !!(d && d.authenticated);
     var acct = onAccountArea();
+    var name = "";
+    if (authed) {
+      name = (d.display_name && String(d.display_name).trim()) ||
+             (d.email ? String(d.email).split("@")[0] : "") || "Account";
+    }
+    var initial = (name ? name.charAt(0) : "A").toUpperCase();
+
     var links = document.querySelector("#site-header .sc-links");
     if (links && !links.querySelector(".sc-auth")) {
       if (authed) {
-        var a = document.createElement("a");
-        a.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); a.href = "/account/"; a.textContent = "My Account";
-        links.appendChild(a);
-        var b = document.createElement("button");
-        b.className = "sc-link sc-auth"; b.type = "button"; b.textContent = "Log Out";
-        b.addEventListener("click", doLogout);
-        links.appendChild(b);
+        var dd = document.createElement("div");
+        dd.className = "sc-dd sc-auth";
+        dd.innerHTML =
+          '<button class="sc-link' + (acct ? " sc-active" : "") + '" id="sc-acct-btn" aria-haspopup="true" aria-expanded="false">' +
+            '<span class="sc-avatar" aria-hidden="true">' + escNav(initial) + '</span>' +
+            '<span>' + escNav(name) + '</span> <span style="font-size:.7em">▾</span>' +
+          '</button>' +
+          '<div class="sc-menu" id="sc-acct-menu">' +
+            '<a href="/my-results/">My Results</a>' +
+            '<a href="/account/">My Account</a>' +
+            '<div class="sc-menu-divider" role="separator"></div>' +
+            '<a href="#" id="sc-acct-logout" role="button">Log out</a>' +
+          '</div>';
+        links.appendChild(dd);
+        var ab = dd.querySelector("#sc-acct-btn"), am = dd.querySelector("#sc-acct-menu");
+        ab.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var open = am.classList.toggle("sc-open");
+          ab.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+        document.addEventListener("click", function () { am.classList.remove("sc-open"); ab.setAttribute("aria-expanded", "false"); });
+        var lo = dd.querySelector("#sc-acct-logout");
+        if (lo) lo.addEventListener("click", function (e) { e.preventDefault(); doLogout(); });
       } else {
         var l = document.createElement("a");
-        l.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); l.href = "/login/"; l.textContent = "Log In";
+        l.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); l.href = "/login/"; l.textContent = "Log in";
         links.appendChild(l);
       }
     }
@@ -433,17 +516,19 @@
     if (mobile && !mobile.querySelector(".sc-auth")) {
       var actCls = acct ? ' class="sc-auth sc-active"' : ' class="sc-auth"';
       if (authed) {
+        // Mobile already lists "My Results" at the top level, so the auth block
+        // adds only My Account + Log out.
         mobile.insertAdjacentHTML("beforeend",
           '<div class="sc-m-divider" role="separator"></div>' +
           '<a' + actCls + ' href="/account/">My Account</a>' +
-          '<a class="sc-auth" href="#" role="button">Log Out</a>');
+          '<a class="sc-auth" href="#" role="button">Log out</a>');
         var ml = mobile.querySelectorAll(".sc-auth");
         var last = ml[ml.length - 1];
         if (last) last.addEventListener("click", function (e) { e.preventDefault(); doLogout(); });
       } else {
         mobile.insertAdjacentHTML("beforeend",
           '<div class="sc-m-divider" role="separator"></div>' +
-          '<a' + actCls + ' href="/login/">Log In</a>');
+          '<a' + actCls + ' href="/login/">Log in</a>');
       }
     }
   }
@@ -452,8 +537,8 @@
     if (typeof document === "undefined") return;
     fetch("/api/me", { credentials: "same-origin" })
       .then(function (r) { return r.json(); })
-      .then(function (d) { renderAuthNav(!!(d && d.authenticated)); })
-      .catch(function () { renderAuthNav(false); });
+      .then(function (d) { renderAuthNav(d); })
+      .catch(function () { renderAuthNav(null); });
   }
 
   // --- Funnel: return within 7 days (GA4) -----------------------------------
@@ -526,6 +611,15 @@
     if (typeof document === "undefined") return;
     if (document.getElementById("sc-fb-btn")) return;        // inject once per page
     document.body.insertAdjacentHTML("beforeend", feedbackHtml());
+    // Reserve bottom clearance so nothing at the end of the page ever renders
+    // directly under the fixed feedback bubble (bottom-right: 3.25rem tall +
+    // 1.1rem inset). Give the scroll area that footprint + a small margin, only
+    // bumping it up when the page doesn't already reserve at least that much.
+    try {
+      var need = 5.5 * 16; // ~5.5rem in px (bubble footprint + margin)
+      var cur = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+      if (cur < need) document.body.style.paddingBottom = need + "px";
+    } catch (e) { /* non-fatal */ }
     var btn = document.getElementById("sc-fb-btn");
     var panel = document.getElementById("sc-fb-panel");
     var closeBtn = document.getElementById("sc-fb-close");
@@ -580,6 +674,7 @@
     CSS: CSS,
     headerHtml: headerHtml,
     footerHtml: footerHtml,
+    socialHtml: socialHtml,
     activeFromPath: activeFromPath,
     wireDropdown: wireDropdown,
     wireMobile: wireMobile,

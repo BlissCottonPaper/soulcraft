@@ -20,6 +20,7 @@
   }
   .wrap { width: 100%; max-width: 30rem; transition: max-width .2s; }
   .wrap.wide { max-width: 46rem; }
+  .wrap.xwide { max-width: 74rem; }
   h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2.25rem; margin: 0 0 .25rem; color: #f5f3ff; }
   .eyebrow { font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: rgba(253,230,138,0.8); margin: 0 0 1.5rem; }
   .card { background: rgba(255,250,240,0.03); border: 1px solid rgba(196,181,253,0.18); border-radius: 1rem; padding: 1.5rem; }
@@ -39,14 +40,15 @@
   .err { color: #fca5a5; font-size: 13px; margin-top: .75rem; min-height: 1.1em; }
 
   /* Tab navigation — data-driven from the TABS config, so new tabs need only a
-     config entry + a render function, never new layout code. */
-  .tabs { display: none; gap: .25rem; border-bottom: 1px solid rgba(196,181,253,0.14); margin-bottom: 1.25rem; }
+     config entry + a render or mount function, never new layout code. */
+  .tabs { display: none; gap: .25rem; border-bottom: 1px solid rgba(196,181,253,0.14); margin-bottom: 1.25rem; flex-wrap: wrap; }
   .tabs.show { display: flex; }
   .tab { background: none; color: rgba(224,218,246,0.6); font-weight: 600; border: 0;
     border-bottom: 2px solid transparent; border-radius: 0; padding: .55rem .9rem; cursor: pointer; }
   .tab:hover { background: none; color: #fde8b0; }
   .tab.active { color: #fde8b0; border-bottom-color: #fde8b0; }
   .panel { min-height: 2rem; }
+  .pane[hidden] { display: none; }
 
   /* Stats view */
   .stat { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
@@ -54,6 +56,31 @@
   .stat:last-child { border-bottom: 0; }
   .stat .k { font-size: 14px; color: rgba(224,218,246,0.8); }
   .stat .v { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; color: #fde8b0; }
+  /* Clickable stat rows (drill-down). A whole row is a button when it has records. */
+  button.stat { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid rgba(196,181,253,0.10);
+    border-radius: 0; padding: .7rem 0; cursor: pointer; }
+  button.stat:hover { background: rgba(253,230,138,0.05); }
+  button.stat:hover .k { color: #fde8b0; }
+  button.stat .k .chev { color: rgba(253,230,138,0.55); margin-left: .4rem; font-size: 12px; }
+
+  /* Drill-down detail list */
+  .detail-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+  .detail-head h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.5rem; margin: 0; color: #f5f3ff; }
+  .back { background: none; color: rgba(253,230,138,0.85); border: 1px solid rgba(196,181,253,0.22);
+    padding: .4rem .8rem; font-size: 13px; font-weight: 600; }
+  .back:hover { background: rgba(253,230,138,0.08); color: #fde8b0; }
+  .rec { border: 1px solid rgba(196,181,253,0.12); border-radius: .6rem; padding: .65rem .85rem; margin-bottom: .5rem;
+    background: rgba(255,250,240,0.02); display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .rec .rk { font-size: 14px; color: #efe9ff; word-break: break-word; }
+  .rec .rk a { color: rgba(253,230,138,0.85); text-decoration: none; }
+  .rec .rk a:hover { text-decoration: underline; }
+  .rec .rmeta { font-size: 12px; color: rgba(196,181,253,0.6); white-space: nowrap; }
+  .rec .rsub { font-size: 12px; color: rgba(196,181,253,0.55); margin-top: .2rem; }
+  .pager { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; }
+  .pager button { background: rgba(0,0,0,0.2); color: rgba(224,218,246,0.85); border: 1px solid rgba(196,181,253,0.25);
+    padding: .4rem .9rem; font-size: 13px; }
+  .pager button:hover:not(:disabled) { background: rgba(253,230,138,0.1); color: #fde8b0; }
+  .pager .pinfo { font-size: 12px; color: rgba(196,181,253,0.6); }
 
   /* Feedback view */
   .fb-item { border: 1px solid rgba(196,181,253,0.14); border-radius: .75rem; padding: .9rem 1rem; margin-bottom: .75rem;
@@ -68,6 +95,45 @@
   .fb-meta a { color: rgba(253,230,138,0.85); }
   .empty { color: rgba(224,218,246,0.5); text-align: center; padding: 1.5rem 0; }
   .sub { font-size: 12px; color: rgba(196,181,253,0.5); margin-top: 1rem; text-align: right; }
+
+  /* Data deletion tool (destructive; deliberately multi-step) */
+  .del-warn { border: 1px solid rgba(253,164,175,0.4); background: rgba(253,164,175,0.08); border-radius: .6rem;
+    padding: .75rem .9rem; font-size: 13px; color: #fdd7dc; margin-bottom: 1rem; line-height: 1.55; }
+  .del-row { display: flex; gap: .5rem; margin-bottom: .5rem; }
+  .del-row input[type="email"], .del-confirm input { flex: 1; width: 100%; box-sizing: border-box;
+    background: rgba(0,0,0,0.2); border: 1px solid rgba(196,181,253,0.25); border-radius: .6rem;
+    padding: .6rem .75rem; font: inherit; color: #f5f3ff; outline: none; }
+  .del-confirm input { border-color: rgba(253,164,175,0.45); letter-spacing: .12em; margin: .5rem 0; }
+  .del-row input:focus, .del-confirm input:focus { border-color: rgba(253,230,138,0.6); }
+  .del-preview { border: 1px solid rgba(196,181,253,0.14); border-radius: .6rem; padding: .5rem .9rem; margin: .9rem 0; font-size: 14px; }
+  .del-preview .prow { display: flex; justify-content: space-between; gap: 1rem; padding: .35rem 0;
+    border-bottom: 1px solid rgba(196,181,253,0.08); color: rgba(224,218,246,0.85); }
+  .del-preview .prow:last-child { border-bottom: 0; }
+  .del-preview .prow span:last-child { color: #fde8b0; font-weight: 600; }
+  .del-btn { width: 100%; background: #b0384a; color: #fff; margin-top: .25rem; }
+  .del-btn:hover:not(:disabled) { background: #c64459; }
+  .del-btn:disabled { opacity: .4; cursor: default; }
+  .del-ok { color: #a7f3d0; font-size: 14px; line-height: 1.6; }
+  .del-note { font-size: 12.5px; color: rgba(196,181,253,0.6); margin-top: .5rem; line-height: 1.5; }
+
+  /* REELS docs */
+  .reels h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; margin: 1.75rem 0 .5rem; color: #f5f3ff; }
+  .reels h2:first-child { margin-top: 0; }
+  .reels p { font-size: 14px; line-height: 1.6; color: rgba(224,218,246,0.82); margin: .4rem 0; }
+  .reels .muted { color: rgba(224,218,246,0.55); font-size: 13px; }
+  .reels pre { background: rgba(0,0,0,0.32); border: 1px solid rgba(196,181,253,0.16); border-radius: .6rem;
+    padding: .8rem 1rem; overflow-x: auto; font-size: 12.5px; line-height: 1.5; color: #e9e4ff; margin: .5rem 0; }
+  .reels code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .reels .cmd { display: flex; gap: .5rem; align-items: flex-start; }
+  .reels .cmd pre { flex: 1; margin: 0; }
+  .reels .copy { flex: 0 0 auto; font-size: 12px; padding: .5rem .7rem; }
+  .reels table { width: 100%; border-collapse: collapse; margin: .5rem 0; font-size: 13px; }
+  .reels th, .reels td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid rgba(196,181,253,0.12); vertical-align: top; }
+  .reels th { color: rgba(253,230,138,0.8); font-weight: 600; }
+  .reels td:first-child { color: #efe9ff; white-space: nowrap; font-family: ui-monospace, monospace; }
+  .reels .dl { display: inline-flex; gap: .5rem; flex-wrap: wrap; margin: .5rem 0; }
+  .reels .badge { display: inline-block; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: rgba(253,230,138,0.85); border: 1px solid rgba(253,230,138,0.3); border-radius: 1rem; padding: .2rem .7rem; }
 </style>
 </head>
 <body>
@@ -89,6 +155,9 @@
     <p class="sub" id="ts"></p>
   </div>
 
+  <!-- Canonical wheel data + the shared post generator, mounted into the POSTS tab. -->
+  <script src="/assets/soulcraft-data.js"></script>
+  <script src="/assets/postgen.js"></script>
   <script>
     (function () {
       var form = document.getElementById("f");
@@ -111,20 +180,39 @@
       }
       function when(secs) { return secs ? new Date(secs * 1000).toLocaleString() : ""; }
 
-      // ---- renderers -------------------------------------------------------
+      // A tool tab renders WIDE (POSTS canvas, REELS docs); data tabs stay narrow.
+      function isWide(id) { return id === "posts" || id === "reels"; }
+
+      // ---- data-tab renderers ---------------------------------------------
       function statRow(k, v) {
         return '<div class="stat"><span class="k">' + k + '</span><span class="v">' + v + "</span></div>";
       }
-      function renderStats(d) {
+      // A drill-down row: whole row is a button that opens a paginated record list.
+      function statLink(kind, k, v) {
+        return '<button class="stat" type="button" data-drill="' + kind + '" data-label="' + esc(k) + '">' +
+          '<span class="k">' + k + '<span class="chev">view ›</span></span><span class="v">' + v + "</span></button>";
+      }
+      function renderStats(d, pane) {
         var t = d.byTier || {};
-        panel.innerHTML =
-          statRow("Completed assessments", fmt(d.completedAssessments)) +
+        pane.innerHTML =
+          statLink("assessments", "Completed assessments", fmt(d.completedAssessments)) +
           statRow("Tier · Free", fmt(t.free)) +
           statRow("Tier · Full", fmt(t.full)) +
           statRow("Promo code uses", fmt(d.promoCodeUses)) +
           statRow("Last 7 days", fmt(d.assessmentsLast7Days)) +
           statRow("Last 30 days", fmt(d.assessmentsLast30Days)) +
-          statRow("Emails saved", fmt(d.emailsSaved));
+          statLink("emails", "Emails saved", fmt(d.emailsSaved)) +
+          statLink("purchases", "Purchases", fmt(d.purchases)) +
+          statLink("feedback", "Feedback entries", fmt(d.feedbackCount)) +
+          statLink("contacts", "Contact messages", fmt(d.contactsCount));
+        var btns = pane.querySelectorAll("button[data-drill]");
+        for (var i = 0; i < btns.length; i++) {
+          (function (b) {
+            b.addEventListener("click", function () {
+              openDrill(pane, b.getAttribute("data-drill"), b.getAttribute("data-label"));
+            });
+          })(btns[i]);
+        }
       }
       function stars(r) {
         if (r == null) return '<span class="fb-stars none">— no rating</span>';
@@ -132,9 +220,9 @@
         for (var i = 0; i < 5; i++) full += (i < n ? "★" : "☆");
         return '<span class="fb-stars" title="' + n + ' / 5">' + full + "</span>";
       }
-      function renderFeedback(d) {
+      function renderFeedback(d, pane) {
         var list = (d && d.feedback) || [];
-        if (!list.length) { panel.innerHTML = '<p class="empty">No feedback yet.</p>'; return; }
+        if (!list.length) { pane.innerHTML = '<p class="empty">No feedback yet.</p>'; return; }
         var html = "";
         for (var i = 0; i < list.length; i++) {
           var f = list[i];
@@ -149,18 +237,284 @@
               '<div class="fb-meta">' + meta.join("<span>·</span>") + "</div>" +
             "</div>";
         }
-        panel.innerHTML = html;
+        pane.innerHTML = html;
+      }
+
+      // ---- drill-downs (server-side pagination, read-only) ----------------
+      // Each drill hits /api/admin/records?kind=…&page=…; the server returns a
+      // page of the newest records (50/page). Read-only: no edit, no delete.
+      var PAGE_SIZE = 50;
+      function recRow(kind, r) {
+        var main = "", meta = esc(when(r.created_at)), sub = "";
+        if (kind === "emails" || kind === "purchases") {
+          main = r.email ? '<a href="mailto:' + esc(r.email) + '">' + esc(r.email) + "</a>" : "(no email)";
+          if (kind === "purchases") sub = [r.tier ? "tier: " + esc(r.tier) : "", r.amount != null ? "$" + esc(r.amount) : ""].filter(Boolean).join(" · ");
+          else if (r.tier) sub = "tier: " + esc(r.tier);
+        } else if (kind === "assessments") {
+          main = (r.top3 ? esc(r.top3) : (r.tier ? "tier: " + esc(r.tier) : "assessment #" + esc(r.id)));
+          sub = [r.tier ? esc(r.tier) : "", r.email ? esc(r.email) : ""].filter(Boolean).join(" · ");
+        } else if (kind === "feedback") {
+          main = r.message ? esc(r.message) : "(no message)";
+          sub = [(r.rating != null ? r.rating + "★" : ""), r.email ? esc(r.email) : "", r.page ? esc(r.page) : ""].filter(Boolean).join(" · ");
+        } else if (kind === "contacts") {
+          main = r.message ? esc(r.message) : "(no message)";
+          sub = [r.name ? esc(r.name) : "", r.email ? '<a href="mailto:' + esc(r.email) + '">' + esc(r.email) + "</a>" : ""].filter(Boolean).join(" · ");
+        } else {
+          main = esc(JSON.stringify(r));
+        }
+        return '<div class="rec"><div><div class="rk">' + main + "</div>" +
+          (sub ? '<div class="rsub">' + sub + "</div>" : "") + "</div>" +
+          '<span class="rmeta">' + meta + "</span></div>";
+      }
+      function openDrill(pane, kind, label) {
+        var page = 0;
+        function load() {
+          pane.innerHTML = '<p class="empty">Loading…</p>';
+          fetch("/api/admin/records?kind=" + encodeURIComponent(kind) + "&page=" + page, { headers: { "X-Admin-Key": adminKey } })
+            .then(function (res) {
+              if (res.status === 401) throw new Error("Session expired — reload and sign in again.");
+              if (res.status === 404) throw new Error("This drill-down isn't available yet.");
+              if (!res.ok) throw new Error("Couldn't load records.");
+              return res.json();
+            })
+            .then(function (d) {
+              var rows = (d && d.records) || [];
+              var total = d && d.total != null ? d.total : null;
+              var pages = total != null ? Math.max(1, Math.ceil(total / PAGE_SIZE)) : null;
+              var html =
+                '<div class="detail-head"><h2>' + esc(label) + "</h2>" +
+                '<button class="back" type="button" data-back="1">‹ Back to stats</button></div>';
+              if (!rows.length) html += '<p class="empty">No records.</p>';
+              else html += rows.map(function (r) { return recRow(kind, r); }).join("");
+              html +=
+                '<div class="pager">' +
+                  '<button type="button" data-nav="prev"' + (page <= 0 ? " disabled" : "") + ">‹ Newer</button>" +
+                  '<span class="pinfo">' + (total != null ? "Page " + (page + 1) + " of " + pages + " · " + fmt(total) + " total" : "Page " + (page + 1)) + "</span>" +
+                  '<button type="button" data-nav="next"' + ((pages != null && page + 1 >= pages) || rows.length < PAGE_SIZE ? " disabled" : "") + ">Older ›</button>" +
+                "</div>";
+              pane.innerHTML = html;
+              pane.querySelector('[data-back]').addEventListener("click", function () { reloadTab(pane, "stats"); });
+              var prev = pane.querySelector('[data-nav="prev"]'), next = pane.querySelector('[data-nav="next"]');
+              if (prev && !prev.disabled) prev.addEventListener("click", function () { page--; load(); });
+              if (next && !next.disabled) next.addEventListener("click", function () { page++; load(); });
+            })
+            .catch(function (ex) { pane.innerHTML = '<div class="detail-head"><h2>' + esc(label) + '</h2><button class="back" type="button" data-back="1">‹ Back</button></div><p class="err">' + esc(ex.message) + "</p>"; var b = pane.querySelector("[data-back]"); if (b) b.addEventListener("click", function () { reloadTab(pane, "stats"); }); });
+        }
+        load();
+      }
+
+      // ---- tool-tab mounts -------------------------------------------------
+      function mountPosts(pane) {
+        if (typeof SOULCRAFT_POSTGEN === "undefined" || !SOULCRAFT_POSTGEN.mount) {
+          pane.innerHTML = '<p class="err">The post generator failed to load. Reload the page and try again.</p>';
+          return;
+        }
+        SOULCRAFT_POSTGEN.mount(pane);
+      }
+
+      // REELS — option (b): a day-one-useful reference for the local render tool
+      // (tools/reel-generator). Documents CUSTOM (audio-driven) + PRESET modes, the
+      // brief format, output guarantees, and every CLI flag, with the exact commands
+      // and downloadable sample briefs. The renderer runs locally / in CI, never on
+      // the edge, so this tab is the operator's map to it.
+      var SAMPLE_BRIEF_JSON = JSON.stringify({
+        title: "What are the twelve archetypes",
+        kicker: "the twelve archetypes",
+        mood: "dark",
+        scenes: [
+          { text: ["What are the twelve archetypes?"], elements: ["center", "halo"], mood: "bright", weight: 1 },
+          { text: ["Twelve voices.", "Present in everyone."], elements: ["mandala", "center"], weight: 1.2 },
+          { text: ["Some speak loudly.", "Some speak quietly."], elements: ["bandwidth"], weight: 1.2 },
+          { text: ["You are not one of twelve types.", "You are all twelve."], elements: ["mandala", "center"], mood: "bright", weight: 1.4 },
+          { text: ["Which voice is loudest in you?"], elements: ["wheel", "center"], mood: "bright", weight: 1 }
+        ]
+      }, null, 2);
+      var SAMPLE_BRIEF_TXT =
+        "kicker: the twelve archetypes\n" +
+        "title: What are the twelve archetypes\n\n" +
+        "What are the twelve archetypes?  [elements: center, halo] [mood: bright]\n\n" +
+        "Twelve voices. Present in everyone.  [elements: mandala, center] [weight: 1.2]\n\n" +
+        "Some speak loudly. Some speak quietly.  [elements: bandwidth] [weight: 1.2]\n\n" +
+        "You are not one of twelve types. You are all twelve.  [elements: mandala, center] [mood: bright] [weight: 1.4]\n\n" +
+        "Which voice is loudest in you?  [elements: wheel, center] [mood: bright]\n";
+      function downloadText(name, text, type) {
+        var blob = new Blob([text], { type: type || "text/plain" });
+        var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      }
+      function cmdBlock(cmd) {
+        return '<div class="cmd"><pre><code>' + esc(cmd) + '</code></pre>' +
+          '<button class="copy" type="button" data-copy="' + esc(cmd) + '">Copy</button></div>';
+      }
+      function mountReels(pane) {
+        pane.classList.add("reels");
+        pane.innerHTML =
+          '<p><span class="badge">9:16 · 1080×1920 · 30fps · H.264 MP4</span></p>' +
+          "<p>Reels are rendered by the local engine in <code>tools/reel-generator</code> " +
+          "(headless Chromium + ffmpeg). It <strong>runs locally or in CI, never on the edge</strong> — " +
+          "video is a batch job, not a serverless request. It reuses the site's own mandala palette and " +
+          "Cormorant serif from <code>assets/soulcraft-data.js</code>, so nothing is reinvented.</p>" +
+
+          "<h2>Install (once)</h2>" +
+          cmdBlock("cd tools/reel-generator && npm install") +
+          '<p class="muted">Pulls playwright-core (drives the pre-installed Chromium) and ffmpeg-static / ' +
+          "ffprobe-static. Falls back to a system ffmpeg on PATH (needs libx264 + aac), or FFMPEG_PATH / FFPROBE_PATH.</p>" +
+
+          "<h2>CUSTOM mode — the product (audio-driven)</h2>" +
+          "<p>The audio drives the timeline. Total length = audio duration + lead-in (0.5s) + tail (1.0s). " +
+          "The brief's scenes are distributed across the voiceover proportionally, so builds and text land on the phrasing.</p>" +
+          cmdBlock("node src/cli.mjs \\\n  --audio ./voiceovers/what-are-the-twelve.wav \\\n  --brief ./samples/sample-brief.json \\\n  --out  ./out/twelve.mp4") +
+          "<p>Fast low-res draft (540×960) while iterating:</p>" +
+          cmdBlock("node src/cli.mjs --audio ./voiceovers/take1.m4a --brief ./samples/sample-brief.txt --preview") +
+          "<p>No voiceover handy? Make a placeholder tone to test audio-driven timing:</p>" +
+          cmdBlock('ffmpeg -f lavfi -i "sine=frequency=180:duration=9" -ac 1 -ar 44100 ./placeholder.wav') +
+
+          "<h2>Brief format</h2>" +
+          "<p>A brief says <em>what</em> happens; the audio says <em>when</em>. Per-scene fields:</p>" +
+          "<table><thead><tr><th>field</th><th>meaning</th></tr></thead><tbody>" +
+          "<tr><td>text</td><td>on-screen line(s), literary serif, auto-fit and safe-zoned</td></tr>" +
+          "<tr><td>elements</td><td>layers to show: mandala · bandwidth · mindsets · wheel · center · halo</td></tr>" +
+          "<tr><td>ignite</td><td>archetype to spotlight (its spine brightens, others dim), e.g. \"Warrior\"</td></tr>" +
+          "<tr><td>mood</td><td>dark (default) or bright (adds glow, brighter ink)</td></tr>" +
+          "<tr><td>weight</td><td>proportional share of the timeline (default 1)</td></tr>" +
+          "<tr><td>at / pct / dur</td><td>pin an explicit start (seconds / fraction) and/or duration (seconds)</td></tr>" +
+          "</tbody></table>" +
+          '<div class="dl">' +
+            '<button type="button" data-dl="json">↓ sample-brief.json</button>' +
+            '<button type="button" data-dl="txt">↓ sample-brief.txt</button>' +
+          "</div>" +
+          '<pre><code id="reels-sample">' + esc(SAMPLE_BRIEF_JSON) + "</code></pre>" +
+
+          "<h2>PRESET modes (secondary; silent)</h2>" +
+          "<p>Prebuilt briefs from the system's own content — same pipeline, no audio (quoteloop loops seamlessly).</p>" +
+          cmdBlock("node src/cli.mjs --mode morph") +
+          cmdBlock("node src/cli.mjs --mode spotlight --archetype Warrior") +
+          cmdBlock('node src/cli.mjs --mode quoteloop --text "You are all twelve."') +
+          cmdBlock("node src/cli.mjs --mode axial --archetype Lover") +
+          cmdBlock("node src/cli.mjs --mode mindset") +
+          cmdBlock("node src/cli.mjs --mode bandwidth --archetype Sage") +
+          cmdBlock("node src/cli.mjs --mode sixplusone") +
+          '<p class="muted">--text accepts |-separated segments (each becomes a beat/line).</p>' +
+
+          "<h2>Output guarantees</h2>" +
+          "<p>MP4 · H.264 (libx264) · AAC · yuv420p · 1080×1920 · 30fps · CRF ~19 · +faststart. " +
+          "Text stays inside the central 80% width and clear of the bottom 15% (platform UI). " +
+          "Dark-navy field, the site's mandala palette, Cormorant serif. <strong>Never GIF</strong> — ask for .gif and it refuses and writes .mp4.</p>" +
+
+          "<h2>All options</h2>" +
+          "<pre><code>" + esc(
+            "--audio <f>        voiceover (.wav/.mp3/.m4a) — CUSTOM\n" +
+            "--brief <f>        visual brief (.json/.txt)  — CUSTOM\n" +
+            "--mode <name>      preset mode                — PRESET\n" +
+            "--archetype <x>    subject for spotlight/axial/bandwidth/mindset\n" +
+            "--text \"<...>\"     copy for quoteloop/pattern/definition (| separates beats)\n" +
+            "--out <file.mp4>   output path (default: soulcraft-reel-<mode>-<slug>-<date>.mp4)\n" +
+            "--preview          540×960 fast draft\n" +
+            "--lead-in <sec>    default 0.5     --tail <sec>   default 1.0\n" +
+            "--duration <sec>   morph/quoteloop length\n" +
+            "--fps <n>          default 30      --crf <n>      default 19\n" +
+            "--slug <text>      filename slug   --keep-frames  keep intermediate PNGs\n" +
+            "-h, --help"
+          ) + "</code></pre>" +
+          '<p class="muted">Full reference: tools/reel-generator/README.md in the repo.</p>';
+
+        // Wire copy buttons + sample-brief downloads.
+        var copies = pane.querySelectorAll("[data-copy]");
+        for (var i = 0; i < copies.length; i++) {
+          (function (b) {
+            b.addEventListener("click", function () {
+              var text = b.getAttribute("data-copy");
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy"; }, 1200); });
+              }
+            });
+          })(copies[i]);
+        }
+        var dl = pane.querySelectorAll("[data-dl]");
+        for (var j = 0; j < dl.length; j++) {
+          (function (b) {
+            b.addEventListener("click", function () {
+              if (b.getAttribute("data-dl") === "json") downloadText("sample-brief.json", SAMPLE_BRIEF_JSON, "application/json");
+              else downloadText("sample-brief.txt", SAMPLE_BRIEF_TXT, "text/plain");
+            });
+          })(dl[j]);
+        }
+      }
+
+      // Data deletion (GDPR/CCPA erasure) — deliberately two-step: enter the
+      // exact email → Preview what exists → type DELETE → confirm. Retains
+      // (anonymized) purchase records; logs a hashed-email completion entry.
+      function mountDelete(pane) {
+        pane.innerHTML =
+          '<div class="del-warn"><strong>Permanent data erasure.</strong> Enter a person\'s exact email, preview what exists, then type DELETE to confirm. This removes their account, sessions, tokens, results and Mira history and cannot be undone. Purchase records are retained (anonymized) for accounting.</div>' +
+          '<label for="del-email">Person\'s email</label>' +
+          '<div class="del-row"><input type="email" id="del-email" placeholder="person@example.com" autocomplete="off" /><button type="button" id="del-preview">Preview</button></div>' +
+          '<div id="del-out"></div>';
+        var out = pane.querySelector("#del-out");
+        var emailEl = pane.querySelector("#del-email");
+        pane.querySelector("#del-preview").addEventListener("click", doPreview);
+        emailEl.addEventListener("keydown", function (e) { if (e.key === "Enter") doPreview(); });
+        function prow(k, v) { return '<div class="prow"><span>' + esc(k) + '</span><span>' + esc(v) + "</span></div>"; }
+        function doPreview() {
+          var email = (emailEl.value || "").trim();
+          if (!email) { out.innerHTML = '<p class="err">Enter an email.</p>'; return; }
+          out.innerHTML = '<p class="empty">Checking…</p>';
+          fetch("/api/admin/delete-user", { method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey }, body: JSON.stringify({ action: "preview", email: email }) })
+            .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+            .then(function (res) {
+              if (!res.ok) { out.innerHTML = '<p class="err">' + esc((res.j && res.j.error) || "Couldn't check.") + "</p>"; return; }
+              var d = res.j;
+              if (!d.found) { out.innerHTML = '<p class="empty">No account found for ' + esc(email) + ".</p>"; return; }
+              out.innerHTML =
+                '<div class="del-preview">' +
+                  prow("Account", "yes" + (d.hasPassword ? " (password set)" : "")) +
+                  prow("Assessment results", String(d.results)) +
+                  prow("Mira messages", String(d.miraMessages)) +
+                  prow("Purchases (retained, anonymized)", String(d.purchases)) +
+                "</div>" +
+                '<div class="del-confirm"><label for="del-confirm-input">Type <strong>DELETE</strong> to confirm permanent erasure</label>' +
+                '<input type="text" id="del-confirm-input" placeholder="DELETE" autocomplete="off" autocapitalize="characters" />' +
+                '<button type="button" class="del-btn" id="del-go" disabled>Permanently delete this person\'s data</button>' +
+                '<p class="del-note">Removes account, sessions, tokens, results and Mira history. Purchase records are kept (anonymized) for accounting; a hashed-email log entry records the deletion.</p></div>';
+              var ci = out.querySelector("#del-confirm-input"), go = out.querySelector("#del-go");
+              ci.addEventListener("input", function () { go.disabled = ci.value !== "DELETE"; });
+              go.addEventListener("click", function () { doDelete(email, go); });
+            })
+            .catch(function () { out.innerHTML = '<p class="err">Couldn\'t reach the server.</p>'; });
+        }
+        function doDelete(email, go) {
+          go.disabled = true; go.textContent = "Deleting…";
+          fetch("/api/admin/delete-user", { method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey }, body: JSON.stringify({ action: "delete", email: email, confirm: "DELETE" }) })
+            .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+            .then(function (res) {
+              if (res.ok && res.j && res.j.deleted) {
+                var rm = res.j.removed || {};
+                out.innerHTML = '<p class="del-ok">Done — erased the account for ' + esc(email) + ".<br>Results deleted: " + esc(String(rm.results_deleted)) +
+                  " · Mira messages: " + esc(String(rm.mira_messages)) + " · Purchases retained (anonymized): " + esc(String(rm.purchases_retained)) + ". Logged.</p>";
+              } else {
+                out.innerHTML = '<p class="err">' + esc((res.j && res.j.error) || "Deletion failed.") + "</p>";
+              }
+            })
+            .catch(function () { out.innerHTML = '<p class="err">Couldn\'t reach the server.</p>'; });
+        }
       }
 
       // ---- tab framework ---------------------------------------------------
-      // Add a tab by adding an entry here. Nothing else needs to change.
+      // Add a tab by adding an entry here. Data tabs carry { endpoint, render };
+      // tool tabs carry { mount } and are built once, then kept alive across
+      // switches (so the POSTS canvas / typed copy survives tab changes).
       var TABS = [
         { id: "stats",    label: "Stats",    endpoint: "/api/admin/stats",    render: renderStats },
         { id: "feedback", label: "Feedback", endpoint: "/api/admin/feedback", render: renderFeedback },
+        { id: "posts",    label: "Posts",    mount: mountPosts },
+        { id: "reels",    label: "Reels",    mount: mountReels },
+        { id: "data",     label: "Data",     mount: mountDelete },
       ];
+      function tabById(id) { for (var i = 0; i < TABS.length; i++) if (TABS[i].id === id) return TABS[i]; return null; }
+      function paneEl(id) { return panel.querySelector('.pane[data-pane="' + id + '"]'); }
 
-      function loadTab(tab) {
-        panel.innerHTML = '<p class="empty">Loading…</p>';
+      function loadTab(tab, pane) {
+        pane.innerHTML = '<p class="empty">Loading…</p>';
         tsEl.textContent = "";
         return fetch(tab.endpoint, { headers: { "X-Admin-Key": adminKey } })
           .then(function (res) {
@@ -169,36 +523,60 @@
             return res.json();
           })
           .then(function (data) {
-            tab.render(data);
+            tab.render(data, pane);
             if (data.generatedAt) tsEl.textContent = "as of " + when(data.generatedAt);
           });
       }
+      // Re-run a data tab's fetch/render into its pane (used by the drill-down "Back").
+      function reloadTab(pane, id) {
+        var tab = tabById(id);
+        if (tab && tab.endpoint) loadTab(tab, pane).catch(function (ex) { pane.innerHTML = '<p class="err">' + esc(ex.message) + "</p>"; });
+      }
 
       function activate(id) {
-        var tab = null;
-        for (var i = 0; i < TABS.length; i++) if (TABS[i].id === id) tab = TABS[i];
+        var tab = tabById(id);
         if (!tab) return;
         activeId = id;
+        try { if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id); } catch (e) {}
+        wrap.classList.toggle("xwide", isWide(id));
+        wrap.classList.toggle("wide", !isWide(id));
         var btns = tabsEl.querySelectorAll(".tab");
         for (var j = 0; j < btns.length; j++) {
           var on = btns[j].getAttribute("data-id") === id;
           btns[j].classList.toggle("active", on);
           btns[j].setAttribute("aria-selected", on ? "true" : "false");
         }
-        loadTab(tab).catch(function (ex) { panel.innerHTML = '<p class="err">' + esc(ex.message) + "</p>"; });
+        var panes = panel.querySelectorAll(".pane");
+        for (var p = 0; p < panes.length; p++) panes[p].hidden = panes[p].getAttribute("data-pane") !== id;
+        tsEl.textContent = "";
+        var pane = paneEl(id);
+        if (tab.mount) {
+          if (!pane.getAttribute("data-mounted")) { pane.setAttribute("data-mounted", "1"); tab.mount(pane); }
+        } else {
+          loadTab(tab, pane).catch(function (ex) { pane.innerHTML = '<p class="err">' + esc(ex.message) + "</p>"; });
+        }
       }
 
       function buildTabs() {
-        var html = "";
+        var tabHtml = "", paneHtml = "";
         for (var i = 0; i < TABS.length; i++) {
-          html += '<button class="tab" role="tab" data-id="' + TABS[i].id + '">' + esc(TABS[i].label) + "</button>";
+          tabHtml += '<button class="tab" role="tab" data-id="' + TABS[i].id + '">' + esc(TABS[i].label) + "</button>";
+          paneHtml += '<div class="pane" data-pane="' + TABS[i].id + '" hidden></div>';
         }
-        tabsEl.innerHTML = html;
+        tabsEl.innerHTML = tabHtml;
+        panel.innerHTML = paneHtml;
         var btns = tabsEl.querySelectorAll(".tab");
         for (var k = 0; k < btns.length; k++) {
           (function (b) { b.addEventListener("click", function () { activate(b.getAttribute("data-id")); }); })(btns[k]);
         }
         tabsEl.classList.add("show");
+      }
+
+      // Which tab to open first: a #hash deep-link (e.g. /admin/#posts, where the
+      // old /admin/postgen 301-redirects) wins; otherwise the first tab.
+      function initialTabId() {
+        var h = (location.hash || "").replace(/^#/, "");
+        return tabById(h) ? h : TABS[0].id;
       }
 
       // ---- auth ------------------------------------------------------------
@@ -208,10 +586,10 @@
         if (!key) { err.textContent = "Enter the admin key."; return; }
         err.textContent = "";
         go.disabled = true; go.textContent = "…";
-        // Validate the key against the default tab's endpoint before revealing
-        // the dashboard. The key only ever travels in the X-Admin-Key header.
+        // Validate the key against the stats endpoint before revealing the
+        // dashboard. The key only ever travels in the X-Admin-Key header.
         adminKey = key;
-        fetch(TABS[0].endpoint, { headers: { "X-Admin-Key": key } })
+        fetch("/api/admin/stats", { headers: { "X-Admin-Key": key } })
           .then(function (res) {
             if (res.status === 401) { throw new Error("Incorrect admin key."); }
             if (!res.ok) { throw new Error("Couldn't sign in — please try again."); }
@@ -219,9 +597,8 @@
           })
           .then(function () {
             form.style.display = "none";
-            wrap.classList.add("wide");
             buildTabs();
-            activate(TABS[0].id);
+            activate(initialTabId());
           })
           .catch(function (ex) { adminKey = null; err.textContent = ex.message || "Something went wrong."; })
           .then(function () { go.disabled = false; go.textContent = "Submit"; });
