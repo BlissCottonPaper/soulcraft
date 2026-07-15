@@ -412,6 +412,12 @@ const TIERS = {
 // Normalize anything that isn't "free" to the single paid tier, "full".
 const normTier = (t) => (t === "free" ? "free" : "full");
 
+// Batch 2: the full-assessment login gate. Password login is PRIMARY for launch;
+// the passwordless magic-link flow is built but feature-flagged OFF here (enable
+// and test it deliberately post-launch). When false, the gate routes to /login
+// (with ?next); when true, it shows the in-page magic-link email form.
+const LOGIN_MAGIC_LINK = false;
+
 /* ---------- main ---------- */
 function TwelveWithin() {
     const [screen, setScreen] = useState(() => {
@@ -483,10 +489,26 @@ function TwelveWithin() {
             let rid;
             try { rid = crypto.randomUUID(); } catch (e) { rid = "r-" + Date.now() + "-" + Math.random().toString(16).slice(2); }
             setSavedResultId(rid);
-            setScreen("checkout");
+            // Login-first (Batch 2): the FULL assessment (paid OR promo) requires a
+            // session before question 1. Logged-out visitors get the login gate; the
+            // login link returns via ?resume=full and lands here on the checkout gate.
+            if (authed !== true) { setScreen("login"); }
+            else { setScreen("checkout"); }
         }
     };
-    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); setPickList(null); setShadowUnlocked(false); setUnlocking(false); setUnlockError(""); setPurchaseIntent(null); setPromoError(""); setPromoCode(""); setPaidFull(false); setMiraDone(false); setMiraBusy(false); setMiraError(""); setMiraActivated(null); };
+    // Passwordless login from the gate: email a one-time login link (Resend), then
+    // show the "check your email" state. The link returns to /?resume=full.
+    const sendLoginLink = () => {
+        if (loginBusy) return;
+        const email = (loginEmail || "").trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setLoginError("Enter a valid email address."); return; }
+        setLoginError(""); setLoginBusy(true);
+        fetch("/api/request-login-link", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email, next: "/?resume=full" }) })
+            .then((r) => r.json().catch(() => ({})))
+            .then((d) => { setLoginBusy(false); if (d && d.ok) { setLoginSent(true); ga("login_link_sent"); } else { setLoginError((d && d.error) || "Couldn't send the link — please try again."); } })
+            .catch(() => { setLoginBusy(false); setLoginError("Couldn't reach the server — please try again."); });
+    };
+    const restart = () => { setScreen("intro"); setIsSample(false); setWins({}); setPicks([]); setChScores({}); setPairIdx(0); setEmailSent(false); setEmailInput(""); setSaveStatus("idle"); setSavedResultId(null); savedForSession.current = null; setRestored(null); setVerifyStatus("idle"); setResendRequested(false); setResendEmail(""); setPickList(null); setShadowUnlocked(false); setUnlocking(false); setUnlockError(""); setPurchaseIntent(null); setPromoError(""); setPromoCode(""); setPaidFull(false); setMiraDone(false); setMiraBusy(false); setMiraError(""); setMiraActivated(null); setLoginSent(false); setLoginEmail(""); setLoginError(""); setLoginBusy(false); };
     // The payment gate now runs BEFORE the assessment (paid tiers pay at the gate,
     // then answer questions), so finishing the assessment always lands on results.
     const nextAfterAssessment = () => "results";
@@ -606,16 +628,45 @@ function TwelveWithin() {
     const [miraError, setMiraError] = useState("");
     const [miraActivated, setMiraActivated] = useState(null); // null | 'tier' | 'skipped'
     const [displayName, setDisplayName] = useState(null); // logged-in name for a warm results greeting
+    // Login-first gate (Batch 2): who's here, and what do they have?
+    const [authed, setAuthed] = useState(null);            // null unknown · true · false
+    const [hasResults, setHasResults] = useState(false);
+    const [latestResultId, setLatestResultId] = useState(null);
+    const [loginEmail, setLoginEmail] = useState("");
+    const [loginSent, setLoginSent] = useState(false);     // "check your email" state
+    const [loginBusy, setLoginBusy] = useState(false);
+    const [loginError, setLoginError] = useState("");
+    const resumedRef = useRef(false);
 
-    // Ask "who's logged in?" once on mount. Purely additive: used only to greet a
-    // signed-in person by name on the results page. Anonymous visitors get null and
-    // no greeting — a clean, graceful fallback.
+    // Ask "who's logged in, and what do they have?" once on mount. Drives the
+    // results-page greeting AND the login-first gate on the full assessment.
     useEffect(() => {
         fetch("/api/me", { credentials: "same-origin" })
             .then((r) => r.json())
-            .then((d) => { if (d && d.authenticated && d.display_name) setDisplayName(String(d.display_name)); })
-            .catch(() => { /* no greeting on failure — silent, non-blocking */ });
+            .then((d) => {
+                const ok = !!(d && d.authenticated);
+                setAuthed(ok);
+                if (ok) {
+                    if (d.display_name) setDisplayName(String(d.display_name));
+                    setHasResults(!!d.has_results);
+                    setLatestResultId(d.latest_result_id || null);
+                }
+            })
+            .catch(() => { setAuthed(false); /* treat as logged-out; gate will ask for login */ });
     }, []);
+
+    // Resume the full assessment after a login round-trip (?resume=full): the
+    // login link returns here, /api/me confirms the session, and we drop straight
+    // into the checkout gate — no second login between results and Mira.
+    useEffect(() => {
+        if (resumedRef.current || authed !== true) return;
+        let wantsFull = false;
+        try { wantsFull = new URLSearchParams(window.location.search).get("resume") === "full"; } catch (e) {}
+        if (!wantsFull) return;
+        resumedRef.current = true;
+        try { window.history.replaceState(null, "", window.location.pathname); } catch (e) {}
+        start("full");
+    }, [authed]);
 
     useEffect(() => {
         // Save the moment results are shown. The payment gate already ran before the
@@ -1169,6 +1220,31 @@ function TwelveWithin() {
                         React.createElement("p", { className: "text-xs text-violet-300/60 mt-0.5", style: sans }, dateStr + " · " + tierLabel + (r.wasUpgradeOf ? " · upgrade" : "")));
                 })),
                 React.createElement("button", { onClick: restart, className: "block mx-auto mt-6 text-amber-200/70 hover:text-amber-100 text-sm underline underline-offset-4", style: sans }, "Take the assessment again"))),
+            screen === "login" && (React.createElement("div", { className: "text-center max-w-md mx-auto" },
+                React.createElement("h2", { className: "text-3xl mb-3", style: serif }, "First, a login"),
+                React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-6", style: sans },
+                    "Create a login to start — so we can save your results, send them to you, and let you pick them back up on any future visit."),
+                (LOGIN_MAGIC_LINK
+                    // Passwordless magic-link (built, but feature-flagged OFF for launch —
+                    // enable + test deliberately post-launch).
+                    ? (!loginSent
+                        ? React.createElement("div", null,
+                            React.createElement("input", { type: "email", value: loginEmail, onChange: (e) => setLoginEmail(e.target.value), onKeyDown: (e) => { if (e.key === "Enter") sendLoginLink(); }, placeholder: "you@email.com", autoComplete: "email", className: "w-full rounded-xl px-4 py-3 mb-3 bg-black/20 border border-violet-300/25 text-violet-50 text-[15px] text-center", style: sans }),
+                            loginError && React.createElement("p", { className: "text-rose-300/90 text-sm mb-3", style: sans }, loginError),
+                            React.createElement(Btn, { primary: true, className: "w-full", onClick: sendLoginLink }, loginBusy ? "Sending…" : "Email me a login link"),
+                            React.createElement("p", { className: "text-violet-300/60 text-[13px] mt-4", style: sans },
+                                "Prefer a password? ",
+                                React.createElement("a", { href: "/login/?next=" + encodeURIComponent("/?resume=full"), className: "text-amber-200/80 underline underline-offset-2" }, "Log in")))
+                        : React.createElement("div", null,
+                            React.createElement("p", { className: "text-violet-100 text-[16px] leading-relaxed mb-2", style: serif }, "Check your email."),
+                            React.createElement("p", { className: "text-violet-300/75 text-[14px] leading-relaxed", style: sans }, "We sent a one-time login link to ", React.createElement("strong", null, loginEmail), ". Tap it to continue — it opens right back here.")))
+                    // Launch: password login, via the existing /login (which carries ?next).
+                    : React.createElement("div", null,
+                        React.createElement(Btn, { primary: true, className: "w-full", onClick: () => { window.location.href = "/login/?next=" + encodeURIComponent("/?resume=full"); } }, "Log in to start"),
+                        React.createElement("p", { className: "text-violet-300/60 text-[13px] mt-4", style: sans },
+                            "New here? ",
+                            React.createElement("a", { href: "/register/?next=" + encodeURIComponent("/?resume=full"), className: "text-amber-200/80 underline underline-offset-2" }, "Create your login")))),
+                React.createElement("button", { onClick: restart, className: "block mx-auto mt-8 text-violet-300/50 hover:text-amber-100 text-sm underline underline-offset-4", style: sans }, "Back"))),
             screen === "intro" && (React.createElement("div", { className: "text-center" },
                 React.createElement("svg", { viewBox: "0 0 120 120", className: "w-24 h-24 mx-auto mb-6", "aria-hidden": "true" },
                     ARCHETYPES.map((_, i) => { const [x, y] = nodeXY(i, 46, 60); return React.createElement("circle", { key: i, cx: x, cy: y, r: "4", fill: `hsl(${HUE(i)},62%,56%)` }); }),
@@ -1182,9 +1258,17 @@ function TwelveWithin() {
                 React.createElement("div", { className: "grid gap-3" },
                     // Two tiers only: Free and Full ($29). Each button is two lines \u2014 a bold
                     // label and a faint italic descriptor.
-                    React.createElement(Btn, { onClick: () => start("free") },
-                        React.createElement("span", { className: "block font-semibold text-[15px]" }, "Free \u00B7 Who leads?"),
-                        React.createElement("span", { className: "block text-[13px] italic text-violet-300/60 mt-0.5", style: serif }, "your loudest archetype")),
+                    // Free teaser stays for logged-out visitors. Logged in, it becomes
+                    // "View your results" when a reading exists, or disappears otherwise.
+                    (authed === true
+                        ? (hasResults
+                            ? React.createElement(Btn, { onClick: () => { window.location.href = latestResultId ? ("/r/" + latestResultId) : "/my-results/"; } },
+                                React.createElement("span", { className: "block font-semibold text-[15px]" }, "View your results"),
+                                React.createElement("span", { className: "block text-[13px] italic text-violet-300/60 mt-0.5", style: serif }, "your saved mandala"))
+                            : null)
+                        : React.createElement(Btn, { onClick: () => start("free") },
+                            React.createElement("span", { className: "block font-semibold text-[15px]" }, "Free \u00B7 Who leads?"),
+                            React.createElement("span", { className: "block text-[13px] italic text-violet-300/60 mt-0.5", style: serif }, "your loudest archetype"))),
                     // Full ($29) \u2014 the complete reading (Your Mandala + the Shadow Mandala).
                     React.createElement("button", { onClick: () => start("full"), className: "w-full rounded-xl px-5 py-3.5 transition-colors border-2 border-amber-200/70 bg-amber-100/5 text-violet-50 hover:bg-amber-100/10 hover:border-amber-200", style: sans },
                         React.createElement("span", { className: "block font-semibold text-[15px]" }, "Full \u00B7 Who are you \u2014 and what's hidden?"),

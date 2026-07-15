@@ -83,12 +83,14 @@
 </div>
 <script>
 (function(){
+  // Carry ?next so the emailed reset link returns the person to where they started.
+  var next=new URLSearchParams(location.search).get("next")||"";
   var form=document.getElementById("fp-form"),err=document.getElementById("err"),btn=document.getElementById("submit"),done=document.getElementById("fp-done");
   form.addEventListener("submit",function(e){
     e.preventDefault();err.textContent="";
     var email=document.getElementById("email").value.trim();
     btn.disabled=true;btn.textContent="Sending…";
-    fetch("/api/request-password-reset",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email})})
+    fetch("/api/request-password-reset",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,next:next})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         if(res.ok&&res.d&&res.d.ok){form.style.display="none";done.style.display="block";return;}

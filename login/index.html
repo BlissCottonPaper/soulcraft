@@ -75,19 +75,32 @@
       <label class="auth-label" for="email">Email</label>
       <input class="auth-input" id="email" name="email" type="email" autocomplete="email" required style="margin-bottom:1rem;" />
       <label class="auth-label" for="password">Password</label>
-      <input class="auth-input" id="password" name="password" type="password" autocomplete="current-password" required />
+      <div style="position:relative;">
+        <input class="auth-input" id="password" name="password" type="password" autocomplete="current-password" required style="padding-right:3.6rem;width:100%;box-sizing:border-box;" />
+        <button type="button" id="pw-toggle" aria-label="Show password" style="position:absolute;right:.55rem;top:50%;transform:translateY(-50%);background:none;border:0;color:rgba(224,218,246,0.72);font:inherit;font-size:13px;cursor:pointer;padding:.3rem;">Show</button>
+      </div>
       <p class="auth-err" id="err" role="alert"></p>
       <button class="auth-btn" id="submit" type="submit">Log in</button>
     </form>
   </div>
-  <p class="auth-alt" style="margin-top:.9rem;"><a href="/forgot-password/">Forgot your password?</a></p>
-  <p class="auth-alt">New here? <a href="/register/">Create an account</a></p>
+  <p class="auth-alt" style="margin-top:.9rem;"><a id="forgot-link" href="/forgot-password/">Forgot your password?</a></p>
+  <p class="auth-alt">New here? <a id="register-link" href="/register/">Create an account</a></p>
   <p class="auth-alt" style="margin-top:.4rem;">Just want your saved reading? <a href="/my-results/">Email me a link instead</a></p>
 </div>
 <script>
 (function(){
   var params=new URLSearchParams(location.search);
   var next=params.get("next")||"/account/";
+  // Carry ?next through the whole password chain so forgot/register also return
+  // the person to where they started (e.g. the assessment via /?resume=full).
+  if(next && next!=="/account/"){
+    var nq="?next="+encodeURIComponent(next);
+    var fl=document.getElementById("forgot-link"); if(fl) fl.href="/forgot-password/"+nq;
+    var rl=document.getElementById("register-link"); if(rl) rl.href="/register/"+nq;
+  }
+  // Show/hide password toggle.
+  var pwToggle=document.getElementById("pw-toggle"), pwInput=document.getElementById("password");
+  if(pwToggle&&pwInput){ pwToggle.addEventListener("click",function(){ var showing=pwInput.type==="password"; pwInput.type=showing?"text":"password"; pwToggle.textContent=showing?"Hide":"Show"; pwToggle.setAttribute("aria-label",showing?"Hide password":"Show password"); }); }
   // Already signed in → skip straight to the account page.
   fetch("/api/me",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(d){
     if(d&&d.authenticated){location.replace(next);}
