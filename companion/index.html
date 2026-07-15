@@ -69,13 +69,12 @@
      dock just above the "Tell me more…" nudge and the input — stacked, each on
      its own line, longer one on top. Tapping one loads it into the input to edit
      or send — it never auto-sends. Collapses to nothing when there are none. */
-  .mira-chips{display:flex;flex-direction:column;align-items:flex-start;gap:.35rem;padding:0 .1rem .3rem;margin:0;}
+  .mira-chips{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;padding:0 .1rem .3rem;margin:0;}
   .mira-chips:empty{display:none;}
   .mira-chip{background:rgba(196,181,253,0.08);border:1px solid rgba(196,181,253,0.3);color:rgba(224,218,246,0.9);border-radius:999px;font-size:12.5px;line-height:1.35;padding:.32rem .72rem;cursor:pointer;font-family:inherit;text-align:left;}
   .mira-chip:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;}
   /* The dock (nudge + input) sticks to the bottom together. */
   .mira-dock{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(16,12,34,0) 0%,#100c22 32%);padding-top:.4rem;}
-  .mira-nudge{display:flex;justify-content:flex-end;padding:0 .1rem .35rem;}
   .mira-goon{background:rgba(255,250,240,0.05);border:1px solid rgba(196,181,253,0.28);color:rgba(224,218,246,0.85);border-radius:999px;font-size:12.5px;padding:.28rem .7rem;cursor:pointer;font-family:inherit;}
   .mira-goon:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;} .mira-goon:disabled{opacity:.45;cursor:default;}
   .mira-inputbar{display:flex;gap:.5rem;align-items:flex-end;padding:0 0 .2rem;}
@@ -241,16 +240,12 @@
     </div>
     <div class="mira-msgs" id="mira-msgs" aria-live="polite"></div>
     <div class="mira-dock">
-      <!-- Content-aware follow-up chips for Mira's latest reply — stacked above,
-           longer one on top. Empty = hidden. -->
-      <div class="mira-chips" id="mira-chips"></div>
-      <!-- "Tell me more…" rests right-aligned directly above the Send/mic, without
-           crowding the chips above it. -->
-      <div class="mira-nudge"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Tell me more…</button></div>
+      <!-- Content-aware follow-up chips for Mira's latest reply, plus the always-
+           present "Tell me more…" — ONE flex-wrap group (no orphan nudge row). -->
+      <div class="mira-chips" id="mira-chips"><button class="mira-goon" id="mira-goon" type="button" title="Ask Mira to continue">Tell me more…</button></div>
+      <!-- The Lantern icon button is gone: the Lantern card below is the sole entry
+           point, and the reclaimed width goes to the text input. -->
       <div class="mira-inputbar">
-        <button class="mira-iconbtn mira-lantern" id="mira-lantern" type="button" title="The Lantern — a little light, any time" aria-label="Open the Lantern — support and resources">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8"/><path d="M12 2v3"/><path d="M6.5 8a5.5 5.5 0 0 1 11 0v7a3 3 0 0 1-3 3h-5a3 3 0 0 1-3-3z"/><path d="M9 21h6"/><circle cx="12" cy="12" r="2.2"/></svg>
-        </button>
         <textarea class="mira-input" id="mira-input" rows="1" placeholder="Share what's on your mind…" aria-label="Message Mira"></textarea>
         <button class="mira-iconbtn mira-mic" id="mira-mic" type="button" title="Speak your message" aria-label="Speak your message">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/><path d="M9 21h6"/></svg>
@@ -259,21 +254,20 @@
       </div>
     </div>
     <button class="mira-edit" id="mira-editbeliefs">Adjust your belief lens</button>
+    <!-- The Lantern card — the sole entry point to the graded-support sheet
+         (crisis lines · bandwidth check-in · therapist finder). Sits in the
+         composer column, directly above the disclaimer's separator. -->
+    <button class="mira-lantern-bar" id="mira-lantern-bar" type="button" aria-label="Open the Lantern — borrow a little light: check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.">
+      <span class="mira-lantern-ico" aria-hidden="true">
+        <img src="/assets/lantern-48.png" srcset="/assets/lantern-48.png 1x, /assets/lantern-96.png 2x" width="48" height="48" alt="" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'">
+      </span>
+      <span class="mira-lantern-copy">
+        <strong>The Lantern — borrow a little light.</strong>
+        <span>Check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.</span>
+      </span>
+    </button>
     <p class="mira-disclaim">Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a>.</p>
   </div>
-
-  <!-- The Lantern — always visible, in every view, never crisis-triggered. The
-       upgraded "Need a human tonight?" bar: icon + copy, opens the graded-support
-       sheet (crisis lines · bandwidth check-in · therapist finder). -->
-  <button class="mira-lantern-bar" id="mira-lantern-bar" type="button" aria-label="Open the Lantern — borrow a little light: check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.">
-    <span class="mira-lantern-ico" aria-hidden="true">
-      <img src="/assets/lantern-48.png" srcset="/assets/lantern-48.png 1x, /assets/lantern-96.png 2x" width="48" height="48" alt="" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'">
-    </span>
-    <span class="mira-lantern-copy">
-      <strong>The Lantern — borrow a little light.</strong>
-      <span>Check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.</span>
-    </span>
-  </button>
 </div>
 
 <!-- The Lantern sheet. Opened from the toolbar; dismissing returns to the chat.
@@ -282,7 +276,7 @@
 <div class="mira-sheet-back mira-hide-hard" id="mira-lantern-sheet" role="dialog" aria-modal="true" aria-label="The Lantern">
   <div class="mira-sheet" role="document">
     <div class="mira-sheet-grip" aria-hidden="true"></div>
-    <h2>Borrow some light tonight — you don't have to be in crisis to reach out.</h2>
+    <h2>Borrow a little light — you don't have to be in crisis to reach out.</h2>
     <button class="mira-door" id="mira-bandwidth" type="button" style="width:100%;text-align:left;background:none;border:1px solid rgba(196,181,253,0.28);cursor:pointer;font:inherit;color:inherit;">
       <span class="mira-door-t">Start a bandwidth check-in →</span>
       <span class="mira-door-p">A short pulse with Mira on one or two of your Core Human Needs, and which voice has the wheel right now. Available any time.</span>
@@ -363,10 +357,9 @@
   function closeLantern(){ var b=$('mira-lantern-sheet'); if(b){ b.className='mira-sheet-back mira-hide-hard'; } }
   function lanternOpen(){ var b=$('mira-lantern-sheet'); return !!(b && b.className.indexOf('mira-hide-hard')<0); }
   function wireLantern(){
-    var btn=$('mira-lantern'); if(btn) btn.addEventListener('click', openLantern);
     var back=$('mira-lantern-sheet'); if(back) back.addEventListener('click', function(e){ if(e.target===back) closeLantern(); });
     var close=$('mira-lantern-close'); if(close) close.addEventListener('click', closeLantern);
-    // The always-visible Lantern bar opens the same graded-support sheet.
+    // The Lantern card is the sole entry point to the graded-support sheet.
     var bar=$('mira-lantern-bar'); if(bar) bar.addEventListener('click', openLantern);
     document.addEventListener('keydown', function(e){ if(e.key==='Escape' && lanternOpen()) closeLantern(); });
     // The standing bandwidth check-in (G11) — usable any time, not just during the
@@ -402,10 +395,12 @@
   // add to — it deliberately does NOT auto-send.
   function renderChips(list){
     var box=$('mira-chips'); if(!box) return;
-    box.innerHTML='';
+    var goon=$('mira-goon');
+    // Clear only the previous suggestion chips; the "Tell me more…" goon is a
+    // permanent member of this same flex-wrap group and stays put.
+    var old=box.querySelectorAll('.mira-chip'); for(var j=0;j<old.length;j++){ old[j].remove(); }
     if(!list || !list.length) return;
-    // Longer suggestion on top, so the shorter one sits nearest the nudge and
-    // never crowds "Tell me more…" resting above the Send/mic.
+    // Longer suggestion first, so the shorter one sits nearest "Tell me more…".
     list=list.slice().sort(function(a,b){ return (b?b.length:0)-(a?a.length:0); });
     for(var i=0;i<list.length;i++){
       (function(q){
@@ -418,7 +413,8 @@
           try{ inp.setSelectionRange(q.length, q.length); }catch(e){}
           ga('mira_suggestion_used');
         });
-        box.appendChild(c);
+        // Insert chips before the goon so they wrap as one group, goon last.
+        if(goon){ box.insertBefore(c, goon); } else { box.appendChild(c); }
       })(list[i]);
     }
   }
