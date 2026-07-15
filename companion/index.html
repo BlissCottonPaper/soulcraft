@@ -111,6 +111,16 @@
   .mira-988{font-size:13px;line-height:1.6;color:rgba(224,218,246,0.7);text-align:center;margin:1.5rem auto 0;max-width:34rem;padding-top:1rem;border-top:1px solid rgba(196,181,253,0.12);}
   .mira-disclaim a, .mira-988 a{color:#fde8b0;text-decoration:underline;text-underline-offset:2px;}
   .mira-disclaim a:hover, .mira-988 a:hover{color:#fff6d8;}
+  /* The Lantern element — upgrades the "Need a human tonight?" bar. Icon left,
+     copy right; the whole thing is a button that opens the graded-support sheet. */
+  .mira-lantern-bar{display:flex;align-items:center;gap:.85rem;width:100%;max-width:34rem;margin:1.5rem auto 0;padding:.85rem 1rem;text-align:left;background:rgba(253,230,138,0.06);border:1px solid rgba(253,230,138,0.22);border-radius:.85rem;cursor:pointer;font:inherit;color:inherit;transition:background .15s,border-color .15s;}
+  .mira-lantern-bar:hover{background:rgba(253,230,138,0.11);border-color:rgba(253,230,138,0.4);}
+  .mira-lantern-bar:focus-visible{outline:2px solid rgba(253,230,138,0.6);outline-offset:2px;}
+  .mira-lantern-ico{flex:0 0 48px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;}
+  .mira-lantern-ico img{display:block;width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(253,214,120,0.35));}
+  .mira-lantern-copy{display:flex;flex-direction:column;gap:.1rem;line-height:1.45;}
+  .mira-lantern-copy strong{color:#fde8b0;font-weight:600;font-size:14.5px;}
+  .mira-lantern-copy span{font-size:13px;color:rgba(224,218,246,0.78);}
   .mira-crisis{border:1px solid rgba(253,164,175,0.5);background:rgba(253,164,175,0.10);border-radius:.9rem;padding:.85rem 1rem;font-size:14px;line-height:1.6;color:#fde4e6;margin:.5rem 0 1rem;}
   .mira-crisis a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:2px;}
   /* Once fired, the banner pins to the top of the viewport for the whole
@@ -249,8 +259,19 @@
     <p class="mira-disclaim">Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a>.</p>
   </div>
 
-  <!-- Permanent 988 invitation — always visible, in every view, never crisis-triggered. -->
-  <p class="mira-988">Need a human tonight? <a href="tel:988">Call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a> — you don't have to be in crisis to reach out.</p>
+  <!-- The Lantern — always visible, in every view, never crisis-triggered. The
+       upgraded "Need a human tonight?" bar: icon + copy, opens the graded-support
+       sheet (crisis lines · bandwidth check-in · therapist finder). -->
+  <button class="mira-lantern-bar" id="mira-lantern-bar" type="button" aria-label="Open the Lantern — borrow a little light: talk to someone, check your bandwidth, or find a therapist">
+    <span class="mira-lantern-ico" aria-hidden="true">
+      <img src="/assets/lantern-48.png" srcset="/assets/lantern-48.png 1x, /assets/lantern-96.png 2x" width="48" height="48" alt="" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'">
+    </span>
+    <span class="mira-lantern-copy">
+      <strong>The Lantern — borrow a little light tonight.</strong>
+      <span>Talk to someone, check your bandwidth, or find a therapist.</span>
+      <span>You don't have to be in crisis to reach out.</span>
+    </span>
+  </button>
 </div>
 
 <!-- The Lantern sheet. Opened from the toolbar; dismissing returns to the chat.
@@ -343,6 +364,8 @@
     var btn=$('mira-lantern'); if(btn) btn.addEventListener('click', openLantern);
     var back=$('mira-lantern-sheet'); if(back) back.addEventListener('click', function(e){ if(e.target===back) closeLantern(); });
     var close=$('mira-lantern-close'); if(close) close.addEventListener('click', closeLantern);
+    // The always-visible Lantern bar opens the same graded-support sheet.
+    var bar=$('mira-lantern-bar'); if(bar) bar.addEventListener('click', openLantern);
     document.addEventListener('keydown', function(e){ if(e.key==='Escape' && lanternOpen()) closeLantern(); });
     // The standing bandwidth check-in (G11) — usable any time, not just during the
     // first orientation. Closes the sheet and asks Mira for a short needs pulse.
