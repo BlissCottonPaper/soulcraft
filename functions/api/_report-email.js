@@ -189,6 +189,66 @@ export function buildReportEmail(report, email, images) {
     }
   }
 
+  // Your Edges — quietest voice + growth-edge practice (mirrors the on-screen
+  // "Your Edges" section, which the email previously omitted).
+  const edges = report.edges;
+  if (edges && (edges.quietest || edges.practice)) {
+    body += sectionLabel("Your Edges");
+    if (edges.quietest && edges.quietest.name) {
+      const q = esc(edges.quietest.name);
+      body +=
+        '<p style="font:700 10px/1.4 Arial,sans-serif;letter-spacing:.14em;color:#9a7a1e;text-transform:uppercase;margin:0 0 3px">Quietest Voice</p>' +
+        '<p style="font:400 14px/1.5 Georgia,serif;color:#2a2340;margin:0 0 4px"><strong>' + q + '</strong> speaks softest in you &mdash; often the blind spot, sometimes the invitation.</p>' +
+        '<p style="font:400 13px/1.5 Arial,sans-serif;color:#4a4560;margin:0 0 12px">Pay attention to your strongest reactions to people who lead with <strong>' + q + '</strong>. That reaction is a mirror.</p>';
+    }
+    if (edges.practice && edges.practice.name) {
+      const g = esc(edges.practice.name);
+      const practiceText = edges.practice.isTopVoice
+        ? '<strong>' + g + '</strong> is both your ' + esc(edges.practice.ord || "") + ' voice and your growth edge &mdash; you already carry real ' + g + ' energy, so growth here means drawing on it more consciously and deliberately, not building it from scratch.'
+        : 'Across the wheel sits <strong>' + g + '</strong> &mdash; your growth edge. Deliberately developing it is how your loudest voice stops casting so long a shadow.';
+      body +=
+        '<p style="font:700 10px/1.4 Arial,sans-serif;letter-spacing:.14em;color:#9a7a1e;text-transform:uppercase;margin:0 0 3px">An Intentional Practice</p>' +
+        '<p style="font:400 14px/1.5 Georgia,serif;color:#2a2340;margin:0 0 4px">' + practiceText + '</p>';
+    }
+  }
+
+  // The Full Picture — the remaining nine, then the full 1–12 ranking (mirrors
+  // the on-screen "The Full Picture" section, previously omitted from the email).
+  const fp = report.fullPicture;
+  if (fp && (Array.isArray(fp.remaining) || Array.isArray(fp.ranking))) {
+    if (Array.isArray(fp.remaining) && fp.remaining.length) {
+      body += sectionLabel("The Full Picture — The Remaining Nine");
+      body += fp.remaining
+        .map((r) => {
+          const stages = Array.isArray(r.stages) ? r.stages.map(esc).join(" &rarr; ") : "";
+          return (
+            '<div style="border-bottom:1px solid #eee;padding:5px 0">' +
+            '<span style="font:600 14px/1.4 Georgia,serif;color:#2a2340">' + esc(r.name) + "</span>" +
+            (r.longing ? '<span style="font:italic 400 12px/1.4 Georgia,serif;color:#8a6a2a"> &middot; ' + esc(r.longing) + "</span>" : "") +
+            (stages ? '<div style="font:400 11px/1.4 Arial,sans-serif;color:#9a94aa;margin-top:1px">' + stages + "</div>" : "") +
+            "</div>"
+          );
+        })
+        .join("");
+    }
+    if (Array.isArray(fp.ranking) && fp.ranking.length) {
+      body += sectionLabel("The Full Ranking");
+      body += '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%">';
+      body += fp.ranking
+        .map((r) => {
+          const pct = Math.max(0, Math.min(100, Number(r.pct) || 0));
+          return (
+            '<tr>' +
+            '<td style="width:88px;padding:2px 8px 2px 0;font:600 12px/1.4 Arial,sans-serif;color:#4a4560;text-align:right;vertical-align:middle">' + esc(r.name) + "</td>" +
+            '<td style="padding:2px 0;vertical-align:middle"><div style="background:#ece8f4;border-radius:5px;height:9px;width:100%"><div style="background:#7c6bb0;border-radius:5px;height:9px;width:' + pct.toFixed(1) + '%"></div></div></td>' +
+            "</tr>"
+          );
+        })
+        .join("");
+      body += "</table>";
+    }
+  }
+
   // Shadow (only present when unlocked)
   const shadow = report.shadow;
   if (shadow && Array.isArray(shadow.three) && shadow.three.length) {
@@ -238,6 +298,22 @@ export function buildReportEmail(report, email, images) {
   if (temp && temp.items) {
     tLines.push("", "TEMPERAMENT");
     temp.items.forEach((it) => tLines.push("  " + it.name + ": " + (it.raw >= 3 ? "loud" : it.raw >= 1 ? "an intentional practice" : "—")));
+  }
+  if (edges && (edges.quietest || edges.practice)) {
+    tLines.push("", "YOUR EDGES");
+    if (edges.quietest && edges.quietest.name) tLines.push("  Quietest voice: " + edges.quietest.name);
+    if (edges.practice && edges.practice.name) {
+      tLines.push("  An intentional practice: " + edges.practice.name +
+        (edges.practice.isTopVoice ? " (also your " + (edges.practice.ord || "") + " voice)" : " — your growth edge"));
+    }
+  }
+  if (fp && Array.isArray(fp.remaining) && fp.remaining.length) {
+    tLines.push("", "THE REMAINING NINE");
+    fp.remaining.forEach((r) => tLines.push("  " + r.name + (r.longing ? " — " + r.longing : "")));
+  }
+  if (fp && Array.isArray(fp.ranking) && fp.ranking.length) {
+    tLines.push("", "FULL RANKING");
+    fp.ranking.forEach((r, i) => tLines.push("  " + (i + 1) + ". " + r.name));
   }
   if (shadow && shadow.three) {
     tLines.push("", "SHADOW MANDALA");

@@ -774,6 +774,18 @@ function TwelveWithin() {
                     }),
                 };
             }
+            // "Your Edges" and "The Full Picture" — the two sections the on-screen
+            // (and print) report shows that the email was previously dropping. Gated
+            // to the SAME tier flags the screen uses, so the email mirrors exactly
+            // what the reader saw.
+            const edges = {
+                quietest: (TIERS[tier].showQuietest && ranked.length >= 12) ? { name: ranked[11].name } : null,
+                practice: growthName ? { name: growthName, isTopVoice: growthIsTopVoice, ord: growthIsTopVoice ? GROWTH_ORD[growthIdx] : null } : null,
+            };
+            const fullPicture = TIERS[tier].showFullRanking ? {
+                remaining: ranked.slice(3, 12).map((r) => ({ name: r.name, longing: longsPhrase(r), stages: r.stages })),
+                ranking: ranked.map((r) => ({ name: r.name, pct: Math.max((r.score / maxScore) * 100, 4) })),
+            } : null;
             // Serialize the print-palette Mandala SVGs (dark ink on white — the
             // right look on a white email background) so the server can rasterize
             // them to inline PNGs. The shadow SVG only exists when unlocked.
@@ -786,7 +798,7 @@ function TwelveWithin() {
             };
             const mandalaSvg = serializeSvg("png-mandala-light");
             const shadowMandalaSvg = shadow ? serializeSvg("png-mandala-shadow") : null;
-            return { name: null, loud, pairings, temperament, shadow, mandalaSvg, shadowMandalaSvg };
+            return { name: null, loud, pairings, temperament, edges, fullPicture, shadow, mandalaSvg, shadowMandalaSvg };
         } catch (e) { return null; }
     };
 
