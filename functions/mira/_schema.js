@@ -26,6 +26,22 @@ export async function ensureMiraSchema(env) {
     // Session 3.2 front door: a 30-day Mira trial granted by the $29 purchase or a
     // WHITEDOT redemption. Unix seconds; access is live while now < this value.
     "ALTER TABLE users ADD COLUMN companion_trial_until INTEGER",
+    // First Orientation (G11): the guided induction through a person's own results,
+    // run once as their first substantive Mira conversation. NULL = not yet done;
+    // 'completed' = they walked it (or Mira closed it); 'declined' = they chose to
+    // read the written results first. Either non-null value suppresses re-triggering.
+    "ALTER TABLE users ADD COLUMN induction_status TEXT",
+    // Results Refresh (post-G11 retakes): the gentle, recurring OFFER to walk
+    // through what changed after a returning user retakes the assessment.
+    //   results_reviewed_id — the results row Mira last acknowledged (baseline she
+    //     diffs a new retake against; stamped to the G11 result when the induction
+    //     completes, and advanced when a refresh is reviewed).
+    //   results_offer_id / results_offer_count — which retake we're currently
+    //     offering and how many session-openers have carried that offer, so it
+    //     rests after a small cap instead of nagging.
+    "ALTER TABLE users ADD COLUMN results_reviewed_id TEXT",
+    "ALTER TABLE users ADD COLUMN results_offer_id TEXT",
+    "ALTER TABLE users ADD COLUMN results_offer_count INTEGER DEFAULT 0",
     "CREATE TABLE IF NOT EXISTS mira_messages (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, session_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')))",
     "CREATE TABLE IF NOT EXISTS mira_summaries (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, session_id TEXT NOT NULL, summary TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')))",
     "CREATE TABLE IF NOT EXISTS mira_insights (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')))",
@@ -70,6 +86,82 @@ export async function grantMiraTrial(env, userId) {
     await env.DB
       .prepare("UPDATE users SET companion_trial_until = ? WHERE id = ?")
       .bind(now + TRIAL_DAYS * DAY, userId).run();
+  } catch (e) { /* best-effort */ }
+}
+
+// Has this person completed the assessment? True once a results row carries real
+// archetype scores (the payment gate can pre-create an empty placeholder row, so
+// an empty '{}' score blob does NOT count as complete).
+export async function assessmentComplete(env, userId) {
+  if (!env || !env.DB || !userId) return false;
+  try {
+    const r = await env.DB
+      .prepare("SELECT 1 AS x FROM results WHERE user_id = ? AND archetype_scores <> '{}' AND archetype_scores <> '' LIMIT 1")
+      .bind(userId).first();
+    return !!r;
+  } catch (e) { return false; }
+}
+
+// The First Orientation status for a user: null | 'completed' | 'declined'.
+export async function getInductionStatus(env, userId) {
+  if (!env || !env.DB || !userId) return null;
+  await ensureMiraSchema(env);
+  try {
+    const r = await env.DB.prepare("SELECT induction_status FROM users WHERE id = ?").bind(userId).first();
+    return (r && r.induction_status) || null;
+  } catch (e) { return null; }
+}
+
+// Record the First Orientation as 'completed' or 'declined'. Only ever sets a
+// terminal value, and never overwrites one already set (first outcome wins), so
+// a late completion signal can't clobber an earlier decline or vice-versa.
+export async function setInductionStatus(env, userId, status) {
+  if (!env || !env.DB || !userId) return;
+  if (status !== "completed" && status !== "declined") return;
+  await ensureMiraSchema(env);
+  try {
+    await env.DB
+      .prepare("UPDATE users SET induction_status = ? WHERE id = ? AND (induction_status IS NULL OR induction_status = '')")
+      .bind(status, userId).run();
+  } catch (e) { /* best-effort */ }
+}
+
+// The most recent completed-assessment results row id for a user (real scores
+// only), or null. Used to anchor the Results Refresh baseline.
+export async function getLatestResultId(env, userId) {
+  if (!env || !env.DB || !userId) return null;
+  try {
+    const r = await env.DB
+      .prepare("SELECT id FROM results WHERE user_id = ? AND archetype_scores <> '{}' AND archetype_scores <> '' ORDER BY created_at DESC LIMIT 1")
+      .bind(userId).first();
+    return (r && r.id) || null;
+  } catch (e) { return null; }
+}
+
+// Mark a results row as the one Mira has acknowledged (the diff baseline), and
+// clear the pending offer bookkeeping. Called when the G11 induction completes
+// (anchor the baseline) and again whenever a later refresh is reviewed.
+export async function markResultsReviewed(env, userId, resultId) {
+  if (!env || !env.DB || !userId || !resultId) return;
+  await ensureMiraSchema(env);
+  try {
+    await env.DB
+      .prepare("UPDATE users SET results_reviewed_id = ?, results_offer_id = NULL, results_offer_count = 0 WHERE id = ?")
+      .bind(resultId, userId).run();
+  } catch (e) { /* best-effort */ }
+}
+
+// Record that a session-opener carried the refresh offer for `latestId`. Counts
+// per-retake so the offer can rest after the cap: a new retake resets the count.
+export async function noteResultsOffered(env, userId, latestId, priorOfferId, priorCount) {
+  if (!env || !env.DB || !userId || !latestId) return;
+  await ensureMiraSchema(env);
+  const same = priorOfferId === latestId;
+  const nextCount = same ? (Number(priorCount) || 0) + 1 : 1;
+  try {
+    await env.DB
+      .prepare("UPDATE users SET results_offer_id = ?, results_offer_count = ? WHERE id = ?")
+      .bind(latestId, nextCount, userId).run();
   } catch (e) { /* best-effort */ }
 }
 

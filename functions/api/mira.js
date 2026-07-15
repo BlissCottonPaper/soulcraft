@@ -12,10 +12,13 @@
 // ============================================================
 
 import { getSessionUser } from "./_auth.js";
-import { ensureMiraSchema, miraAccess } from "../mira/_schema.js";
+import { ensureMiraSchema, miraAccess, getInductionStatus, setInductionStatus,
+         getLatestResultId, markResultsReviewed, noteResultsOffered } from "../mira/_schema.js";
 import { assembleMiraSystem } from "../mira/_prompt.js";
 import { detectCrisis } from "../mira/_crisis.js";
 import { detectPatterns, patternNote, getPatternEntry, formatEntry } from "../mira/_patterns.js";
+import { buildOrientationBlock, INDUCTION_COMPLETE_MARKER } from "../mira/_orientation.js";
+import { resultsRefreshHint, RESULTS_REVIEWED_MARKER } from "../mira/_refresh.js";
 
 // Static instruction for the summarizer — kept as its own constant so it can be
 // sent as a cache_control'd block (static-first). It's short (well under the
@@ -43,6 +46,12 @@ const SUGGEST_MARKER_G = /⟦\s*suggest:\s*([^⟧]*?)\s*⟧/g;
 // Strip ANY complete ⟦…⟧ marker from visible text — so a new marker type can
 // never leak just because it isn't the name marker.
 const ANY_MARKER_G = /⟦[^⟧]*⟧/g;
+// Silent end-of-orientation signal Mira writes once at the close of the induction.
+// Already stripped from visible text by ANY_MARKER_G; we only detect it here.
+const INDUCTION_DONE_RE = new RegExp("⟦\\s*" + INDUCTION_COMPLETE_MARKER + "\\s*⟧");
+// Silent signal Mira writes once she has actually walked a returning user through
+// their updated results. Also stripped from visible text; we only detect it here.
+const RESULTS_REVIEWED_RE = new RegExp("⟦\\s*" + RESULTS_REVIEWED_MARKER + "\\s*⟧");
 
 function cleanName(v) {
   if (typeof v !== "string") return null;
@@ -182,6 +191,28 @@ export async function onRequestPost(context) {
     let patternCandidates = [];
     try { patternCandidates = detectPatterns(message); } catch (e) { patternCandidates = []; }
 
+    // First Orientation (G11): the client sets body.induction while the guided
+    // induction is live. Honor it only if the person hasn't already completed or
+    // declined it — so a stale client flag can never re-run a finished orientation.
+    let runInduction = false;
+    if (body.induction === true) {
+      try {
+        const st = await getInductionStatus(env, user.id);
+        runInduction = !(st === "completed" || st === "declined");
+      } catch (e) { runInduction = false; }
+    }
+
+    // Is this the opening turn of the session? (Checked BEFORE we insert this
+    // message.) The Results Refresh offer rides only the opener, so it can join
+    // Mira's greeting at most once per session and never build mid-conversation.
+    let isSessionOpener = false;
+    try {
+      const prior = await env.DB
+        .prepare("SELECT COUNT(*) AS n FROM mira_messages WHERE user_id = ? AND session_id = ?")
+        .bind(user.id, sessionId).first();
+      isSessionOpener = !(prior && Number(prior.n) > 0);
+    } catch (e) { isSessionOpener = false; }
+
     // Fold the prior session into memory before we assemble the prompt.
     await lazySummarize(env, user.id, sessionId);
 
@@ -214,6 +245,32 @@ export async function onRequestPost(context) {
         if (block) system.push({ type: "text", text: block });
       }
     } catch (e) { /* best-effort; pattern context never blocks a reply */ }
+
+    // While the induction is live, layer the First Orientation protocol on top of
+    // the assembled prompt (this turn only — never cached). The person's full
+    // profile is already in `system`; this adds only the shape and rules of the
+    // guided walk. Best-effort: a missing protocol never blocks a reply.
+    if (runInduction) {
+      try {
+        const block = buildOrientationBlock();
+        if (block) system.push({ type: "text", text: block });
+      } catch (e) { /* orientation is best-effort */ }
+    }
+
+    // Results Refresh (post-G11 retakes): on a session opener, if a returning
+    // graduate's newest results differ from the ones Mira last acknowledged, offer
+    // — gently, once — to walk through what changed. Never during the induction
+    // itself. Best-effort; a missing offer never blocks a reply.
+    if (!runInduction && isSessionOpener) {
+      try {
+        const refresh = await resultsRefreshHint(env, user.id);
+        if (refresh && refresh.hint) {
+          system.push({ type: "text", text: refresh.hint });
+          // Count this opener's offer toward the rest-after-cap budget.
+          await noteResultsOffered(env, user.id, refresh.latestId, refresh.priorOfferId, refresh.priorCount);
+        }
+      } catch (e) { /* refresh is best-effort */ }
+    }
 
     const upstream = await anthropic(env, {
       model: CHAT_MODEL,
@@ -281,7 +338,28 @@ export async function onRequestPost(context) {
         // API call). Empty array when she emitted none, or the marker got cut off
         // by the token limit — the client simply shows no chips in that case.
         const suggestions = extractSuggestions(raw);
-        await writer.write(enc.encode("data: " + JSON.stringify({ done: true, suggestions }) + "\n\n"));
+        // If this was an induction turn and Mira signalled its close, record the
+        // orientation as completed and tell the client to leave induction mode.
+        let inductionComplete = false;
+        if (runInduction && INDUCTION_DONE_RE.test(raw)) {
+          inductionComplete = true;
+          try {
+            await setInductionStatus(env, user.id, "completed");
+            // Anchor the Results Refresh baseline to the reading they just walked,
+            // so the refresh only ever fires on a LATER retake.
+            const lid = await getLatestResultId(env, user.id);
+            if (lid) await markResultsReviewed(env, user.id, lid);
+          } catch (e) { /* best-effort */ }
+        }
+        // If Mira walked a returning user through their updated results, record it
+        // so the offer stops. Cheap: only queries when the marker is present.
+        if (!runInduction && RESULTS_REVIEWED_RE.test(raw)) {
+          try {
+            const lid = await getLatestResultId(env, user.id);
+            if (lid) await markResultsReviewed(env, user.id, lid);
+          } catch (e) { /* best-effort */ }
+        }
+        await writer.write(enc.encode("data: " + JSON.stringify({ done: true, suggestions, induction_complete: inductionComplete }) + "\n\n"));
       } catch (e) {
         try { await writer.write(enc.encode("data: " + JSON.stringify({ error: true }) + "\n\n")); } catch (e2) {}
       } finally {
