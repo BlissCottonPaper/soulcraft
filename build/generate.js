@@ -315,51 +315,88 @@ function myResultsMain() {
   return `    <section class="text-center pt-16 pb-8 md:pt-24">
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">MY RESULTS</p>
       <h1 class="serif text-4xl md:text-6xl mb-4">Find your mirror again</h1>
-      <p class="text-violet-200/80 text-lg max-w-xl mx-auto">Took the assessment and saved your email? Enter it below and we'll send you a link back to Your Mandala.</p>
+      <p id="results-lede" class="text-violet-200/80 text-lg max-w-xl mx-auto" hidden>Took the assessment and saved your email? Enter it below and we'll send you a link back to Your Mandala.</p>
     </section>
     <section class="max-w-md mx-auto pb-20">
-      <form id="results-form" class="grid gap-4" novalidate>
-        <label class="block"><span class="text-sm text-violet-200/80">Email</span>
-          <input name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60" /></label>
-        <button type="submit" id="results-submit" class="rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Send my link</button>
-        <p id="results-status" class="text-sm text-center min-h-[1.25rem]" role="status" aria-live="polite"></p>
-      </form>
-      <div id="results-done" class="card rounded-2xl px-8 py-10 text-center" hidden>
-        <div class="text-4xl mb-4" aria-hidden="true">✉️</div>
-        <h2 class="serif text-2xl mb-3">Check your inbox</h2>
-        <p class="text-violet-200/80">If we have a saved result for that email, a link back to Your Mandala is on its way. It can take a minute — and it's worth a peek in your spam folder.</p>
+      <!-- A signed-in owner never re-enters their email. While we check for a live
+           session, show a brief "one moment" — never the form — so a member never
+           sees a login-style lookup for results already tied to their account. -->
+      <div id="results-checking" class="text-center text-violet-200/70 py-10" role="status" aria-live="polite">One moment — finding your mirror…</div>
+      <div id="results-guest" hidden>
+        <form id="results-form" class="grid gap-4" novalidate>
+          <label class="block"><span class="text-sm text-violet-200/80">Email</span>
+            <input name="email" type="email" required autocomplete="email" placeholder="you@example.com" class="mt-1 w-full rounded-xl bg-black/20 border border-violet-300/25 px-4 py-3 text-violet-50 outline-none focus:border-amber-200/60" /></label>
+          <button type="submit" id="results-submit" class="rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Send my link</button>
+          <p id="results-status" class="text-sm text-center min-h-[1.25rem]" role="status" aria-live="polite"></p>
+        </form>
+        <div id="results-done" class="card rounded-2xl px-8 py-10 text-center" hidden>
+          <div class="text-4xl mb-4" aria-hidden="true">✉️</div>
+          <h2 class="serif text-2xl mb-3">Check your inbox</h2>
+          <p class="text-violet-200/80">If we have a saved result for that email, a link back to Your Mandala is on its way. It can take a minute — and it's worth a peek in your spam folder.</p>
+        </div>
+        <p class="text-center text-violet-300/50 text-xs mt-6">No results saved yet? <a href="/" class="text-amber-200/80 hover:text-amber-100 underline underline-offset-4">Take the assessment →</a></p>
       </div>
-      <p class="text-center text-violet-300/50 text-xs mt-6">No results saved yet? <a href="/" class="text-amber-200/80 hover:text-amber-100 underline underline-offset-4">Take the assessment →</a></p>
+      <div id="results-member" hidden class="card rounded-2xl px-8 py-10 text-center">
+        <div class="text-4xl mb-4" aria-hidden="true">🔮</div>
+        <h2 class="serif text-2xl mb-3">You're signed in</h2>
+        <p class="text-violet-200/80 mb-6">You haven't saved a reading to this account yet. Take the assessment and your Mandala will live here.</p>
+        <a href="/" class="inline-block rounded-xl px-6 py-3.5 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors">Take the assessment →</a>
+      </div>
     </section>
     <script>
     (function(){
-      var f=document.getElementById('results-form'); if(!f) return;
-      var btn=document.getElementById('results-submit'), s=document.getElementById('results-status'), done=document.getElementById('results-done');
-      f.addEventListener('submit', function(e){
-        e.preventDefault();
-        var email=f.email.value.trim();
-        if(!email||!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)){ s.style.color='#fca5a5'; s.textContent='Please enter a valid email address.'; return; }
-        btn.disabled=true; btn.textContent='Sending…'; s.textContent=''; s.style.color='';
-        // Ask the backend to look up saved results for this email and, if it finds any,
-        // email a magic link. This tool deliberately tells you plainly when nothing is on
-        // file (found:false) — more helpful than a silent non-answer for a low-stakes,
-        // self-reflection product. On found, hide the form (inline display beats grid).
-        fetch('/api/request-results-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
-          .then(function(r){ return r.json().catch(function(){ return {}; }); })
-          .then(function(d){
-            if(d && d.found===false){
-              btn.disabled=false; btn.textContent='Send my link';
-              s.style.color='#fca5a5';
-              s.textContent="We don't have results saved for that email — try taking the assessment first.";
-              return;
-            }
-            f.style.display='none'; f.hidden=true; done.hidden=false; done.style.display='block'; done.setAttribute('tabindex','-1'); done.focus();
-          })
-          .catch(function(){
-            // Network hiccup — don't strand the user; show the neutral confirmation.
-            f.style.display='none'; f.hidden=true; done.hidden=false; done.style.display='block'; done.setAttribute('tabindex','-1'); done.focus();
-          });
-      });
+      var checking=document.getElementById('results-checking');
+      var guest=document.getElementById('results-guest');
+      var member=document.getElementById('results-member');
+      var lede=document.getElementById('results-lede');
+      function reveal(el){ if(el){ el.hidden=false; } }
+      function hide(el){ if(el){ el.hidden=true; } }
+      function showGuest(){ hide(checking); reveal(lede); reveal(guest); wireForm(); }
+      function showMember(){ hide(checking); reveal(member); }
+      // The fix: a logged-in owner with saved results is handed straight to their
+      // Mandala via the same ?view=mine path the account page uses (the SPA restores
+      // the reading, or offers a picker for several) — zero email entry. A logged-in
+      // owner with nothing saved yet gets a nudge to take the assessment. Only a
+      // logged-OUT visitor (took the free assessment without an account) sees the
+      // email-lookup form. /api/me answers { authenticated, has_results }.
+      fetch('/api/me',{credentials:'same-origin'})
+        .then(function(r){ return r.json().catch(function(){ return {}; }); })
+        .then(function(d){
+          if(d && d.authenticated && d.has_results){ window.location.replace('/?view=mine'); return; }
+          if(d && d.authenticated){ showMember(); return; }
+          showGuest();
+        })
+        .catch(function(){ showGuest(); });
+
+      function wireForm(){
+        var f=document.getElementById('results-form'); if(!f) return;
+        var btn=document.getElementById('results-submit'), s=document.getElementById('results-status'), done=document.getElementById('results-done');
+        f.addEventListener('submit', function(e){
+          e.preventDefault();
+          var email=f.email.value.trim();
+          if(!email||!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)){ s.style.color='#fca5a5'; s.textContent='Please enter a valid email address.'; return; }
+          btn.disabled=true; btn.textContent='Sending…'; s.textContent=''; s.style.color='';
+          // Ask the backend to look up saved results for this email and, if it finds any,
+          // email a magic link. This tool deliberately tells you plainly when nothing is on
+          // file (found:false) — more helpful than a silent non-answer for a low-stakes,
+          // self-reflection product. On found, hide the form (inline display beats grid).
+          fetch('/api/request-results-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+            .then(function(r){ return r.json().catch(function(){ return {}; }); })
+            .then(function(d){
+              if(d && d.found===false){
+                btn.disabled=false; btn.textContent='Send my link';
+                s.style.color='#fca5a5';
+                s.textContent="We don't have results saved for that email — try taking the assessment first.";
+                return;
+              }
+              f.style.display='none'; f.hidden=true; done.hidden=false; done.style.display='block'; done.setAttribute('tabindex','-1'); done.focus();
+            })
+            .catch(function(){
+              // Network hiccup — don't strand the user; show the neutral confirmation.
+              f.style.display='none'; f.hidden=true; done.hidden=false; done.style.display='block'; done.setAttribute('tabindex','-1'); done.focus();
+            });
+        });
+      }
     })();
     </script>`;
 }
@@ -2018,6 +2055,31 @@ function companionMain() {
       .catch(function(){ bubble.textContent='Connection lost — please try again.'; setStreaming(false); });
   }
 
+  // Replay THIS session's saved turns into the view. Messages are stored per
+  // (user, session id); the session id lives for 30 minutes, so navigating away
+  // and back reuses it and the server still holds the exact transcript — including
+  // any question Mira asked but you hadn't answered. We rebuild only what the
+  // person actually saw: assistant replies, and real user messages. The bracketed
+  // [...] bootstrap prompts we send behind the scenes are hidden turns and are
+  // skipped. done(count) reports how many bubbles were restored so the caller
+  // knows whether to open in Mira's voice or simply resume where we left off.
+  function restoreSession(done){
+    if(!SESSION){ done(0); return; }
+    fetch('/api/mira/history?session_id='+encodeURIComponent(SESSION),{credentials:'same-origin'})
+      .then(function(r){ return r.json().catch(function(){ return {}; }); })
+      .then(function(d){
+        var msgs=(d && d.messages) || []; var shown=0;
+        for(var i=0;i<msgs.length;i++){
+          var m=msgs[i]; if(!m || !m.content) continue;
+          if(m.role==='assistant'){ addRow('her').innerHTML=renderMira(m.content); shown++; }
+          else if(!/^\\s*\\[[\\s\\S]*\\]\\s*$/.test(String(m.content))){ addRow('me').textContent=String(m.content); shown++; }
+        }
+        if(shown){ stick=true; scrollDown(); }
+        done(shown);
+      })
+      .catch(function(){ done(0); });
+  }
+
   var chatWired=false;
   function wireChat(hasHistory, ctx){
     show('mira-chat'); SESSION=session(); ga('mira_session_started');
@@ -2121,22 +2183,25 @@ function companionMain() {
     // keeps the promise above: entering the room never lands on an empty screen.
     // The gap only suppresses a re-greet in the rare in-app case where messages
     // are already on screen (e.g. returning from the belief-lens editor).
-    var GREET_GAP_MS = 30 * 60 * 1000; // 30 minutes
-    var lastVisit = 0;
-    try{ lastVisit = parseInt(localStorage.getItem('mira_last_visit')||'0',10)||0; }catch(e){}
-    var afterBreak = !lastVisit || (Date.now() - lastVisit) >= GREET_GAP_MS;
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){} // record this visit
-    var msgsEl = $('mira-msgs');
-    var transcriptEmpty = !(msgsEl && msgsEl.children && msgsEl.children.length);
-    if(induction){
-      // First Orientation (G11): the guided walk replaces the ordinary blank-chat
-      // opening. Begin it fresh, or resume it warmly if they reloaded mid-walk.
-      if(!hasHistory){ sendMessage('[begin the first orientation — greet them warmly by name, then open the guided walk through their Mandala]', true); }
-      else if(afterBreak || transcriptEmpty){ sendMessage('[resume the first orientation where you left off — a brief, warm reorientation by name, then continue with the next movement]', true); }
-    }
-    else if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
-    else if(afterBreak || transcriptEmpty){ sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
-    input.focus();
+    // Restore the exact conversation as we left it BEFORE deciding whether Mira
+    // opens. If any turns of this live session were replayed, we send NO bootstrap
+    // turn — leaving mid-question and returning must land back on that same
+    // unanswered question, never on an advanced beat. Only a genuinely empty
+    // session (brand new, or the 30-minute window lapsed into a fresh session id)
+    // opens in Mira's own voice, keeping the "never an empty room" promise.
+    restoreSession(function(restored){
+      if(restored){ input.focus(); return; }   // resumed exactly as left — do not advance
+      if(induction){
+        // First Orientation (G11): begin the guided walk, or (after a real break
+        // that lapsed the session) reorient warmly and carry on.
+        if(!hasHistory){ sendMessage('[begin the first orientation — greet them warmly by name, then open the guided walk through their Mandala]', true); }
+        else { sendMessage('[resume the first orientation where you left off — a brief, warm reorientation by name, then continue with the next movement]', true); }
+      }
+      else if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
+      else { sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
+      input.focus();
+    });
   }
 
   // ---- gate ----
