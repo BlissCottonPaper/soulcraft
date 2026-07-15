@@ -87,12 +87,16 @@
       <button class="auth-btn" id="submit" type="submit">Create account</button>
     </form>
   </div>
-  <p class="auth-alt">Already have an account? <a href="/login/">Log in</a></p>
+  <p class="auth-alt">Already have an account? <a id="login-link" href="/login/">Log in</a></p>
 </div>
 <script>
 (function(){
+  // Honor ?next so a new account created from the assessment gate returns there.
+  var next=new URLSearchParams(location.search).get("next")||"/account/";
+  if(!next.indexOf || next.indexOf("/")!==0 || next.indexOf("//")===0) next="/account/";
+  var loginLink=document.getElementById("login-link"); if(loginLink && next!=="/account/") loginLink.href="/login/?next="+encodeURIComponent(next);
   fetch("/api/me",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(d){
-    if(d&&d.authenticated){location.replace("/account/");}
+    if(d&&d.authenticated){location.replace(next);}
   }).catch(function(){});
   var form=document.getElementById("reg-form"),err=document.getElementById("err"),btn=document.getElementById("submit");
   form.addEventListener("submit",function(e){
@@ -106,7 +110,7 @@
     fetch("/api/register",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password,display_name:displayName,research_consent:researchConsent})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
-        if(res.ok&&res.d&&res.d.ok){location.replace("/account/");return;}
+        if(res.ok&&res.d&&res.d.ok){location.replace(next);return;}
         err.textContent=(res.d&&res.d.error)||"That didn't work — please try again.";
         btn.disabled=false;btn.textContent="Create account";
       })

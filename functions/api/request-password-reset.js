@@ -14,6 +14,7 @@
 // ============================================================
 
 import { ensureSchema, sha256Hex } from "./_auth.js";
+import { sanitizeNext } from "./request-login-link.js";
 
 const RESET_TTL_SECONDS = 60 * 60; // 1 hour
 
@@ -57,7 +58,9 @@ export async function onRequestPost({ request, env }) {
         .bind(tokenHash, user.id, now + RESET_TTL_SECONDS, now)
         .run();
 
-      const linkUrl = "https://artofsoulcraft.com/reset-password/?token=" + token;
+      const nextParam = sanitizeNext(body.next);
+      const linkUrl = "https://artofsoulcraft.com/reset-password/?token=" + token +
+        (nextParam && nextParam !== "/" ? "&next=" + encodeURIComponent(nextParam) : "");
       if (env.RESEND_API_KEY) {
         try {
           await fetch("https://api.resend.com/emails", {

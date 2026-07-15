@@ -3,28 +3,27 @@
 Untouched, full-resolution source assets. Committed as-is; production sizes are
 derived from these by a repeatable script (never hand-edited).
 
-## lantern-original.png  — PENDING
+## lantern-original.png
 
-The Lantern icon source (photorealistic bronze lantern, transparent background,
-warm amber glow). **Not yet committed** — the paste in the build request did not
-reach the build environment as a usable transparent file (only a flattened,
-no-alpha preview was retrievable, which would lose the glow).
+The Lantern icon source (1254×1254). **Note:** this file has a solid (white)
+background — no alpha channel — with the amber glow rendered on white. The
+pipeline handles that: `scripts/process-lantern.mjs` derives transparency from the
+white field (white → transparent, the amber glow preserved as a soft haze),
+crops to the glow-inclusive bounding box, applies the 87% vertical scale, and
+exports the two production icons.
 
-**To finish the Lantern icon:**
+Regenerate the icons any time (a lantern swap is the same one step):
 
-1. Drop the real 1024×1024 transparent PNG here as `lantern-original.png`.
-2. Run the repeatable pipeline:
+```bash
+node scripts/process-lantern.mjs
+# writes:
+#   assets/lantern-48.png   (@1x, 33×48)  → /assets/lantern-48.png
+#   assets/lantern-96.png   (@2x, 65×96)  → /assets/lantern-96.png
+```
 
-   ```bash
-   node scripts/process-lantern.mjs
-   ```
+If a **truly transparent** lantern PNG is ever provided, drop it here in place of
+this one and re-run — the script detects the real alpha channel and trims to it
+directly (skipping the white-derivation step), for an even cleaner cutout.
 
-   It trims to the artwork's **alpha bounding box** (glow included — never cropped
-   tighter than the alpha), then exports high-quality Lanczos downscales:
-
-   - `assets/lantern-48.png`  (@1x, 48px longest side)  → `/assets/lantern-48.png`
-   - `assets/lantern-96.png`  (@2x, 96px longest side)  → `/assets/lantern-96.png`
-
-The Lantern element in `/companion` already references those two paths via
-`srcset` at 48px with explicit width/height (no layout shift; the icon simply
-appears once the exports exist). A future lantern swap is the same two steps.
+The Lantern element in `/companion` references those two paths via `srcset` at
+48px with explicit width/height (no layout shift).
