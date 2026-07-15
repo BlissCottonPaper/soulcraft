@@ -493,6 +493,31 @@
       .catch(function(){ bubble.textContent='Connection lost — please try again.'; setStreaming(false); });
   }
 
+  // Replay THIS session's saved turns into the view. Messages are stored per
+  // (user, session id); the session id lives for 30 minutes, so navigating away
+  // and back reuses it and the server still holds the exact transcript — including
+  // any question Mira asked but you hadn't answered. We rebuild only what the
+  // person actually saw: assistant replies, and real user messages. The bracketed
+  // [...] bootstrap prompts we send behind the scenes are hidden turns and are
+  // skipped. done(count) reports how many bubbles were restored so the caller
+  // knows whether to open in Mira's voice or simply resume where we left off.
+  function restoreSession(done){
+    if(!SESSION){ done(0); return; }
+    fetch('/api/mira/history?session_id='+encodeURIComponent(SESSION),{credentials:'same-origin'})
+      .then(function(r){ return r.json().catch(function(){ return {}; }); })
+      .then(function(d){
+        var msgs=(d && d.messages) || []; var shown=0;
+        for(var i=0;i<msgs.length;i++){
+          var m=msgs[i]; if(!m || !m.content) continue;
+          if(m.role==='assistant'){ addRow('her').innerHTML=renderMira(m.content); shown++; }
+          else if(!/^\s*\[[\s\S]*\]\s*$/.test(String(m.content))){ addRow('me').textContent=String(m.content); shown++; }
+        }
+        if(shown){ stick=true; scrollDown(); }
+        done(shown);
+      })
+      .catch(function(){ done(0); });
+  }
+
   var chatWired=false;
   function wireChat(hasHistory, ctx){
     show('mira-chat'); SESSION=session(); ga('mira_session_started');
@@ -596,22 +621,25 @@
     // keeps the promise above: entering the room never lands on an empty screen.
     // The gap only suppresses a re-greet in the rare in-app case where messages
     // are already on screen (e.g. returning from the belief-lens editor).
-    var GREET_GAP_MS = 30 * 60 * 1000; // 30 minutes
-    var lastVisit = 0;
-    try{ lastVisit = parseInt(localStorage.getItem('mira_last_visit')||'0',10)||0; }catch(e){}
-    var afterBreak = !lastVisit || (Date.now() - lastVisit) >= GREET_GAP_MS;
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){} // record this visit
-    var msgsEl = $('mira-msgs');
-    var transcriptEmpty = !(msgsEl && msgsEl.children && msgsEl.children.length);
-    if(induction){
-      // First Orientation (G11): the guided walk replaces the ordinary blank-chat
-      // opening. Begin it fresh, or resume it warmly if they reloaded mid-walk.
-      if(!hasHistory){ sendMessage('[begin the first orientation — greet them warmly by name, then open the guided walk through their Mandala]', true); }
-      else if(afterBreak || transcriptEmpty){ sendMessage('[resume the first orientation where you left off — a brief, warm reorientation by name, then continue with the next movement]', true); }
-    }
-    else if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
-    else if(afterBreak || transcriptEmpty){ sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
-    input.focus();
+    // Restore the exact conversation as we left it BEFORE deciding whether Mira
+    // opens. If any turns of this live session were replayed, we send NO bootstrap
+    // turn — leaving mid-question and returning must land back on that same
+    // unanswered question, never on an advanced beat. Only a genuinely empty
+    // session (brand new, or the 30-minute window lapsed into a fresh session id)
+    // opens in Mira's own voice, keeping the "never an empty room" promise.
+    restoreSession(function(restored){
+      if(restored){ input.focus(); return; }   // resumed exactly as left — do not advance
+      if(induction){
+        // First Orientation (G11): begin the guided walk, or (after a real break
+        // that lapsed the session) reorient warmly and carry on.
+        if(!hasHistory){ sendMessage('[begin the first orientation — greet them warmly by name, then open the guided walk through their Mandala]', true); }
+        else { sendMessage('[resume the first orientation where you left off — a brief, warm reorientation by name, then continue with the next movement]', true); }
+      }
+      else if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
+      else { sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
+      input.focus();
+    });
   }
 
   // ---- gate ----
