@@ -66,6 +66,13 @@ A twelve-archetype developmental self-discovery system. You are not one type —
 6. Build a simple results-history screen that calls `my-results.js` and lists every saved attempt
 7. Only after 1–6 work end-to-end: set up Stripe and wire real payment to the tier logic that already exists in the UI
 
+> **D1 binding (live).** Steps 1–3 above are done — the production database exists and is bound. Concrete facts, for the record so the binding can't be lost again:
+> - **Database name:** `soulcraft-db`
+> - **`database_id`:** `62e1457d-787e-402b-92db-d99bf74e8d91`
+> - **Binding variable:** `DB` (Cloudflare Pages → Settings → Functions → D1 database bindings) — this is what every function reads as `env.DB`. The name must stay exactly `DB`.
+>
+> The binding currently lives in the Cloudflare dashboard. Committing it as config-as-code (a `wrangler.toml`) and moving secrets to Cloudflare's secrets system is a deliberate near-term roadmap item — intentionally deferred, not overdue.
+
 **Full system canon (architecture, decisions log, naming rationale, open questions) lives in Notion** — BridgeTender Studio workspace → Archetypes — The Twelve. Start with the "Start Here" index at the top of that page. The **Build Spec** page there has the complete technical design (schema rationale, Stripe flow, Bliss/Lavender Sky gift-code mechanics, Compatibility design) in far more depth than fits here.
 
 ---
@@ -76,7 +83,7 @@ Set these in the Pages project's **Settings → Environment variables** (and the
 
 | Name | Purpose |
 | --- | --- |
-| `DB` | D1 database **binding** (not a text value) — makes `env.DB` resolve in every function. |
+| `DB` | D1 database **binding** (not a text value) — makes `env.DB` resolve in every function. Bound in production to database **`soulcraft-db`** (`database_id: 62e1457d-787e-402b-92db-d99bf74e8d91`). |
 | `RESEND_API_KEY` | Resend API key used to send the magic-link / results emails. |
 | `STRIPE_SECRET_KEY` | Stripe secret key (`sk_…`) used server-side to create Checkout sessions. |
 | `STRIPE_WEBHOOK_SECRET` | Stripe signing secret (`whsec_…`) used to verify webhook signatures in `stripe-webhook.js`. |
