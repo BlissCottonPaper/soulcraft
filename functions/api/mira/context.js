@@ -10,7 +10,7 @@
 // ============================================================
 
 import { getSessionUser } from "../_auth.js";
-import { ensureMiraSchema, grantMiraTrial, miraAccess } from "../../mira/_schema.js";
+import { ensureMiraSchema, grantMiraTrial, miraAccess, assessmentComplete, getInductionStatus } from "../../mira/_schema.js";
 
 function json(obj, status) {
   return new Response(JSON.stringify(obj), {
@@ -52,6 +52,14 @@ export async function onRequestGet({ request, env }) {
       hasHistory = !!h;
     } catch (e) { hasHistory = false; }
 
+    // First Orientation (G11) trigger: the assessment is complete, no prior
+    // substantive Mira session exists, and the induction hasn't been completed or
+    // declined. When all three hold, the /companion page opens the threshold
+    // screen instead of a blank chat.
+    const assessmentDone = await assessmentComplete(env, user.id);
+    const inductionStatus = await getInductionStatus(env, user.id);
+    const startInduction = assessmentDone && !hasHistory && !inductionStatus;
+
     return json({
       authenticated: true,
       email: user.email,
@@ -69,6 +77,9 @@ export async function onRequestGet({ request, env }) {
       belief_other: other,
       belief_declined: !!declined,
       has_history: hasHistory,
+      assessment_complete: !!assessmentDone,
+      induction_status: inductionStatus,
+      start_induction: !!startInduction,
     });
   } catch (err) {
     return json({ authenticated: false });

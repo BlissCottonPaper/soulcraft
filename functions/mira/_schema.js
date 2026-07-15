@@ -26,6 +26,11 @@ export async function ensureMiraSchema(env) {
     // Session 3.2 front door: a 30-day Mira trial granted by the $29 purchase or a
     // WHITEDOT redemption. Unix seconds; access is live while now < this value.
     "ALTER TABLE users ADD COLUMN companion_trial_until INTEGER",
+    // First Orientation (G11): the guided induction through a person's own results,
+    // run once as their first substantive Mira conversation. NULL = not yet done;
+    // 'completed' = they walked it (or Mira closed it); 'declined' = they chose to
+    // read the written results first. Either non-null value suppresses re-triggering.
+    "ALTER TABLE users ADD COLUMN induction_status TEXT",
     "CREATE TABLE IF NOT EXISTS mira_messages (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, session_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')))",
     "CREATE TABLE IF NOT EXISTS mira_summaries (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, session_id TEXT NOT NULL, summary TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')))",
     "CREATE TABLE IF NOT EXISTS mira_insights (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')))",
@@ -70,6 +75,43 @@ export async function grantMiraTrial(env, userId) {
     await env.DB
       .prepare("UPDATE users SET companion_trial_until = ? WHERE id = ?")
       .bind(now + TRIAL_DAYS * DAY, userId).run();
+  } catch (e) { /* best-effort */ }
+}
+
+// Has this person completed the assessment? True once a results row carries real
+// archetype scores (the payment gate can pre-create an empty placeholder row, so
+// an empty '{}' score blob does NOT count as complete).
+export async function assessmentComplete(env, userId) {
+  if (!env || !env.DB || !userId) return false;
+  try {
+    const r = await env.DB
+      .prepare("SELECT 1 AS x FROM results WHERE user_id = ? AND archetype_scores <> '{}' AND archetype_scores <> '' LIMIT 1")
+      .bind(userId).first();
+    return !!r;
+  } catch (e) { return false; }
+}
+
+// The First Orientation status for a user: null | 'completed' | 'declined'.
+export async function getInductionStatus(env, userId) {
+  if (!env || !env.DB || !userId) return null;
+  await ensureMiraSchema(env);
+  try {
+    const r = await env.DB.prepare("SELECT induction_status FROM users WHERE id = ?").bind(userId).first();
+    return (r && r.induction_status) || null;
+  } catch (e) { return null; }
+}
+
+// Record the First Orientation as 'completed' or 'declined'. Only ever sets a
+// terminal value, and never overwrites one already set (first outcome wins), so
+// a late completion signal can't clobber an earlier decline or vice-versa.
+export async function setInductionStatus(env, userId, status) {
+  if (!env || !env.DB || !userId) return;
+  if (status !== "completed" && status !== "declined") return;
+  await ensureMiraSchema(env);
+  try {
+    await env.DB
+      .prepare("UPDATE users SET induction_status = ? WHERE id = ? AND (induction_status IS NULL OR induction_status = '')")
+      .bind(status, userId).run();
   } catch (e) { /* best-effort */ }
 }
 

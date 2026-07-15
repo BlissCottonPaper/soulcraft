@@ -204,6 +204,17 @@
     <button class="mira-send" id="bl-save" style="width:100%;">Meet Mira →</button>
   </div>
 
+  <!-- THRESHOLD (First Orientation, G11) — shown once, before the guided induction. -->
+  <div id="mira-threshold" class="mira-hide">
+    <div class="orb"></div>
+    <h1 class="mira-title">Your Mandala is ready</h1>
+    <p class="mira-sub">It is not a verdict about who you are — it's a map of which voices were most available in the choices you made, and which spoke more quietly. Mira will walk through it with you now.</p>
+    <button class="mira-send" id="thr-enter" style="width:100%;">Enter your Mandala</button>
+    <p style="text-align:center;margin-top:.9rem;"><button id="thr-written" style="background:none;border:none;color:rgba(196,181,253,0.8);font-size:14px;cursor:pointer;text-decoration:underline;padding:.4rem;">View the written results first</button></p>
+    <p class="mira-err" id="thr-err"></p>
+    <p class="mira-disclaim">Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a>.</p>
+  </div>
+
   <!-- CHAT -->
   <div id="mira-chat" class="mira-hide">
     <p class="mira-trial mira-hide" id="mira-trial"></p>
@@ -249,6 +260,10 @@
   <div class="mira-sheet" role="document">
     <div class="mira-sheet-grip" aria-hidden="true"></div>
     <h2>Borrow some light tonight — you don't have to be in crisis to reach out.</h2>
+    <button class="mira-door" id="mira-bandwidth" type="button" style="width:100%;text-align:left;background:none;border:1px solid rgba(196,181,253,0.28);cursor:pointer;font:inherit;color:inherit;">
+      <span class="mira-door-t">Start a bandwidth check-in →</span>
+      <span class="mira-door-p">A short pulse with Mira on one or two of your Core Human Needs, and which voice has the wheel right now. Available any time.</span>
+    </button>
     <a class="mira-door" href="https://www.psychologytoday.com/us/therapists" target="_blank" rel="noopener noreferrer">
       <span class="mira-door-t">Find a therapist →</span>
       <span class="mira-door-p">Browse licensed therapists near you in the Psychology Today directory. Opens in a new tab.</span>
@@ -269,7 +284,19 @@
 (function(){
   function ga(name, params){ try{ if(window.gtag) gtag('event', name, params||{}); }catch(e){} }
   function $(id){ return document.getElementById(id); }
-  function show(id){ ['mira-loading','mira-gate','mira-frontdoor','mira-onboard','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
+  function show(id){ ['mira-loading','mira-gate','mira-frontdoor','mira-onboard','mira-threshold','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
+
+  // ---- First Orientation (G11) induction mode ----
+  // While the guided induction is live, each turn carries induction:true so the
+  // server layers the orientation protocol on. The flag survives a mid-walk reload
+  // (localStorage), and clears when the server signals the walk is complete.
+  var INDUCTION_KEY = 'mira_induction';
+  var induction = false;
+  function setInduction(on){
+    induction = !!on;
+    try{ if(on){ localStorage.setItem(INDUCTION_KEY,'1'); } else { localStorage.removeItem(INDUCTION_KEY); } }catch(e){}
+  }
+  function inductionActive(){ try{ return localStorage.getItem(INDUCTION_KEY)==='1'; }catch(e){ return false; } }
 
   // ---- session id (30-min window) ----
   var SESSION=null;
@@ -317,6 +344,14 @@
     var back=$('mira-lantern-sheet'); if(back) back.addEventListener('click', function(e){ if(e.target===back) closeLantern(); });
     var close=$('mira-lantern-close'); if(close) close.addEventListener('click', closeLantern);
     document.addEventListener('keydown', function(e){ if(e.key==='Escape' && lanternOpen()) closeLantern(); });
+    // The standing bandwidth check-in (G11) — usable any time, not just during the
+    // first orientation. Closes the sheet and asks Mira for a short needs pulse.
+    var bw=$('mira-bandwidth');
+    if(bw) bw.addEventListener('click', function(){
+      if(streaming) return;
+      closeLantern(); ga('mira_bandwidth_checkin');
+      sendMessage('[bandwidth check-in — a short pulse on one or two of my Core Human Needs, and which voice has the wheel right now]', true);
+    });
   }
 
   function addRow(who){
@@ -400,7 +435,9 @@
     // read as a break and re-greet on the next refresh (see the gap logic in wireChat).
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){}
     var bubble=addRow('her'); var full=''; var sugg=null; setStreaming(true);
-    fetch('/api/mira',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:SESSION})})
+    var payloadBody={message:text,session_id:SESSION};
+    if(induction){ payloadBody.induction=true; } // First Orientation: keep the protocol layered on this turn
+    fetch('/api/mira',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadBody)})
       .then(function(res){
         if(res.status===401){ location.href='/login/?next=/companion/'; return null; }
         if(res.status===403){ setStreaming(false); boot(); return null; }
@@ -418,7 +455,7 @@
               if(!dline) continue;
               var payload=dline.slice(5).replace(/^\s+/,'');
               if(!payload) continue;
-              try{ var ev=JSON.parse(payload); if(ev.crisis){ pinCrisis(true); } if(ev.suggestions){ sugg=ev.suggestions; } if(ev.text){ full+=ev.text; bubble.innerHTML=renderMira(full); scrollDown(); } }catch(e){}
+              try{ var ev=JSON.parse(payload); if(ev.crisis){ pinCrisis(true); } if(ev.induction_complete){ setInduction(false); ga('mira_induction_completed'); } if(ev.suggestions){ sugg=ev.suggestions; } if(ev.text){ full+=ev.text; bubble.innerHTML=renderMira(full); scrollDown(); } }catch(e){}
             }
             return pump();
           });
@@ -539,7 +576,13 @@
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){} // record this visit
     var msgsEl = $('mira-msgs');
     var transcriptEmpty = !(msgsEl && msgsEl.children && msgsEl.children.length);
-    if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
+    if(induction){
+      // First Orientation (G11): the guided walk replaces the ordinary blank-chat
+      // opening. Begin it fresh, or resume it warmly if they reloaded mid-walk.
+      if(!hasHistory){ sendMessage('[begin the first orientation — greet them warmly by name, then open the guided walk through their Mandala]', true); }
+      else if(afterBreak || transcriptEmpty){ sendMessage('[resume the first orientation where you left off — a brief, warm reorientation by name, then continue with the next movement]', true); }
+    }
+    else if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
     else if(afterBreak || transcriptEmpty){ sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
     input.focus();
   }
@@ -604,6 +647,25 @@
     });
   }
 
+  // ---- First Orientation threshold ----
+  // The one screen shown before the guided induction begins. "Enter your Mandala"
+  // starts the walk; "View the written results first" records a decline (so the
+  // induction never re-triggers) and hands them to their written results.
+  function showThreshold(ctx){
+    show('mira-threshold'); ga('mira_threshold_viewed');
+    var enter=$('thr-enter'), written=$('thr-written'), err=$('thr-err');
+    if(enter){ enter.onclick=function(){
+      ga('mira_induction_started'); setInduction(true);
+      wireChat(false, ctx); // no prior history at first orientation → begins the walk
+    }; }
+    if(written){ written.onclick=function(){
+      written.disabled=true; if(err){ err.textContent=''; }
+      fetch('/api/mira/induction',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'decline'})})
+        .then(function(){ ga('mira_induction_declined'); setInduction(false); location.href='/my-results/'; })
+        .catch(function(){ written.disabled=false; if(err){ err.textContent='Could not reach the server — please try again.'; } });
+    }; }
+  }
+
   // ---- boot ----
   var booted=false;
   // Fire the Mira-activation funnel event once, when returning from a successful
@@ -627,6 +689,14 @@
           return;
         }
         if(!d.belief_set){ showOnboard(false); return; }
+        // First Orientation (G11): assessment done, no prior chat, not yet
+        // completed/declined → the threshold screen precedes the guided walk.
+        if(d.start_induction){ showThreshold(d); return; }
+        // Resume a mid-walk induction across a reload: has_history is now true so
+        // the server no longer flags start_induction, but our local flag persists
+        // until the server signals completion (or they declined earlier).
+        if(inductionActive() && d.induction_status!=='completed' && d.induction_status!=='declined'){ setInduction(true); }
+        else { setInduction(false); }
         wireChat(!!d.has_history, d);
       })
       .catch(function(){ location.replace('/login/?next=/companion/'); });

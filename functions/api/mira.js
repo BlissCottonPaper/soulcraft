@@ -12,10 +12,11 @@
 // ============================================================
 
 import { getSessionUser } from "./_auth.js";
-import { ensureMiraSchema, miraAccess } from "../mira/_schema.js";
+import { ensureMiraSchema, miraAccess, getInductionStatus, setInductionStatus } from "../mira/_schema.js";
 import { assembleMiraSystem } from "../mira/_prompt.js";
 import { detectCrisis } from "../mira/_crisis.js";
 import { detectPatterns, patternNote, getPatternEntry, formatEntry } from "../mira/_patterns.js";
+import { buildOrientationBlock, INDUCTION_COMPLETE_MARKER } from "../mira/_orientation.js";
 
 // Static instruction for the summarizer — kept as its own constant so it can be
 // sent as a cache_control'd block (static-first). It's short (well under the
@@ -43,6 +44,9 @@ const SUGGEST_MARKER_G = /⟦\s*suggest:\s*([^⟧]*?)\s*⟧/g;
 // Strip ANY complete ⟦…⟧ marker from visible text — so a new marker type can
 // never leak just because it isn't the name marker.
 const ANY_MARKER_G = /⟦[^⟧]*⟧/g;
+// Silent end-of-orientation signal Mira writes once at the close of the induction.
+// Already stripped from visible text by ANY_MARKER_G; we only detect it here.
+const INDUCTION_DONE_RE = new RegExp("⟦\\s*" + INDUCTION_COMPLETE_MARKER + "\\s*⟧");
 
 function cleanName(v) {
   if (typeof v !== "string") return null;
@@ -182,6 +186,17 @@ export async function onRequestPost(context) {
     let patternCandidates = [];
     try { patternCandidates = detectPatterns(message); } catch (e) { patternCandidates = []; }
 
+    // First Orientation (G11): the client sets body.induction while the guided
+    // induction is live. Honor it only if the person hasn't already completed or
+    // declined it — so a stale client flag can never re-run a finished orientation.
+    let runInduction = false;
+    if (body.induction === true) {
+      try {
+        const st = await getInductionStatus(env, user.id);
+        runInduction = !(st === "completed" || st === "declined");
+      } catch (e) { runInduction = false; }
+    }
+
     // Fold the prior session into memory before we assemble the prompt.
     await lazySummarize(env, user.id, sessionId);
 
@@ -214,6 +229,17 @@ export async function onRequestPost(context) {
         if (block) system.push({ type: "text", text: block });
       }
     } catch (e) { /* best-effort; pattern context never blocks a reply */ }
+
+    // While the induction is live, layer the First Orientation protocol on top of
+    // the assembled prompt (this turn only — never cached). The person's full
+    // profile is already in `system`; this adds only the shape and rules of the
+    // guided walk. Best-effort: a missing protocol never blocks a reply.
+    if (runInduction) {
+      try {
+        const block = buildOrientationBlock();
+        if (block) system.push({ type: "text", text: block });
+      } catch (e) { /* orientation is best-effort */ }
+    }
 
     const upstream = await anthropic(env, {
       model: CHAT_MODEL,
@@ -281,7 +307,14 @@ export async function onRequestPost(context) {
         // API call). Empty array when she emitted none, or the marker got cut off
         // by the token limit — the client simply shows no chips in that case.
         const suggestions = extractSuggestions(raw);
-        await writer.write(enc.encode("data: " + JSON.stringify({ done: true, suggestions }) + "\n\n"));
+        // If this was an induction turn and Mira signalled its close, record the
+        // orientation as completed and tell the client to leave induction mode.
+        let inductionComplete = false;
+        if (runInduction && INDUCTION_DONE_RE.test(raw)) {
+          inductionComplete = true;
+          try { await setInductionStatus(env, user.id, "completed"); } catch (e) { /* best-effort */ }
+        }
+        await writer.write(enc.encode("data: " + JSON.stringify({ done: true, suggestions, induction_complete: inductionComplete }) + "\n\n"));
       } catch (e) {
         try { await writer.write(enc.encode("data: " + JSON.stringify({ error: true }) + "\n\n")); } catch (e2) {}
       } finally {
