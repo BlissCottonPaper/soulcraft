@@ -1,0 +1,6 @@
+node_modules/
+out/
+*.mp4
+!samples/**/*.mp4
+.frames/
+package-lock.json

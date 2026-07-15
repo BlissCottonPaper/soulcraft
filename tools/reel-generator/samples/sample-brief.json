@@ -1,0 +1,12 @@
+{
+  "title": "What are the twelve archetypes",
+  "kicker": "the twelve archetypes",
+  "mood": "dark",
+  "scenes": [
+    { "text": ["What are the twelve archetypes?"], "elements": ["center", "halo"], "mood": "bright", "weight": 1 },
+    { "text": ["Twelve voices.", "Present in everyone."], "elements": ["mandala", "center"], "weight": 1.2 },
+    { "text": ["Some speak loudly.", "Some speak quietly."], "elements": ["bandwidth"], "weight": 1.2 },
+    { "text": ["You are not one of twelve types.", "You are all twelve."], "elements": ["mandala", "center"], "mood": "bright", "weight": 1.4 },
+    { "text": ["Which voice is loudest in you?"], "elements": ["wheel", "center"], "mood": "bright", "weight": 1 }
+  ]
+}
