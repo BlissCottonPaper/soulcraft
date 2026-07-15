@@ -611,6 +611,15 @@
     if (typeof document === "undefined") return;
     if (document.getElementById("sc-fb-btn")) return;        // inject once per page
     document.body.insertAdjacentHTML("beforeend", feedbackHtml());
+    // Reserve bottom clearance so nothing at the end of the page ever renders
+    // directly under the fixed feedback bubble (bottom-right: 3.25rem tall +
+    // 1.1rem inset). Give the scroll area that footprint + a small margin, only
+    // bumping it up when the page doesn't already reserve at least that much.
+    try {
+      var need = 5.5 * 16; // ~5.5rem in px (bubble footprint + margin)
+      var cur = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+      if (cur < need) document.body.style.paddingBottom = need + "px";
+    } catch (e) { /* non-fatal */ }
     var btn = document.getElementById("sc-fb-btn");
     var panel = document.getElementById("sc-fb-panel");
     var closeBtn = document.getElementById("sc-fb-close");
