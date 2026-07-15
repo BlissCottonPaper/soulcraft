@@ -116,8 +116,11 @@
   .mira-lantern-bar{display:flex;align-items:center;gap:.85rem;width:100%;max-width:34rem;margin:1.5rem auto 0;padding:.85rem 1rem;text-align:left;background:rgba(253,230,138,0.06);border:1px solid rgba(253,230,138,0.22);border-radius:.85rem;cursor:pointer;font:inherit;color:inherit;transition:background .15s,border-color .15s;}
   .mira-lantern-bar:hover{background:rgba(253,230,138,0.11);border-color:rgba(253,230,138,0.4);}
   .mira-lantern-bar:focus-visible{outline:2px solid rgba(253,230,138,0.6);outline-offset:2px;}
-  .mira-lantern-ico{flex:0 0 48px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;}
-  .mira-lantern-ico img{display:block;width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(253,214,120,0.35));}
+  /* Contained navy tile (#16112D, matching the baked-in icon field so tile and
+     image are seamless), with a thin low-contrast bronze border so it reads as a
+     deliberate element. */
+  .mira-lantern-ico{flex:0 0 48px;width:48px;height:48px;border-radius:10px;overflow:hidden;background:#16112D;border:1px solid rgba(253,214,120,0.22);}
+  .mira-lantern-ico img{display:block;width:48px;height:48px;object-fit:cover;}
   .mira-lantern-copy{display:flex;flex-direction:column;gap:.1rem;line-height:1.45;}
   .mira-lantern-copy strong{color:#fde8b0;font-weight:600;font-size:14.5px;}
   .mira-lantern-copy span{font-size:13px;color:rgba(224,218,246,0.78);}

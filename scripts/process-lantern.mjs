@@ -7,15 +7,18 @@
 // future lantern swap gets identical treatment (drop a new file in, re-run).
 //
 //   1. Reads   assets/source/lantern-original.png   (committed untouched)
-//   2. Ensures transparency:
-//        · if the source already has an alpha channel → use it, trim to the
-//          artwork's ALPHA bounding box (+repage). The glow has non-zero alpha,
-//          so the bbox includes it — never cropped tighter than the glow.
-//        · if the source is opaque (e.g. a glow rendered on WHITE) → derive
-//          alpha from the deviation-from-white matte (white → transparent, the
-//          amber glow preserved as a soft haze), then crop to the alpha>THRESH
-//          bounding box (drops sub-threshold white-cast/compression noise while
-//          keeping the visible glow).
+//   2. Three source modes, auto-detected:
+//        · ALPHA  — the source already has an alpha channel → trim to the
+//          artwork's ALPHA bounding box (glow included; never cropped tighter).
+//        · WHITE  — opaque, on a white field → derive alpha from the deviation-
+//          from-white matte (white → transparent, amber glow kept as a soft
+//          haze), crop to the alpha>THRESH bbox. Output is transparent.
+//        · TILE   — opaque, baked on a flat dark field (TILE_BG, e.g. #16112D) →
+//          a contained NAVY TILE: snap the near-TILE_BG field to exact TILE_BG
+//          (compression noise removed — authorized), crop a centered SQUARE
+//          around the lantern with a comfortable margin, pad back to square with
+//          TILE_BG. Output is an opaque square tile; the CSS container's
+//          background is TILE_BG so tile and image are seamless.
 //   3. Applies the 87% VERTICAL scale (spec addendum) — width 100%, height 87%.
 //   4. Exports (high-quality Lanczos downscale, longest side):
 //        assets/lantern-48.png   (@1x, 48px)  → served at /assets/lantern-48.png
@@ -43,6 +46,9 @@ const OUT_DIR = path.join(ROOT, "assets"); // served at /assets/* (repo root; no
 const SIZES = [48, 96];
 const VSCALE = "100%x87%";     // spec addendum: 87% vertical scale
 const NOISE_THRESHOLD = "8%";  // alpha floor when deriving transparency from white
+const TILE_BG = "#16112D";     // baked navy-tile background (Batch 2 replacement source)
+const TILE_MARGIN = 1.30;      // centered-square side = longest lantern dimension × this
+const TILE_FUZZ = "8%";        // snap near-TILE_BG field to exact TILE_BG (kills compression noise)
 
 function im(bin, args) { return execFileSync(bin, args, { stdio: ["ignore", "pipe", "pipe"] }).toString(); }
 function convert(args) { return im("convert", args); }
@@ -62,36 +68,59 @@ function main() {
 
   const channels = identify(["-format", "%[channels]", SRC]).trim();
   const hasAlpha = /a$/i.test(channels) || /matte/i.test(channels); // e.g. "srgba"
+  const W = parseInt(identify(["-format", "%w", SRC]), 10);
+  const H = parseInt(identify(["-format", "%h", SRC]), 10);
   console.log("source: " + identify(["-format", "%wx%h channels=%[channels]", SRC]).trim());
 
-  // Build a temp, transparency-correct working image + the crop bbox.
-  const work = path.join(OUT_DIR, ".lantern-work.png");
-  let bbox;
+  // Corner sample → decide WHITE vs TILE for an opaque source.
+  const corner = (x, y) => identify(["-format", `%[hex:p{${x},${y}}]`, SRC]).trim().slice(0, 6).toUpperCase();
+  const corners = [corner(0, 0), corner(W - 1, 0), corner(0, H - 1), corner(W - 1, H - 1)];
+  const isWhiteish = (hx) => parseInt(hx.slice(0, 2), 16) > 230 && parseInt(hx.slice(2, 4), 16) > 230 && parseInt(hx.slice(4, 6), 16) > 230;
+
+  const work = path.join(OUT_DIR, ".lantern-work.png"); // fully-prepped (VSCALE baked in)
+
   if (hasAlpha) {
-    console.log("alpha: present → trimming to the artwork's alpha bounding box (glow included).");
-    convert([SRC, "-trim", "+repage", work]);
-    bbox = null; // already cropped
-  } else {
-    console.log("alpha: absent → deriving transparency from white (glow preserved), alpha>" + NOISE_THRESHOLD + " bbox.");
-    // Snap near-white to pure white first, so any transparency-preview checkerboard
-    // baked into the background collapses to a clean field (no speckle in the glow).
-    // alpha = max(1-R,1-G,1-B): pure white → transparent, dark/coloured → opaque.
+    console.log("mode: ALPHA → trimming to the alpha bounding box (glow included), 87% vscale.");
+    convert([SRC, "-trim", "+repage", "-resize", VSCALE, work]);
+  } else if (corners.every(isWhiteish)) {
+    console.log("mode: WHITE → deriving transparency from white (glow preserved), alpha>" + NOISE_THRESHOLD + " bbox, 87% vscale.");
+    const derived = path.join(OUT_DIR, ".lantern-derived.png");
     convert([
       SRC,
       "-fuzz", "6%", "-fill", "white", "-opaque", "white",
       "(", "+clone", "-alpha", "off", "-negate", "-separate", "-evaluate-sequence", "max", ")",
-      "-alpha", "off", "-compose", "CopyOpacity", "-composite", work,
+      "-alpha", "off", "-compose", "CopyOpacity", "-composite", derived,
     ]);
-    bbox = convert([work, "-alpha", "extract", "-threshold", NOISE_THRESHOLD, "-format", "%@", "info:"]).trim();
-    console.log("glow-inclusive bbox: " + bbox);
+    const bbox = convert([derived, "-alpha", "extract", "-threshold", NOISE_THRESHOLD, "-format", "%@", "info:"]).trim();
+    convert([derived, "-crop", bbox, "+repage", "-resize", VSCALE, work]);
+    fs.rmSync(derived, { force: true });
+  } else {
+    // TILE — baked on a flat dark field. Snap the near-TILE_BG field to exact
+    // TILE_BG (authorized: flatten compression noise), centred-square crop around
+    // the lantern with margin, 87% vscale, pad back to a square TILE_BG tile.
+    console.log("mode: TILE (" + TILE_BG + ") — pre-snap corners: " + corners.map((c) => "#" + c).join(" "));
+    const snapped = path.join(OUT_DIR, ".lantern-snapped.png");
+    convert([SRC, "-fuzz", TILE_FUZZ, "-fill", TILE_BG, "-opaque", TILE_BG, snapped]);
+    // lantern bbox (field is now exact TILE_BG)
+    const m = convert([snapped, "-bordercolor", TILE_BG, "-border", "1", "-fuzz", "3%", "-trim", "-format", "%w %h %X %Y", "info:"]).trim().split(/\s+/).map(Number);
+    const [bw, bh] = m;
+    const bx = m[2] - 1, by = m[3] - 1; // undo the 1px border offset
+    const side = Math.round(Math.max(bw, bh) * TILE_MARGIN);
+    const cx = bx + bw / 2, cy = by + bh / 2;
+    const ox = Math.round(cx - side / 2), oy = Math.round(cy - side / 2);
+    console.log(`  lantern bbox ${bw}x${bh}@${bx},${by} → centred square ${side}px @${ox},${oy}`);
+    convert([
+      snapped, "-background", TILE_BG, "-gravity", "NorthWest",
+      "-crop", `${side}x${side}+${ox}+${oy}!`, "-flatten", "+repage",
+      "-resize", VSCALE, "-background", TILE_BG, "-gravity", "center", "-extent", `${side}x${side}`,
+      work,
+    ]);
+    fs.rmSync(snapped, { force: true });
   }
 
   for (const s of SIZES) {
     const out = path.join(OUT_DIR, `lantern-${s}.png`);
-    const args = [work];
-    if (bbox) args.push("-crop", bbox, "+repage");
-    args.push("-resize", VSCALE, "-filter", "Lanczos", "-resize", `${s}x${s}`, "-strip", out);
-    convert(args);
+    convert([work, "-filter", "Lanczos", "-resize", `${s}x${s}`, "-strip", out]);
     const dims = identify(["-format", "%wx%h alpha=%A", out]).trim();
     console.log(`✔ ${path.relative(ROOT, out)}  ${dims}  ${fs.statSync(out).size} bytes`);
   }

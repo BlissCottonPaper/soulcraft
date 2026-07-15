@@ -5,25 +5,26 @@ derived from these by a repeatable script (never hand-edited).
 
 ## lantern-original.png
 
-The Lantern icon source (1254×1254). **Note:** this file has a solid (white)
-background — no alpha channel — with the amber glow rendered on white. The
-pipeline handles that: `scripts/process-lantern.mjs` derives transparency from the
-white field (white → transparent, the amber glow preserved as a soft haze),
-crops to the glow-inclusive bounding box, applies the 87% vertical scale, and
-exports the two production icons.
+The Lantern icon source (1254×1254), **baked on a flat navy field `#16112D`** (no
+alpha, not white). `scripts/process-lantern.mjs` auto-detects this and builds a
+contained **navy tile**:
 
-Regenerate the icons any time (a lantern swap is the same one step):
+1. snaps the near-`#16112D` field to exact `#16112D` (flattens compression noise —
+   the committed file's corners drift a couple of levels from a lossy re-encode);
+2. crops a centred **square** around the lantern with a comfortable margin;
+3. applies the **87% vertical scale** (spec addendum);
+4. pads back to a square `#16112D` tile and Lanczos-exports:
 
-```bash
+```
 node scripts/process-lantern.mjs
-# writes:
-#   assets/lantern-48.png   (@1x, 33×48)  → /assets/lantern-48.png
-#   assets/lantern-96.png   (@2x, 65×96)  → /assets/lantern-96.png
+#   assets/lantern-48.png   (@1x, 48×48)  → /assets/lantern-48.png
+#   assets/lantern-96.png   (@2x, 96×96)  → /assets/lantern-96.png
 ```
 
-If a **truly transparent** lantern PNG is ever provided, drop it here in place of
-this one and re-run — the script detects the real alpha channel and trims to it
-directly (skipping the white-derivation step), for an even cleaner cutout.
+The Lantern element's icon container in `/companion` uses `background:#16112D`
+(matching the tile) + a thin low-contrast bronze border, so tile and image are
+seamless and the icon reads as a deliberate contained element.
 
-The Lantern element in `/companion` references those two paths via `srcset` at
-48px with explicit width/height (no layout shift).
+The script also handles two other source kinds automatically, for a future swap:
+a **transparent** PNG (trims to the alpha bbox) or a **white-background** glow
+(derives transparency from white, glow preserved).
