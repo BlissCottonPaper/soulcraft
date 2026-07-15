@@ -96,6 +96,26 @@
   .empty { color: rgba(224,218,246,0.5); text-align: center; padding: 1.5rem 0; }
   .sub { font-size: 12px; color: rgba(196,181,253,0.5); margin-top: 1rem; text-align: right; }
 
+  /* Data deletion tool (destructive; deliberately multi-step) */
+  .del-warn { border: 1px solid rgba(253,164,175,0.4); background: rgba(253,164,175,0.08); border-radius: .6rem;
+    padding: .75rem .9rem; font-size: 13px; color: #fdd7dc; margin-bottom: 1rem; line-height: 1.55; }
+  .del-row { display: flex; gap: .5rem; margin-bottom: .5rem; }
+  .del-row input[type="email"], .del-confirm input { flex: 1; width: 100%; box-sizing: border-box;
+    background: rgba(0,0,0,0.2); border: 1px solid rgba(196,181,253,0.25); border-radius: .6rem;
+    padding: .6rem .75rem; font: inherit; color: #f5f3ff; outline: none; }
+  .del-confirm input { border-color: rgba(253,164,175,0.45); letter-spacing: .12em; margin: .5rem 0; }
+  .del-row input:focus, .del-confirm input:focus { border-color: rgba(253,230,138,0.6); }
+  .del-preview { border: 1px solid rgba(196,181,253,0.14); border-radius: .6rem; padding: .5rem .9rem; margin: .9rem 0; font-size: 14px; }
+  .del-preview .prow { display: flex; justify-content: space-between; gap: 1rem; padding: .35rem 0;
+    border-bottom: 1px solid rgba(196,181,253,0.08); color: rgba(224,218,246,0.85); }
+  .del-preview .prow:last-child { border-bottom: 0; }
+  .del-preview .prow span:last-child { color: #fde8b0; font-weight: 600; }
+  .del-btn { width: 100%; background: #b0384a; color: #fff; margin-top: .25rem; }
+  .del-btn:hover:not(:disabled) { background: #c64459; }
+  .del-btn:disabled { opacity: .4; cursor: default; }
+  .del-ok { color: #a7f3d0; font-size: 14px; line-height: 1.6; }
+  .del-note { font-size: 12.5px; color: rgba(196,181,253,0.6); margin-top: .5rem; line-height: 1.5; }
+
   /* REELS docs */
   .reels h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; margin: 1.75rem 0 .5rem; color: #f5f3ff; }
   .reels h2:first-child { margin-top: 0; }
@@ -421,6 +441,64 @@
         }
       }
 
+      // Data deletion (GDPR/CCPA erasure) — deliberately two-step: enter the
+      // exact email → Preview what exists → type DELETE → confirm. Retains
+      // (anonymized) purchase records; logs a hashed-email completion entry.
+      function mountDelete(pane) {
+        pane.innerHTML =
+          '<div class="del-warn"><strong>Permanent data erasure.</strong> Enter a person\'s exact email, preview what exists, then type DELETE to confirm. This removes their account, sessions, tokens, results and Mira history and cannot be undone. Purchase records are retained (anonymized) for accounting.</div>' +
+          '<label for="del-email">Person\'s email</label>' +
+          '<div class="del-row"><input type="email" id="del-email" placeholder="person@example.com" autocomplete="off" /><button type="button" id="del-preview">Preview</button></div>' +
+          '<div id="del-out"></div>';
+        var out = pane.querySelector("#del-out");
+        var emailEl = pane.querySelector("#del-email");
+        pane.querySelector("#del-preview").addEventListener("click", doPreview);
+        emailEl.addEventListener("keydown", function (e) { if (e.key === "Enter") doPreview(); });
+        function prow(k, v) { return '<div class="prow"><span>' + esc(k) + '</span><span>' + esc(v) + "</span></div>"; }
+        function doPreview() {
+          var email = (emailEl.value || "").trim();
+          if (!email) { out.innerHTML = '<p class="err">Enter an email.</p>'; return; }
+          out.innerHTML = '<p class="empty">Checking…</p>';
+          fetch("/api/admin/delete-user", { method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey }, body: JSON.stringify({ action: "preview", email: email }) })
+            .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+            .then(function (res) {
+              if (!res.ok) { out.innerHTML = '<p class="err">' + esc((res.j && res.j.error) || "Couldn't check.") + "</p>"; return; }
+              var d = res.j;
+              if (!d.found) { out.innerHTML = '<p class="empty">No account found for ' + esc(email) + ".</p>"; return; }
+              out.innerHTML =
+                '<div class="del-preview">' +
+                  prow("Account", "yes" + (d.hasPassword ? " (password set)" : "")) +
+                  prow("Assessment results", String(d.results)) +
+                  prow("Mira messages", String(d.miraMessages)) +
+                  prow("Purchases (retained, anonymized)", String(d.purchases)) +
+                "</div>" +
+                '<div class="del-confirm"><label for="del-confirm-input">Type <strong>DELETE</strong> to confirm permanent erasure</label>' +
+                '<input type="text" id="del-confirm-input" placeholder="DELETE" autocomplete="off" autocapitalize="characters" />' +
+                '<button type="button" class="del-btn" id="del-go" disabled>Permanently delete this person\'s data</button>' +
+                '<p class="del-note">Removes account, sessions, tokens, results and Mira history. Purchase records are kept (anonymized) for accounting; a hashed-email log entry records the deletion.</p></div>';
+              var ci = out.querySelector("#del-confirm-input"), go = out.querySelector("#del-go");
+              ci.addEventListener("input", function () { go.disabled = ci.value !== "DELETE"; });
+              go.addEventListener("click", function () { doDelete(email, go); });
+            })
+            .catch(function () { out.innerHTML = '<p class="err">Couldn\'t reach the server.</p>'; });
+        }
+        function doDelete(email, go) {
+          go.disabled = true; go.textContent = "Deleting…";
+          fetch("/api/admin/delete-user", { method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey }, body: JSON.stringify({ action: "delete", email: email, confirm: "DELETE" }) })
+            .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+            .then(function (res) {
+              if (res.ok && res.j && res.j.deleted) {
+                var rm = res.j.removed || {};
+                out.innerHTML = '<p class="del-ok">Done — erased the account for ' + esc(email) + ".<br>Results deleted: " + esc(String(rm.results_deleted)) +
+                  " · Mira messages: " + esc(String(rm.mira_messages)) + " · Purchases retained (anonymized): " + esc(String(rm.purchases_retained)) + ". Logged.</p>";
+              } else {
+                out.innerHTML = '<p class="err">' + esc((res.j && res.j.error) || "Deletion failed.") + "</p>";
+              }
+            })
+            .catch(function () { out.innerHTML = '<p class="err">Couldn\'t reach the server.</p>'; });
+        }
+      }
+
       // ---- tab framework ---------------------------------------------------
       // Add a tab by adding an entry here. Data tabs carry { endpoint, render };
       // tool tabs carry { mount } and are built once, then kept alive across
@@ -430,6 +508,7 @@
         { id: "feedback", label: "Feedback", endpoint: "/api/admin/feedback", render: renderFeedback },
         { id: "posts",    label: "Posts",    mount: mountPosts },
         { id: "reels",    label: "Reels",    mount: mountReels },
+        { id: "data",     label: "Data",     mount: mountDelete },
       ];
       function tabById(id) { for (var i = 0; i < TABS.length; i++) if (TABS[i].id === id) return TABS[i]; return null; }
       function paneEl(id) { return panel.querySelector('.pane[data-pane="' + id + '"]'); }
