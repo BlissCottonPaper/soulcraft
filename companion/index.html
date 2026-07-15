@@ -78,6 +78,10 @@
   .mira-goon{background:rgba(255,250,240,0.05);border:1px solid rgba(196,181,253,0.28);color:rgba(224,218,246,0.85);border-radius:999px;font-size:12.5px;padding:.28rem .7rem;cursor:pointer;font-family:inherit;}
   .mira-goon:hover{border-color:rgba(253,230,138,0.6);color:#fde8b0;} .mira-goon:disabled{opacity:.45;cursor:default;}
   .mira-inputbar{display:flex;gap:.5rem;align-items:flex-end;padding:0 0 .2rem;}
+  /* Narrow phones: two rows — the text input alone on top (full width), the
+     mic + Send together on a second row beneath it. Prevents the input from
+     clipping against the buttons on ~390px viewports. */
+  @media(max-width:480px){.mira-inputbar{flex-wrap:wrap;justify-content:flex-end;}.mira-inputbar .mira-input{flex:1 1 100%;}}
   /* Toolbar icon buttons (Lantern, mic) sit inline with Send — not floating. */
   .mira-iconbtn{flex:0 0 auto;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:.9rem;border:1px solid rgba(196,181,253,0.25);background:rgba(0,0,0,0.25);color:rgba(224,218,246,0.85);cursor:pointer;padding:0;transition:border-color .15s,color .15s,background .15s;}
   .mira-iconbtn:hover{border-color:rgba(253,230,138,0.55);color:#fde8b0;}
@@ -118,8 +122,8 @@
   /* Contained navy tile (#16112D, matching the baked-in icon field so tile and
      image are seamless), with a thin low-contrast bronze border so it reads as a
      deliberate element. */
-  .mira-lantern-ico{flex:0 0 48px;width:48px;height:48px;border-radius:10px;overflow:hidden;background:#16112D;border:1px solid rgba(253,214,120,0.22);}
-  .mira-lantern-ico img{display:block;width:48px;height:48px;object-fit:cover;}
+  .mira-lantern-ico{flex:0 0 44px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#fde8b0;}
+  .mira-lantern-ico svg{width:30px;height:30px;display:block;}
   .mira-lantern-copy{display:flex;flex-direction:column;gap:.1rem;line-height:1.45;}
   .mira-lantern-copy strong{color:#fde8b0;font-weight:600;font-size:14.5px;}
   .mira-lantern-copy span{font-size:13px;color:rgba(224,218,246,0.78);}
@@ -254,20 +258,22 @@
       </div>
     </div>
     <button class="mira-edit" id="mira-editbeliefs">Adjust your belief lens</button>
-    <!-- The Lantern card — the sole entry point to the graded-support sheet
-         (crisis lines · bandwidth check-in · therapist finder). Sits in the
-         composer column, directly above the disclaimer's separator. -->
-    <button class="mira-lantern-bar" id="mira-lantern-bar" type="button" aria-label="Open the Lantern — borrow a little light: check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.">
-      <span class="mira-lantern-ico" aria-hidden="true">
-        <img src="/assets/lantern-48.png" srcset="/assets/lantern-48.png 1x, /assets/lantern-96.png 2x" width="48" height="48" alt="" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'">
-      </span>
-      <span class="mira-lantern-copy">
-        <strong>The Lantern — borrow a little light.</strong>
-        <span>Check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.</span>
-      </span>
-    </button>
     <p class="mira-disclaim">Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a>.</p>
   </div>
+
+  <!-- The Lantern — always available, in every Mira view (composer, gate,
+       onboarding, threshold), never crisis-triggered. The sole entry point to
+       the graded-support sheet (crisis lines · bandwidth check-in · therapist
+       finder). The pictogram is an inline gold-line light bulb — reads as
+       "light / help available" at a glance; no raster asset, no alpha edge
+       cases (the PNG pipeline is retired). -->
+  <button class="mira-lantern-bar" id="mira-lantern-bar" type="button" aria-label="Open the Lantern — borrow a little light: check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.">
+    <span class="mira-lantern-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 15.5a4.75 4.75 0 1 1 7 0c-.55.5-1 1.1-1 1.9v.35h-5v-.35c0-.8-.45-1.4-1-1.9Z"/><path d="M10 17.75h4"/><path d="M9.5 20h5"/><path d="M12 1.5v1.75"/><path d="M4.9 4.9l1.1 1.1"/><path d="M19.1 4.9l-1.1 1.1"/></svg></span>
+    <span class="mira-lantern-copy">
+      <strong>The Lantern — borrow a little light.</strong>
+      <span>Check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.</span>
+    </span>
+  </button>
 </div>
 
 <!-- The Lantern sheet. Opened from the toolbar; dismissing returns to the chat.
