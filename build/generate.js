@@ -7,6 +7,15 @@
    Writes: /explore/index.html, /pricing/index.html  (content baked in markup)
    Re-run whenever the data or a template changes, then commit the output.
    No page ever hand-copies archetype/pairing data — it all flows from here.
+
+   ⚠️  THIS GENERATOR IS AUTHORITATIVE for every page it writes (incl. companion,
+   login, register, reset-password, forgot-password). Do NOT hand-edit the built
+   *.html for those pages — the edit lives here, in the template, then you rebuild.
+   INVARIANT: after `node build/generate.js` the git working tree is clean apart
+   from this file. If a rebuild changes a committed page, a template drifted from
+   its built output — reconcile it here before shipping (see docs/mandala-modules.md
+   history / R-46 item 17). A page hand-edited but not reflected here WILL be
+   silently reverted by the next build.
    ============================================================================ */
 "use strict";
 const fs = require("fs");
@@ -1215,19 +1224,32 @@ function loginMain() {
       <label class="auth-label" for="email">Email</label>
       <input class="auth-input" id="email" name="email" type="email" autocomplete="email" required style="margin-bottom:1rem;" />
       <label class="auth-label" for="password">Password</label>
-      <input class="auth-input" id="password" name="password" type="password" autocomplete="current-password" required />
+      <div style="position:relative;">
+        <input class="auth-input" id="password" name="password" type="password" autocomplete="current-password" required style="padding-right:3.6rem;width:100%;box-sizing:border-box;" />
+        <button type="button" id="pw-toggle" aria-label="Show password" style="position:absolute;right:.55rem;top:50%;transform:translateY(-50%);background:none;border:0;color:rgba(224,218,246,0.72);font:inherit;font-size:13px;cursor:pointer;padding:.3rem;">Show</button>
+      </div>
       <p class="auth-err" id="err" role="alert"></p>
       <button class="auth-btn" id="submit" type="submit">Log in</button>
     </form>
   </div>
-  <p class="auth-alt" style="margin-top:.9rem;"><a href="/forgot-password/">Forgot your password?</a></p>
-  <p class="auth-alt">New here? <a href="/register/">Create an account</a></p>
+  <p class="auth-alt" style="margin-top:.9rem;"><a id="forgot-link" href="/forgot-password/">Forgot your password?</a></p>
+  <p class="auth-alt">New here? <a id="register-link" href="/register/">Create an account</a></p>
   <p class="auth-alt" style="margin-top:.4rem;">Just want your saved reading? <a href="/my-results/">Email me a link instead</a></p>
 </div>
 <script>
 (function(){
   var params=new URLSearchParams(location.search);
   var next=params.get("next")||"/account/";
+  // Carry ?next through the whole password chain so forgot/register also return
+  // the person to where they started (e.g. the assessment via /?resume=full).
+  if(next && next!=="/account/"){
+    var nq="?next="+encodeURIComponent(next);
+    var fl=document.getElementById("forgot-link"); if(fl) fl.href="/forgot-password/"+nq;
+    var rl=document.getElementById("register-link"); if(rl) rl.href="/register/"+nq;
+  }
+  // Show/hide password toggle.
+  var pwToggle=document.getElementById("pw-toggle"), pwInput=document.getElementById("password");
+  if(pwToggle&&pwInput){ pwToggle.addEventListener("click",function(){ var showing=pwInput.type==="password"; pwInput.type=showing?"text":"password"; pwToggle.textContent=showing?"Hide":"Show"; pwToggle.setAttribute("aria-label",showing?"Hide password":"Show password"); }); }
   // Already signed in → skip straight to the account page.
   fetch("/api/me",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(d){
     if(d&&d.authenticated){location.replace(next);}
@@ -1268,12 +1290,14 @@ function forgotPasswordMain() {
 </div>
 <script>
 (function(){
+  // Carry ?next so the emailed reset link returns the person to where they started.
+  var next=new URLSearchParams(location.search).get("next")||"";
   var form=document.getElementById("fp-form"),err=document.getElementById("err"),btn=document.getElementById("submit"),done=document.getElementById("fp-done");
   form.addEventListener("submit",function(e){
     e.preventDefault();err.textContent="";
     var email=document.getElementById("email").value.trim();
     btn.disabled=true;btn.textContent="Sending…";
-    fetch("/api/request-password-reset",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email})})
+    fetch("/api/request-password-reset",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,next:next})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         if(res.ok&&res.d&&res.d.ok){form.style.display="none";done.style.display="block";return;}
@@ -1309,6 +1333,10 @@ function resetPasswordMain() {
 (function(){
   var params=new URLSearchParams(location.search);
   var token=params.get("token")||"";
+  // Reset creates a session, so we can return the person straight to where they
+  // started (e.g. the assessment via /?resume=full). Same-origin paths only.
+  var next=params.get("next")||"/account/";
+  if(next.indexOf("/")!==0 || next.indexOf("//")===0) next="/account/";
   var form=document.getElementById("rp-form"),err=document.getElementById("err"),btn=document.getElementById("submit"),bad=document.getElementById("rp-bad");
   if(!token){form.style.display="none";bad.style.display="block";return;}
   form.addEventListener("submit",function(e){
@@ -1321,7 +1349,7 @@ function resetPasswordMain() {
     fetch("/api/reset-password",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:token,password:p1})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
-        if(res.ok&&res.d&&res.d.ok){location.replace("/account/");return;}
+        if(res.ok&&res.d&&res.d.ok){location.replace(next);return;}
         err.textContent=(res.d&&res.d.error)||"That didn't work — please try again.";
         btn.disabled=false;btn.textContent="Set new password";
       })
@@ -1353,12 +1381,16 @@ function registerMain() {
       <button class="auth-btn" id="submit" type="submit">Create account</button>
     </form>
   </div>
-  <p class="auth-alt">Already have an account? <a href="/login/">Log in</a></p>
+  <p class="auth-alt">Already have an account? <a id="login-link" href="/login/">Log in</a></p>
 </div>
 <script>
 (function(){
+  // Honor ?next so a new account created from the assessment gate returns there.
+  var next=new URLSearchParams(location.search).get("next")||"/account/";
+  if(!next.indexOf || next.indexOf("/")!==0 || next.indexOf("//")===0) next="/account/";
+  var loginLink=document.getElementById("login-link"); if(loginLink && next!=="/account/") loginLink.href="/login/?next="+encodeURIComponent(next);
   fetch("/api/me",{credentials:"same-origin"}).then(function(r){return r.json();}).then(function(d){
-    if(d&&d.authenticated){location.replace("/account/");}
+    if(d&&d.authenticated){location.replace(next);}
   }).catch(function(){});
   var form=document.getElementById("reg-form"),err=document.getElementById("err"),btn=document.getElementById("submit");
   form.addEventListener("submit",function(e){
@@ -1372,7 +1404,7 @@ function registerMain() {
     fetch("/api/register",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password,display_name:displayName,research_consent:researchConsent})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
-        if(res.ok&&res.d&&res.d.ok){location.replace("/account/");return;}
+        if(res.ok&&res.d&&res.d.ok){location.replace(next);return;}
         err.textContent=(res.d&&res.d.error)||"That didn't work — please try again.";
         btn.disabled=false;btn.textContent="Create account";
       })
@@ -1591,6 +1623,19 @@ function companionMain() {
   .mira-988{font-size:13px;line-height:1.6;color:rgba(224,218,246,0.7);text-align:center;margin:1.5rem auto 0;max-width:34rem;padding-top:1rem;border-top:1px solid rgba(196,181,253,0.12);}
   .mira-disclaim a, .mira-988 a{color:#fde8b0;text-decoration:underline;text-underline-offset:2px;}
   .mira-disclaim a:hover, .mira-988 a:hover{color:#fff6d8;}
+  /* The Lantern element — upgrades the "Need a human tonight?" bar. Icon left,
+     copy right; the whole thing is a button that opens the graded-support sheet. */
+  .mira-lantern-bar{display:flex;align-items:center;gap:.85rem;width:100%;max-width:34rem;margin:1.5rem auto 0;padding:.85rem 1rem;text-align:left;background:rgba(253,230,138,0.06);border:1px solid rgba(253,230,138,0.22);border-radius:.85rem;cursor:pointer;font:inherit;color:inherit;transition:background .15s,border-color .15s;}
+  .mira-lantern-bar:hover{background:rgba(253,230,138,0.11);border-color:rgba(253,230,138,0.4);}
+  .mira-lantern-bar:focus-visible{outline:2px solid rgba(253,230,138,0.6);outline-offset:2px;}
+  /* Contained navy tile (#16112D, matching the baked-in icon field so tile and
+     image are seamless), with a thin low-contrast bronze border so it reads as a
+     deliberate element. */
+  .mira-lantern-ico{flex:0 0 48px;width:48px;height:48px;border-radius:10px;overflow:hidden;background:#16112D;border:1px solid rgba(253,214,120,0.22);}
+  .mira-lantern-ico img{display:block;width:48px;height:48px;object-fit:cover;}
+  .mira-lantern-copy{display:flex;flex-direction:column;gap:.1rem;line-height:1.45;}
+  .mira-lantern-copy strong{color:#fde8b0;font-weight:600;font-size:14.5px;}
+  .mira-lantern-copy span{font-size:13px;color:rgba(224,218,246,0.78);}
   .mira-crisis{border:1px solid rgba(253,164,175,0.5);background:rgba(253,164,175,0.10);border-radius:.9rem;padding:.85rem 1rem;font-size:14px;line-height:1.6;color:#fde4e6;margin:.5rem 0 1rem;}
   .mira-crisis a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:2px;}
   /* Once fired, the banner pins to the top of the viewport for the whole
@@ -1684,6 +1729,17 @@ function companionMain() {
     <button class="mira-send" id="bl-save" style="width:100%;">Meet Mira →</button>
   </div>
 
+  <!-- THRESHOLD (First Orientation, G11) — shown once, before the guided induction. -->
+  <div id="mira-threshold" class="mira-hide">
+    <div class="orb"></div>
+    <h1 class="mira-title">Your Mandala is ready</h1>
+    <p class="mira-sub">It is not a verdict about who you are — it's a map of which voices were most available in the choices you made, and which spoke more quietly. Mira will walk through it with you now.</p>
+    <button class="mira-send" id="thr-enter" style="width:100%;">Enter your Mandala</button>
+    <p style="text-align:center;margin-top:.9rem;"><button id="thr-written" style="background:none;border:none;color:rgba(196,181,253,0.8);font-size:14px;cursor:pointer;text-decoration:underline;padding:.4rem;">View the written results first</button></p>
+    <p class="mira-err" id="thr-err"></p>
+    <p class="mira-disclaim">Mira is a personal reflection companion, not a licensed counselor, therapist, or mental health professional. She is designed to help you explore your own archetypal pattern — not to diagnose, treat, or advise on clinical matters. If you're navigating something difficult, please reach out to a qualified professional or someone you trust. If you're in crisis, in the US <a href="tel:988">call</a> or <a href="sms:988">text</a> <strong>988</strong>, or <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener">chat online</a>.</p>
+  </div>
+
   <!-- CHAT -->
   <div id="mira-chat" class="mira-hide">
     <p class="mira-trial mira-hide" id="mira-trial"></p>
@@ -1718,8 +1774,18 @@ function companionMain() {
     <p class="mira-disclaim">${disclaimer}</p>
   </div>
 
-  <!-- Permanent 988 invitation — always visible, in every view, never crisis-triggered. -->
-  <p class="mira-988">${mira988Line}</p>
+  <!-- The Lantern — always visible, in every view, never crisis-triggered. The
+       upgraded "Need a human tonight?" bar: icon + copy, opens the graded-support
+       sheet (crisis lines · bandwidth check-in · therapist finder). -->
+  <button class="mira-lantern-bar" id="mira-lantern-bar" type="button" aria-label="Open the Lantern — borrow a little light: check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.">
+    <span class="mira-lantern-ico" aria-hidden="true">
+      <img src="/assets/lantern-48.png" srcset="/assets/lantern-48.png 1x, /assets/lantern-96.png 2x" width="48" height="48" alt="" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'">
+    </span>
+    <span class="mira-lantern-copy">
+      <strong>The Lantern — borrow a little light.</strong>
+      <span>Check your bandwidth, find a therapist, or talk to someone. You don't have to be in crisis to reach out.</span>
+    </span>
+  </button>
 </div>
 
 <!-- The Lantern sheet. Opened from the toolbar; dismissing returns to the chat.
@@ -1729,6 +1795,10 @@ function companionMain() {
   <div class="mira-sheet" role="document">
     <div class="mira-sheet-grip" aria-hidden="true"></div>
     <h2>Borrow some light tonight — you don't have to be in crisis to reach out.</h2>
+    <button class="mira-door" id="mira-bandwidth" type="button" style="width:100%;text-align:left;background:none;border:1px solid rgba(196,181,253,0.28);cursor:pointer;font:inherit;color:inherit;">
+      <span class="mira-door-t">Start a bandwidth check-in →</span>
+      <span class="mira-door-p">A short pulse with Mira on one or two of your Core Human Needs, and which voice has the wheel right now. Available any time.</span>
+    </button>
     <a class="mira-door" href="${therapistDir}" target="_blank" rel="noopener noreferrer">
       <span class="mira-door-t">Find a therapist →</span>
       <span class="mira-door-p">Browse licensed therapists near you in the Psychology Today directory. Opens in a new tab.</span>
@@ -1749,7 +1819,19 @@ function companionMain() {
 (function(){
   function ga(name, params){ try{ if(window.gtag) gtag('event', name, params||{}); }catch(e){} }
   function $(id){ return document.getElementById(id); }
-  function show(id){ ['mira-loading','mira-gate','mira-frontdoor','mira-onboard','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
+  function show(id){ ['mira-loading','mira-gate','mira-frontdoor','mira-onboard','mira-threshold','mira-chat'].forEach(function(v){ $(v).className = (v===id)?'':'mira-hide'; }); }
+
+  // ---- First Orientation (G11) induction mode ----
+  // While the guided induction is live, each turn carries induction:true so the
+  // server layers the orientation protocol on. The flag survives a mid-walk reload
+  // (localStorage), and clears when the server signals the walk is complete.
+  var INDUCTION_KEY = 'mira_induction';
+  var induction = false;
+  function setInduction(on){
+    induction = !!on;
+    try{ if(on){ localStorage.setItem(INDUCTION_KEY,'1'); } else { localStorage.removeItem(INDUCTION_KEY); } }catch(e){}
+  }
+  function inductionActive(){ try{ return localStorage.getItem(INDUCTION_KEY)==='1'; }catch(e){ return false; } }
 
   // ---- session id (30-min window) ----
   var SESSION=null;
@@ -1796,7 +1878,17 @@ function companionMain() {
     var btn=$('mira-lantern'); if(btn) btn.addEventListener('click', openLantern);
     var back=$('mira-lantern-sheet'); if(back) back.addEventListener('click', function(e){ if(e.target===back) closeLantern(); });
     var close=$('mira-lantern-close'); if(close) close.addEventListener('click', closeLantern);
+    // The always-visible Lantern bar opens the same graded-support sheet.
+    var bar=$('mira-lantern-bar'); if(bar) bar.addEventListener('click', openLantern);
     document.addEventListener('keydown', function(e){ if(e.key==='Escape' && lanternOpen()) closeLantern(); });
+    // The standing bandwidth check-in (G11) — usable any time, not just during the
+    // first orientation. Closes the sheet and asks Mira for a short needs pulse.
+    var bw=$('mira-bandwidth');
+    if(bw) bw.addEventListener('click', function(){
+      if(streaming) return;
+      closeLantern(); ga('mira_bandwidth_checkin');
+      sendMessage('[bandwidth check-in — a short pulse on one or two of my Core Human Needs, and which voice has the wheel right now]', true);
+    });
   }
 
   function addRow(who){
@@ -1880,7 +1972,9 @@ function companionMain() {
     // read as a break and re-greet on the next refresh (see the gap logic in wireChat).
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){}
     var bubble=addRow('her'); var full=''; var sugg=null; setStreaming(true);
-    fetch('/api/mira',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:SESSION})})
+    var payloadBody={message:text,session_id:SESSION};
+    if(induction){ payloadBody.induction=true; } // First Orientation: keep the protocol layered on this turn
+    fetch('/api/mira',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadBody)})
       .then(function(res){
         if(res.status===401){ location.href='/login/?next=/companion/'; return null; }
         if(res.status===403){ setStreaming(false); boot(); return null; }
@@ -1898,7 +1992,7 @@ function companionMain() {
               if(!dline) continue;
               var payload=dline.slice(5).replace(/^\\s+/,'');
               if(!payload) continue;
-              try{ var ev=JSON.parse(payload); if(ev.crisis){ pinCrisis(true); } if(ev.suggestions){ sugg=ev.suggestions; } if(ev.text){ full+=ev.text; bubble.innerHTML=renderMira(full); scrollDown(); } }catch(e){}
+              try{ var ev=JSON.parse(payload); if(ev.crisis){ pinCrisis(true); } if(ev.induction_complete){ setInduction(false); ga('mira_induction_completed'); } if(ev.suggestions){ sugg=ev.suggestions; } if(ev.text){ full+=ev.text; bubble.innerHTML=renderMira(full); scrollDown(); } }catch(e){}
             }
             return pump();
           });
@@ -2019,7 +2113,13 @@ function companionMain() {
     try{ localStorage.setItem('mira_last_visit', String(Date.now())); }catch(e){} // record this visit
     var msgsEl = $('mira-msgs');
     var transcriptEmpty = !(msgsEl && msgsEl.children && msgsEl.children.length);
-    if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
+    if(induction){
+      // First Orientation (G11): the guided walk replaces the ordinary blank-chat
+      // opening. Begin it fresh, or resume it warmly if they reloaded mid-walk.
+      if(!hasHistory){ sendMessage('[begin the first orientation — greet them warmly by name, then open the guided walk through their Mandala]', true); }
+      else if(afterBreak || transcriptEmpty){ sendMessage('[resume the first orientation where you left off — a brief, warm reorientation by name, then continue with the next movement]', true); }
+    }
+    else if(!hasHistory){ sendMessage('[first session — greet them warmly by name first, then begin]', true); }
     else if(afterBreak || transcriptEmpty){ sendMessage('[returning session — greet them warmly by name first, then gather the threads]', true); }
     input.focus();
   }
@@ -2084,6 +2184,25 @@ function companionMain() {
     });
   }
 
+  // ---- First Orientation threshold ----
+  // The one screen shown before the guided induction begins. "Enter your Mandala"
+  // starts the walk; "View the written results first" records a decline (so the
+  // induction never re-triggers) and hands them to their written results.
+  function showThreshold(ctx){
+    show('mira-threshold'); ga('mira_threshold_viewed');
+    var enter=$('thr-enter'), written=$('thr-written'), err=$('thr-err');
+    if(enter){ enter.onclick=function(){
+      ga('mira_induction_started'); setInduction(true);
+      wireChat(false, ctx); // no prior history at first orientation → begins the walk
+    }; }
+    if(written){ written.onclick=function(){
+      written.disabled=true; if(err){ err.textContent=''; }
+      fetch('/api/mira/induction',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'decline'})})
+        .then(function(){ ga('mira_induction_declined'); setInduction(false); location.href='/my-results/'; })
+        .catch(function(){ written.disabled=false; if(err){ err.textContent='Could not reach the server — please try again.'; } });
+    }; }
+  }
+
   // ---- boot ----
   var booted=false;
   // Fire the Mira-activation funnel event once, when returning from a successful
@@ -2107,6 +2226,14 @@ function companionMain() {
           return;
         }
         if(!d.belief_set){ showOnboard(false); return; }
+        // First Orientation (G11): assessment done, no prior chat, not yet
+        // completed/declined → the threshold screen precedes the guided walk.
+        if(d.start_induction){ showThreshold(d); return; }
+        // Resume a mid-walk induction across a reload: has_history is now true so
+        // the server no longer flags start_induction, but our local flag persists
+        // until the server signals completion (or they declined earlier).
+        if(inductionActive() && d.induction_status!=='completed' && d.induction_status!=='declined'){ setInduction(true); }
+        else { setInduction(false); }
         wireChat(!!d.has_history, d);
       })
       .catch(function(){ location.replace('/login/?next=/companion/'); });
