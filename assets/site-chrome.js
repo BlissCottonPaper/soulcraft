@@ -93,6 +93,8 @@
     ".sc-menu a{display:block;padding:.5rem 1rem;font-size:14px;color:rgba(224,218,246,0.85);text-decoration:none;}",
     ".sc-menu a:hover{color:#fde68a;}",
     ".sc-menu-divider{height:1px;background:rgba(196,181,253,0.16);margin:.4rem 1rem;}",
+    ".sc-avatar{display:inline-flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(253,230,138,0.18);color:#fde8b0;font-size:11px;font-weight:600;text-transform:uppercase;}",
+    "#sc-acct-btn{gap:.4rem;}",
     "#site-footer{border-top:1px solid rgba(196,181,253,0.10);margin-top:2rem;font-family:'Source Sans 3',system-ui,sans-serif;}",
     ".sc-foot{max-width:64rem;margin:0 auto;padding:2.5rem 1.25rem;font-size:14px;color:rgba(196,181,253,0.55);display:flex;flex-direction:column;gap:1.25rem;}",
     ".sc-foot-top{display:flex;flex-direction:column;gap:1rem;}",
@@ -283,6 +285,11 @@
               '<a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span>' +
               '<a href="/terms/">Terms</a>' +
             '</div>' +
+            // Utility row — FAQ · Contact, sitting with the social icons.
+            '<div class="sc-foot-row">' +
+              '<a href="/faq/">FAQ</a><span class="sc-foot-sep" aria-hidden="true">·</span>' +
+              '<a href="/contact/">Contact</a>' +
+            '</div>' +
             socialHtml() +
           '</div>' +
         '</div>' +
@@ -451,22 +458,57 @@
     try { return /^\/(account|login|register|forgot-password|reset-password)(\/|$)/.test(location.pathname); } catch (e) { return false; }
   }
 
-  function renderAuthNav(authed) {
+  // Small HTML escaper for the (self-only) display name / initial rendered into
+  // the account menu — the name is the viewer's own data, but escape anyway.
+  function escNav(s) {
+    return String(s == null ? "" : s).replace(/[<>&"]/g, function (c) {
+      return { "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c];
+    });
+  }
+
+  // `d` is the /api/me payload: { authenticated, email, display_name, ... }.
+  // Logged OUT → a "Log in" link. Logged IN → a name/avatar dropdown holding
+  // My Results · My Account · Log out. The rest of the main nav is untouched.
+  function renderAuthNav(d) {
     if (typeof document === "undefined") return;
+    var authed = !!(d && d.authenticated);
     var acct = onAccountArea();
+    var name = "";
+    if (authed) {
+      name = (d.display_name && String(d.display_name).trim()) ||
+             (d.email ? String(d.email).split("@")[0] : "") || "Account";
+    }
+    var initial = (name ? name.charAt(0) : "A").toUpperCase();
+
     var links = document.querySelector("#site-header .sc-links");
     if (links && !links.querySelector(".sc-auth")) {
       if (authed) {
-        var a = document.createElement("a");
-        a.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); a.href = "/account/"; a.textContent = "My Account";
-        links.appendChild(a);
-        var b = document.createElement("button");
-        b.className = "sc-link sc-auth"; b.type = "button"; b.textContent = "Log Out";
-        b.addEventListener("click", doLogout);
-        links.appendChild(b);
+        var dd = document.createElement("div");
+        dd.className = "sc-dd sc-auth";
+        dd.innerHTML =
+          '<button class="sc-link' + (acct ? " sc-active" : "") + '" id="sc-acct-btn" aria-haspopup="true" aria-expanded="false">' +
+            '<span class="sc-avatar" aria-hidden="true">' + escNav(initial) + '</span>' +
+            '<span>' + escNav(name) + '</span> <span style="font-size:.7em">▾</span>' +
+          '</button>' +
+          '<div class="sc-menu" id="sc-acct-menu">' +
+            '<a href="/my-results/">My Results</a>' +
+            '<a href="/account/">My Account</a>' +
+            '<div class="sc-menu-divider" role="separator"></div>' +
+            '<a href="#" id="sc-acct-logout" role="button">Log out</a>' +
+          '</div>';
+        links.appendChild(dd);
+        var ab = dd.querySelector("#sc-acct-btn"), am = dd.querySelector("#sc-acct-menu");
+        ab.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var open = am.classList.toggle("sc-open");
+          ab.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+        document.addEventListener("click", function () { am.classList.remove("sc-open"); ab.setAttribute("aria-expanded", "false"); });
+        var lo = dd.querySelector("#sc-acct-logout");
+        if (lo) lo.addEventListener("click", function (e) { e.preventDefault(); doLogout(); });
       } else {
         var l = document.createElement("a");
-        l.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); l.href = "/login/"; l.textContent = "Log In";
+        l.className = "sc-link sc-auth" + (acct ? " sc-active" : ""); l.href = "/login/"; l.textContent = "Log in";
         links.appendChild(l);
       }
     }
@@ -474,17 +516,19 @@
     if (mobile && !mobile.querySelector(".sc-auth")) {
       var actCls = acct ? ' class="sc-auth sc-active"' : ' class="sc-auth"';
       if (authed) {
+        // Mobile already lists "My Results" at the top level, so the auth block
+        // adds only My Account + Log out.
         mobile.insertAdjacentHTML("beforeend",
           '<div class="sc-m-divider" role="separator"></div>' +
           '<a' + actCls + ' href="/account/">My Account</a>' +
-          '<a class="sc-auth" href="#" role="button">Log Out</a>');
+          '<a class="sc-auth" href="#" role="button">Log out</a>');
         var ml = mobile.querySelectorAll(".sc-auth");
         var last = ml[ml.length - 1];
         if (last) last.addEventListener("click", function (e) { e.preventDefault(); doLogout(); });
       } else {
         mobile.insertAdjacentHTML("beforeend",
           '<div class="sc-m-divider" role="separator"></div>' +
-          '<a' + actCls + ' href="/login/">Log In</a>');
+          '<a' + actCls + ' href="/login/">Log in</a>');
       }
     }
   }
@@ -493,8 +537,8 @@
     if (typeof document === "undefined") return;
     fetch("/api/me", { credentials: "same-origin" })
       .then(function (r) { return r.json(); })
-      .then(function (d) { renderAuthNav(!!(d && d.authenticated)); })
-      .catch(function () { renderAuthNav(false); });
+      .then(function (d) { renderAuthNav(d); })
+      .catch(function () { renderAuthNav(null); });
   }
 
   // --- Funnel: return within 7 days (GA4) -----------------------------------
