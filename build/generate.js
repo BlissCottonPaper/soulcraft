@@ -1078,7 +1078,7 @@ function faqMain() {
     </section>
 
     <section id="how-the-assessment-works" class="py-9 border-t border-violet-300/10 max-w-2xl mx-auto">
-      <h2 class="serif text-2xl md:text-3xl text-violet-50 leading-snug mb-4">How the assessment works</h2>
+      <h2 class="serif text-2xl md:text-3xl text-violet-50 leading-snug mb-4">How does the assessment work?</h2>
       <p class="text-violet-200/85 text-[16px] leading-relaxed">You won't rate yourself on a scale. Instead, you'll face 66 pairs of statements and choose which one sounds more like you — even when both do, even when neither quite does. That's deliberate. When you rate yourself, everything scores high; when you're forced to choose, a pattern emerges that rating can't fake. Each of your twelve voices faces the others again and again, and the ones you keep choosing rise. The result isn't a grade — it's a ranking: which voices speak loudest in you, compared only to you, never to anyone else. There are no wrong answers, and there's no way to game it. (For the psychologically curious: this is an ipsative forced-choice instrument.)</p>
     </section>`;
 }
