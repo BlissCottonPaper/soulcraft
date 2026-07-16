@@ -1417,9 +1417,9 @@ function TwelveWithin() {
                 // Questions footer live OUTSIDE the tabs, so they're unaffected by the choice.
                 (() => {
                     const RTABS = [
+                        { k: "identity", label: "Identity", on: true },
                         { k: "archetypes", label: "Archetypes", on: true },
                         { k: "mindsets", label: "Mindsets", on: TIERS[tier].showBlends },
-                        { k: "identity", label: "Identity", on: true },
                         { k: "bandwidth", label: "Bandwidth", on: true },
                         { k: "temperament", label: "Temperament", on: TIERS[tier].showTemperament },
                         { k: "shadow", label: "Shadow", on: showShadow },
@@ -1450,6 +1450,10 @@ function TwelveWithin() {
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three Mindsets \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
+                // Core thesis \u2014 the closing line of the Identity tab, now that Identity opens first.
+                React.createElement("div", { className: "text-center mt-10 mb-10 max-w-2xl mx-auto" },
+                    React.createElement("div", { className: "mx-auto mb-5 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
+                    React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-200/85", style: sans }, "You are already all twelve. These are the voices that speak loudest in you right now.")),
                 // --- Share your Mandala (Task 3): one understated line, small icons.
                 // Not a modal or banner. Instagram/Facebook open the OS share sheet
                 // (Web Share API) on mobile; copy-link falls back everywhere else. ---
@@ -1650,7 +1654,8 @@ function TwelveWithin() {
                 // \u2500\u2500 BANDWIDTH tab: the altitude ladders, moved out of Archetypes \u2500\u2500
                 resultsTab === "bandwidth" && React.createElement(React.Fragment, { key: "bandwidth" },
                     sectionHeader("Bandwidth", "YOUR ALTITUDE RIGHT NOW"),
-                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-6 max-w-xl mx-auto text-center", style: sans }, "Bandwidth is how much of each archetype you have available right now \u2014 from contracted and fear-driven at the bottom of the ladder to expansive and in service of others at the top. Not a fixed trait: where you're standing this week."),
+                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-3 max-w-xl mx-auto text-center", style: sans }, "Every archetype exists on one spectrum \u2014 how much of it you have available right now, from all your capacity spent just holding yourself together to enough overflowing that you can freely extend outward to others. When you feel threatened you contract; when you feel safe enough you expand. Contraction doesn't delete the freer, more generous side of a voice \u2014 it only narrows your access to it; expansion widens that access again."),
+                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-6 max-w-xl mx-auto text-center", style: sans }, "So every one of your voices runs a full range, from fear-gripped to freely chosen. The ladders below show where each of your loudest three is standing this week \u2014 not a fixed trait, just your current altitude."),
                     ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                         React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
                         React.createElement("h3", { className: "text-2xl mb-1", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
@@ -1704,27 +1709,7 @@ function TwelveWithin() {
                 })()),
 
                 // \u2550\u2550 SECTION \u2014 Your Edges: quietest voice + growth edge \u2550\u2550
-                resultsTab === "shadow" && React.createElement(React.Fragment, { key: "edges" },
-                sectionHeader("Your Edges", "QUIETEST VOICE · AN INTENTIONAL PRACTICE"),
-                TIERS[tier].showQuietest && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "QUIETEST VOICE"),
-                    React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
-                        " speaks softest in you \u2014 often the blind spot, sometimes the invitation."),
-                    React.createElement("p", { className: "text-[14px] text-violet-200/80 mt-2 leading-relaxed", style: sans },
-                        "Pay attention to your strongest reactions to people who lead with ",
-                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
-                        ". That reaction is a mirror.")),
-                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "AN INTENTIONAL PRACTICE"),
-                    growthIsTopVoice
-                        ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
-                            ` is both your ${GROWTH_ORD[growthIdx]} voice and your growth edge \u2014 you already carry real ${growthName} energy, so growth here means drawing on it more consciously and deliberately, not building it from scratch.`)
-                        : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                            "Across the wheel sits ",
-                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
-                            " \u2014 your growth edge. Deliberately developing it is how your loudest voice stops casting so long a shadow."))),
+                // (Your Edges lives in the SHADOW tab now, rendered AFTER the Shadow Mandala — see the "edges" fragment further down.)
 
                 // \u2550\u2550 SECTION \u2014 The Full Picture: the remaining nine + full ranking \u2550\u2550
                 resultsTab === "full" && React.createElement(React.Fragment, { key: "full" },
@@ -1745,10 +1730,7 @@ function TwelveWithin() {
 
                 // \u2550\u2550 Light \u2194 Shadow bridge \u2014 clean prose, not a card \u2550\u2550
                 resultsTab === "shadow" && React.createElement(React.Fragment, { key: "shadow" },
-                showShadow && React.createElement("div", { className: "text-center mt-16 mb-2 max-w-2xl mx-auto" },
-                    React.createElement("div", { className: "mx-auto mb-5 h-px w-12", style: { background: "rgba(129,140,248,0.5)" } }),
-                    React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-200/85", style: sans },
-                        "You are already all twelve. These are the voices that speak loudest in you right now. Below is what's waiting to be claimed.")),
+                // (Light–Shadow bridge prose removed: a scroll-era transition that read oddly as the Shadow tab lead.)
 
                 // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (unlocked only) \u2550\u2550
                 showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "5rem" } },
@@ -1795,6 +1777,29 @@ function TwelveWithin() {
                                 sh && sh.integrated && React.createElement("p", { className: "text-[13.5px] text-violet-100/85 mt-1 leading-relaxed", style: sans },
                                     React.createElement("span", { className: "text-amber-200/85 font-semibold" }, "Integrated: "), sh.integrated));
                         })))),
+
+                // (SHADOW tab) Your Edges — supporting depth beneath the Shadow Mandala
+                resultsTab === "shadow" && React.createElement(React.Fragment, { key: "edges" },
+                sectionHeader("Your Edges", "QUIETEST VOICE · AN INTENTIONAL PRACTICE"),
+                TIERS[tier].showQuietest && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "QUIETEST VOICE"),
+                    React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
+                        " speaks softest in you \u2014 often the blind spot, sometimes the invitation."),
+                    React.createElement("p", { className: "text-[14px] text-violet-200/80 mt-2 leading-relaxed", style: sans },
+                        "Pay attention to your strongest reactions to people who lead with ",
+                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
+                        ". That reaction is a mirror.")),
+                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "AN INTENTIONAL PRACTICE"),
+                    growthIsTopVoice
+                        ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
+                            ` is both your ${GROWTH_ORD[growthIdx]} voice and your growth edge \u2014 you already carry real ${growthName} energy, so growth here means drawing on it more consciously and deliberately, not building it from scratch.`)
+                        : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                            "Across the wheel sits ",
+                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
+                            " \u2014 your growth edge. Deliberately developing it is how your loudest voice stops casting so long a shadow."))),
 
                 // (The $15 shadow add-on and its promo field are retired: Full ($29)
                 // now includes the Shadow Mandala, and the promo code is entered at the
