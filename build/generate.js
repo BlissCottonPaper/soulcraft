@@ -2128,6 +2128,14 @@ function companionMain() {
       var sep=(baseText && !/\\s$/.test(baseText)) ? ' ' : '';
       var finalAdded='';
       recog.onresult=function(e){
+        // Ignore any result that lands after we've stopped recording. When the mic
+        // is stopped — including the stopMic() at the top of submit() on send —
+        // recog.stop() asynchronously flushes one last (final) result. That event
+        // fires AFTER submit() has already cleared the field, so without this guard
+        // it re-writes the just-sent voice text straight back into the box (the box
+        // "won't clear" after a voice send). stopMic() sets recording=false before
+        // calling stop(), so this guard is false for exactly that post-stop flush.
+        if(!recording) return;
         var interim='', finals='';
         for(var i=e.resultIndex;i<e.results.length;i++){
           var tr=e.results[i];
