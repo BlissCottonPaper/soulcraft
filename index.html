@@ -439,7 +439,7 @@ function TwelveWithin() {
     // Whether the Shadow Mandala is revealed — true once Full is paid (it's part of
     // the $29 Full), granted by a promo code, or when viewing the sample.
     const [shadowUnlocked, setShadowUnlocked] = useState(false);
-    const [resultsTab, setResultsTab] = useState("archetypes"); // in-page results section tab (separate from site nav)
+    const [resultsTab, setResultsTab] = useState("identity"); // in-page results section tab (separate from site nav); opens on the wheel
     const [unlocking, setUnlocking] = useState(false);   // Stripe checkout in progress
     const [unlockError, setUnlockError] = useState("");
     const [promoCode, setPromoCode] = useState("");      // customer-facing free-access promo code
