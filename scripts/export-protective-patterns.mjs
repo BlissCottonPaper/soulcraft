@@ -17,8 +17,14 @@
 // Notion changes to regenerate both files.
 //
 // Usage:
-//   NOTION_TOKEN=secret_xxx node scripts/export-protective-patterns.mjs
-//   (needs:  npm i @notionhq/client)
+//   cd scripts && npm install         # installs the pinned @notionhq/client (v2 API — see scripts/package.json)
+//   NOTION_TOKEN=secret_xxx node export-protective-patterns.mjs
+//   (or, from the repo root once scripts/ is installed:
+//     NOTION_TOKEN=secret_xxx node scripts/export-protective-patterns.mjs)
+//
+// NOTE: do NOT `npm install @notionhq/client` unpinned — v5+ dropped databases.query
+// for the new data-source API and the script will fail. The scripts/package.json pin
+// keeps a plain install on the compatible v2 SDK.
 //
 // The two Notion databases (IDs are stable):
 //   Canonical Patterns   — 638b9b2e-3341-4cbd-b650-84a10a5016c2

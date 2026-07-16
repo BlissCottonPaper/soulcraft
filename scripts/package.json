@@ -1,0 +1,9 @@
+{
+  "name": "soulcraft-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "One-off maintenance scripts (Notion -> runtime data export). The Notion SDK is pinned to the v2 API these scripts were written against: @notionhq/client v5+ replaced databases.query with the data-source API (dataSources.query), which breaks the export. Install here (cd scripts && npm install) so a plain install always resolves the compatible version, regardless of anything installed at the repo root.",
+  "dependencies": {
+    "@notionhq/client": "2.2.15"
+  }
+}
