@@ -968,7 +968,7 @@ function aboutMain() {
     <section class="py-8 max-w-2xl mx-auto">
       <blockquote class="serif text-2xl md:text-[1.75rem] italic text-violet-100 leading-snug text-center px-2">“Until you make the unconscious conscious, it will direct your life and you will call it fate.”</blockquote>
       <p class="text-center text-[11px] tracking-[0.2em] text-violet-300/50 mt-3">— CARL JUNG</p>
-      <p class="${body} mt-8">Soulcraft is the practice of making the unconscious conscious — understanding the patterns driving you so you can choose, rather than just react.</p>
+      <p class="${body} mt-8">Soulcraft: the practice of making the unconscious conscious — one deliberate choice at a time.</p>
       <p class="${body} mt-4">You already know yourself better than any system can tell you. What you may not know is <em>why</em> — why certain things light you up and others leave you hollow, why some people exhaust you and others feel like home, why you keep returning to the same patterns even when you can see them clearly.</p>
       <p class="${body} mt-4">Soulcraft doesn't answer that question for you. It gives you a map — and a guide for what to do with what you find.</p>
     </section>
@@ -1425,7 +1425,7 @@ function registerMain() {
       <p style="font-size:12.5px;color:rgba(196,181,253,0.55);margin:.4rem 0 0;">At least 8 characters.</p>
       <label style="display:flex;gap:.6rem;align-items:flex-start;margin:1.15rem 0 .2rem;font-size:13.5px;line-height:1.5;color:rgba(224,218,246,0.82);cursor:pointer;">
         <input type="checkbox" id="research_consent" style="margin-top:.15rem;width:1rem;height:1rem;accent-color:#c9a84c;flex:0 0 auto;" />
-        <span>I don't mind if my assessment data is used for anonymized research.</span>
+        <span>I'm okay with my anonymized results being used to help make Soulcraft better.</span>
       </label>
       <p class="auth-err" id="err" role="alert"></p>
       <button class="auth-btn" id="submit" type="submit">Create account</button>

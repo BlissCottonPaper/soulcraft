@@ -526,7 +526,7 @@ function TwelveWithin() {
     // post-payment resume) and mark this attempt unsaved.
     const resetAssessmentState = () => { setPicks([]); setPairIdx(0); setWins({}); setChIdx(0); setChScores({}); setIsSample(false); setUnlockError(""); setPromoError(""); setPromoCode(""); savedForSession.current = null; };
     // Begin (or resume, after payment) the assessment for the active tier.
-    const beginAssessment = () => { ga("assessment_start"); resetAssessmentState(); setSession((s) => s + 1); setScreen("descriptors"); };
+    const beginAssessment = () => { ga("assessment_start"); resetAssessmentState(); setSession((s) => s + 1); setScreen("splash"); };
     // Two tiers. Payment happens BEFORE the assessment: Free begins the questions
     // immediately; Full goes to the checkout gate first and only begins once paid
     // (or a valid promo code is entered).
@@ -538,7 +538,7 @@ function TwelveWithin() {
         if (t === "free") {
             setPurchaseIntent(null);
             setSavedResultId(null);
-            setScreen("descriptors");
+            setScreen("splash");
         } else {
             setPurchaseIntent("full");
             // Pre-generate the result id so the gate's checkout/promo can reference it
@@ -1209,7 +1209,7 @@ function TwelveWithin() {
     // Show the Mira interstitial once, at the top of the results, only for a real
     // $29 purchase (Task 4). It gates the reading behind the companion offer.
     const showMiraOffer = paidFull && !isSample && !restored && !miraDone && screen === "results";
-    const Btn = ({ children, onClick, primary, className = "" }) => (React.createElement("button", { onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
+    const Btn = ({ children, onClick, primary, className = "", id }) => (React.createElement("button", { id: id, onClick: onClick, className: "rounded-xl px-5 py-3.5 text-[15px] transition-colors " + (primary ? "bg-amber-200/90 text-[#1b1430] hover:bg-amber-100 font-semibold" : "border border-violet-300/25 text-violet-100 hover:border-amber-200/60 hover:text-amber-100") + " " + className, style: { fontFamily: "'Source Sans 3', system-ui, sans-serif" } }, children));
     const serif = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
     const sans = { fontFamily: "'Source Sans 3', system-ui, sans-serif" };
     // Named section header — gives the results the feel of a narrative arc rather
@@ -1324,7 +1324,8 @@ function TwelveWithin() {
                 React.createElement("p", { className: "text-[11px] tracking-[0.15em] text-violet-300/50 mb-4", style: sans }, "by The Art of Soulcraft"),
                 React.createElement("p", { className: "text-violet-200/80 text-[16px] leading-relaxed mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("p", { className: "text-[11px] tracking-[0.15em] text-violet-300/45 mb-6", style: sans }, "\u2014 after Jung"),
-                React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-8", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
+                React.createElement("p", { className: "text-violet-200/85 text-[15.5px] leading-relaxed mb-3", style: sans }, "You are not one of twelve types. You are all twelve \u2014 some speak louder than others."),
+                React.createElement("p", { className: "text-amber-200/80 text-[15px] leading-relaxed italic mb-8", style: serif }, "Soulcraft: the practice of making the unconscious conscious \u2014 one deliberate choice at a time."),
                 React.createElement("div", { className: "grid gap-3" },
                     // Two tiers only: Free and Full ($29). Each button is two lines \u2014 a bold
                     // label and a faint italic descriptor.
@@ -1352,6 +1353,15 @@ function TwelveWithin() {
                     React.createElement("summary", { className: "cursor-pointer text-violet-100/90 text-[14px] font-semibold", style: sans }, "How does the assessment work?"),
                     React.createElement("p", { className: "text-violet-200/80 text-[14px] leading-relaxed mt-3", style: sans }, "You won't rate yourself on a scale. Instead, you'll face 66 pairs of statements and choose which one sounds more like you \u2014 even when both do, even when neither quite does. That's deliberate. When you rate yourself, everything scores high; when you're forced to choose, a pattern emerges that rating can't fake. Each of your twelve voices faces the others again and again, and the ones you keep choosing rise. The result isn't a grade \u2014 it's a ranking: which voices speak loudest in you, compared only to you, never to anyone else. There are no wrong answers, and there's no way to game it. (For the psychologically curious: this is an ipsative forced-choice instrument.)")),
                 React.createElement("p", { className: "text-violet-300/50 text-xs mt-8", style: sans }, "A reflective tool \u2014 a map, not a fortune. Not prediction, not diagnosis."))),
+            // R-53 \u2014 pre-assessment splash, shown once before Question 1 (both the free
+            // start and the paid/promo begin funnel through here). Verbatim copy.
+            screen === "splash" && (React.createElement("div", { className: "text-center max-w-lg mx-auto py-10" },
+                React.createElement("h2", { className: "text-4xl md:text-5xl mb-8", style: serif }, "Before You Begin"),
+                React.createElement("div", { className: "space-y-5 text-left" },
+                    React.createElement("p", { className: "text-violet-100/90 text-[16px] leading-relaxed", style: sans }, "Find about 18\u201320 minutes where you won't be interrupted \u2014 this deserves your full attention, not a spare moment between things."),
+                    React.createElement("p", { className: "text-violet-100/90 text-[16px] leading-relaxed", style: sans }, "You'll notice many of the pairs feel similar. That's by design: every question compares one part of you against another, so the wording often echoes even though no two pairs repeat exactly."),
+                    React.createElement("p", { className: "text-violet-100/90 text-[16px] leading-relaxed", style: sans }, "There's no way to get this wrong. Just answer as the truest thing right now \u2014 not who you were, not who you're trying to become.")),
+                React.createElement(Btn, { primary: true, className: "w-full mt-9", onClick: () => setScreen("descriptors") }, "Continue"))),
             screen === "descriptors" && (React.createElement("div", null,
                 React.createElement("p", { className: "text-[11px] tracking-[0.3em] text-amber-200/80 mb-2", style: sans }, "FIRST \u00B7 WORDS"),
                 React.createElement("h2", { className: "text-3xl mb-2", style: serif }, "Choose the six words most like you"),
@@ -1880,7 +1890,7 @@ function TwelveWithin() {
                     React.createElement("a", { href: "/companion/", className: "inline-block rounded-xl px-6 py-3 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors", style: sans }, "Talk with Mira →")),
 
                 React.createElement("div", { className: "grid gap-3" },
-                    React.createElement(Btn, { primary: true, onClick: () => {
+                    React.createElement(Btn, { primary: true, id: "sc-print-btn", onClick: () => {
                         // Print via an isolated iframe rather than window.print() + CSS media
                         // queries. The parent page's own CSS cascade (nested containers,
                         // Tailwind's CDN-generated rules, etc.) has repeatedly interfered with
@@ -1956,7 +1966,7 @@ function TwelveWithin() {
                             iframe.contentWindow.print();
                             setTimeout(() => document.body.removeChild(iframe), 500);
                         };
-                    } }, "Print your mandala"),
+                    } }, "Download or print (PDF)"),
                     React.createElement(Btn, { onClick: restart }, "Start over")),
                 React.createElement("p", { className: "text-center text-violet-300/45 text-xs mt-3", style: sans }, "For the cleanest print, turn off Headers and Footers in your browser print settings."),
                 !isSample && tier === "full" && saveStatus === "saved" && !emailSent && React.createElement("div", { className: "mt-6 rounded-2xl border border-violet-300/18 px-5 py-4", style: { background: "rgba(255,250,240,0.03)" } },
