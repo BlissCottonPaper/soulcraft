@@ -47,6 +47,12 @@
        "Trickster · Caregiver · Explorer" — on one line at 375px (measured max ~25px). */
     .loud-names { font-size: 1.5rem !important; line-height: 1.2 !important; letter-spacing: -0.01em; }
   }
+  /* Results anchor-nav — MUST be outside the mobile media query above so it applies at all widths. */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  /* top is refined at runtime to the measured header height; z-index sits below the header (30). */
+  .results-nav { position: -webkit-sticky; position: sticky; top: 4rem; z-index: 20; overflow-x: auto; }
+  .results-section { scroll-margin-top: var(--rt-offset, 7.25rem); }
 </style>
 <!-- Shared nav/footer/chrome CSS baked from /assets/site-chrome.js by
      /build/generate.js (stampIndex). Do not hand-edit between the SC markers —
@@ -439,6 +445,58 @@ function TwelveWithin() {
     // Whether the Shadow Mandala is revealed — true once Full is paid (it's part of
     // the $29 Full), granted by a promo code, or when viewing the sample.
     const [shadowUnlocked, setShadowUnlocked] = useState(false);
+    const [resultsTab, setResultsTab] = useState("identity"); // active results section (scroll-spy highlight); opens on the wheel
+    // Results anchor-nav: nest the sub-nav directly beneath the sticky site header, and
+    // run scroll-spy to highlight whichever section is in view (centering the active label
+    // in the horizontally-scrollable nav on mobile).
+    useEffect(() => {
+        if (screen !== "results") return;
+        const ids = ["identity", "archetypes", "mindsets", "bandwidth", "temperament", "shadow", "full"];
+        let raf = 0, last = null, spyLine = 130;
+        // The site header (#site-header) is itself sticky at top:0. Set the sub-nav's sticky
+        // top to the header's measured height so the two stack without overlap, and clear
+        // both bars for section anchors (--rt-offset) and the scroll-spy line. Measured so it
+        // tracks the real header height (and any wrapping) on both desktop and mobile.
+        const layout = () => {
+            const header = document.getElementById("site-header");
+            const nav = document.getElementById("results-nav");
+            const root = document.getElementById("root");
+            // #root carries `zoom: 1.12`, but the site header lives outside it. getBoundingClientRect
+            // returns post-zoom (actual) px, so a `top` set on the zoomed nav must be divided by the
+            // zoom to land at the header's actual bottom; the spy line stays in actual px.
+            const zoom = root ? (parseFloat(getComputedStyle(root).zoom) || 1) : 1;
+            const hH = header ? header.getBoundingClientRect().height : 64;
+            const nH = nav ? nav.getBoundingClientRect().height : 52;
+            if (nav) nav.style.top = Math.round(hH / zoom) + "px";
+            document.documentElement.style.setProperty("--rt-offset", Math.round((hH + nH) / zoom) + "px");
+            spyLine = Math.round(hH + nH) + 8;
+        };
+        const spy = () => {
+            raf = 0;
+            let current = null;
+            for (const id of ids) {
+                const el = document.getElementById("rt-" + id);
+                if (el && el.getBoundingClientRect().top - spyLine <= 0) current = id;
+            }
+            if (!current) current = ids.find((id) => document.getElementById("rt-" + id)) || null;
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+                for (let i = ids.length - 1; i >= 0; i--) { if (document.getElementById("rt-" + ids[i])) { current = ids[i]; break; } }
+            }
+            if (current && current !== last) {
+                last = current;
+                setResultsTab(current);
+                const nav = document.getElementById("results-nav"), btn = document.getElementById("tab-" + current);
+                if (nav && btn) nav.scrollTo({ left: btn.offsetLeft - nav.clientWidth / 2 + btn.clientWidth / 2, behavior: "smooth" });
+            }
+        };
+        const onScroll = () => { if (!raf) raf = requestAnimationFrame(spy); };
+        const onResize = () => { layout(); onScroll(); };
+        layout();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onResize, { passive: true });
+        const t = setTimeout(() => { layout(); spy(); }, 60);
+        return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onResize); clearTimeout(t); if (raf) cancelAnimationFrame(raf); };
+    }, [screen, tier, shadowUnlocked]);
     const [unlocking, setUnlocking] = useState(false);   // Stripe checkout in progress
     const [unlockError, setUnlockError] = useState("");
     const [promoCode, setPromoCode] = useState("");      // customer-facing free-access promo code
@@ -1421,9 +1479,26 @@ function TwelveWithin() {
                     miraBusy && React.createElement("p", { className: "text-center text-violet-300/60 text-sm mt-4", style: sans }, "Setting up your free month…"));
             })(),
             screen === "results" && !showMiraOffer && (React.createElement("div", null,
-                // Light mandala section header — a named entry point mirroring the shadow
-                // section (gold rule + eyebrow + serif). The #your-mandala anchor lives
-                // here so a toggle lands above the whole title sequence.
+                // In-page results nav (separate from the site's top nav): a sticky anchor bar.
+                // All sections render in one continuous scroll; clicking a label smooth-scrolls
+                // to that section, and the scroll-spy effect highlights whichever is in view.
+                // The print/PDF export (#print-mandala) renders its own hidden copy, unaffected.
+                (() => {
+                    const RTABS = [
+                        { k: "identity", label: "Identity", on: true },
+                        { k: "archetypes", label: "Archetypes", on: true },
+                        { k: "mindsets", label: "Mindsets", on: TIERS[tier].showBlends },
+                        { k: "bandwidth", label: "Bandwidth", on: true },
+                        { k: "temperament", label: "Temperament", on: TIERS[tier].showTemperament },
+                        { k: "shadow", label: "Shadow", on: showShadow },
+                        { k: "full", label: "Full Picture", on: TIERS[tier].showFullRanking },
+                    ].filter((t) => t.on);
+                    return React.createElement("nav", { id: "results-nav", "aria-label": "Results sections", className: "results-nav no-scrollbar sticky top-0 z-30 flex gap-1.5 overflow-x-auto py-2.5 mb-8 justify-start sm:justify-center print:hidden", style: { position: "sticky", top: "4rem", zIndex: 20, overflowX: "auto", background: "rgba(16,12,34,0.92)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", borderBottom: "1px solid rgba(196,181,253,0.12)" } },
+                        RTABS.map((t) => React.createElement("button", { key: t.k, id: "tab-" + t.k, type: "button", "aria-current": resultsTab === t.k ? "true" : undefined, onClick: () => { setResultsTab(t.k); const el = document.getElementById("rt-" + t.k); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); },
+                            className: "shrink-0 px-3.5 py-1.5 rounded-full text-[13px] border transition-colors " + (resultsTab === t.k ? "bg-amber-200/90 text-[#1b1430] border-amber-200/90 font-semibold" : "text-violet-200/75 border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100"), style: sans }, t.label)));
+                })(),
+                // ── IDENTITY tab: the wheel + the named whole ──
+                React.createElement("section", { key: "identity", id: "rt-identity", className: "results-section" },
                 React.createElement("div", { id: "your-mandala", className: "text-center mb-2", style: { scrollMarginTop: "5rem" } },
                     // Warm, personalized greeting for a signed-in visitor. Context-aware:
                     // "Welcome back" when they've returned to a saved/restored reading,
@@ -1443,6 +1518,10 @@ function TwelveWithin() {
                 TIERS[tier].topCount >= 3 && React.createElement("p", { className: "text-center text-violet-300/70 text-sm -mt-1 mb-8 italic", style: serif }, "Your three primaries, their three Mindsets \u2014 and you at the center, the seventh point. Fully integrated, all light becomes white."),
                 React.createElement("p", { className: "text-center text-violet-300/55 text-sm mb-1 italic", style: serif }, "Until the unconscious becomes conscious, it will direct your life \u2014 and you'll call it fate."),
                 React.createElement("p", { className: "text-center text-[11px] tracking-[0.15em] text-violet-300/40 mb-8", style: sans }, "\u2014 after Jung"),
+                // Core thesis \u2014 the closing line of the Identity tab, now that Identity opens first.
+                React.createElement("div", { className: "text-center mt-10 mb-10 max-w-2xl mx-auto" },
+                    React.createElement("div", { className: "mx-auto mb-5 h-px w-12", style: { background: "rgba(253,230,138,0.45)" } }),
+                    React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-200/85", style: sans }, "You are already all twelve. These are the voices that speak loudest in you right now.")),
                 // --- Share your Mandala (Task 3): one understated line, small icons.
                 // Not a modal or banner. Instagram/Facebook open the OS share sheet
                 // (Web Share API) on mobile; copy-link falls back everywhere else. ---
@@ -1460,18 +1539,8 @@ function TwelveWithin() {
                     React.createElement("button", { onClick: copyShareLink, "aria-label": "Copy link", title: "Copy link", className: "text-violet-300/55 hover:text-amber-100 transition-colors p-1" },
                         React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
                             React.createElement("path", { d: "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" }),
-                            React.createElement("path", { d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" })))),
-                // R-53 — prominent PDF/print action near the top of the reading (not
-                // buried at the bottom). Triggers the single print handler on the button
-                // lower down (id sc-print-btn), so there's exactly one print code path.
-                React.createElement("div", { className: "text-center mb-10" },
-                    React.createElement("button", { onClick: () => { const b = document.getElementById("sc-print-btn"); if (b) b.click(); }, className: "inline-flex items-center gap-2 rounded-xl px-6 py-3 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors", style: sans },
-                        React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
-                            React.createElement("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
-                            React.createElement("polyline", { points: "7 10 12 15 17 10" }),
-                            React.createElement("line", { x1: 12, y1: 15, x2: 12, y2: 3 })),
-                        "Download PDF"),
-                    React.createElement("p", { className: "text-violet-300/45 text-xs mt-2", style: sans }, "Opens your print dialog — choose “Save as PDF” to download, or send it to a printer.")),
+                            React.createElement("path", { d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" }))))),
+                // #print-mandala stays OUTSIDE the tabs (hidden) so the print/PDF button exports the full report from any tab.
                 React.createElement("div", { id: "print-mandala", className: "bg-white text-[#241d42]", style: { display: "none" } },
 // ===== PRINT PAGE 1 - Your Mandala =====
                     React.createElement("div", { className: "print-page", style: { border: "1px solid #ddd", borderRadius: "14px", padding: "18px 20px", boxSizing: "border-box" } },
@@ -1642,16 +1711,16 @@ function TwelveWithin() {
                             React.createElement("span", { style: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.5rem", color: "#9a7a1e", width: "22px", flexShrink: 0, lineHeight: "1.2" } }, (i + 1) + "."),
                             React.createElement("p", { style: { fontFamily: "'Source Sans 3', system-ui, sans-serif", fontSize: "13.5px", lineHeight: "1.5", color: "#2a2340" } }, q))),
                         React.createElement("p", { className: "text-center text-xs italic mt-8", style: { ...serif, color: "#8a86a0" } }, "For reflection and action, never prediction. — The Art of Soulcraft"))),
-                // \u2550\u2550 SECTION \u2014 Your Pattern: your top three, in depth (altitude ladders) \u2550\u2550
-                sectionHeader("Your Loudest Voices", "IN DEPTH"),
-                ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => (React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
-                    React.createElement("div", { className: "flex items-baseline gap-3" },
-                        React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
-                        React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r))),
-                    React.createElement(Ladder, { arche: r })))),
-
-                // \u2550\u2550 SECTION \u2014 Your Pairings: the three pairings \u2550\u2550
+                // \u2500\u2500 ARCHETYPES tab: the three pillars \u2014 names + essence (ladders now live in the Bandwidth tab) \u2500\u2500
+                React.createElement("section", { key: "archetypes", id: "rt-archetypes", className: "results-section" },
+                    sectionHeader("Your Loudest Voices", "IN DEPTH"),
+                    ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
+                        React.createElement("div", { className: "flex items-baseline gap-3" },
+                            React.createElement("h3", { className: "text-3xl", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
+                            React.createElement("span", { className: "text-violet-300/70 text-sm italic", style: serif }, longsPhrase(r)))))),
+                // \u2500\u2500 MINDSETS tab: the chords between the pillars \u2500\u2500
+                TIERS[tier].showBlends && React.createElement("section", { key: "mindsets", id: "rt-mindsets", className: "results-section" },
                 TIERS[tier].showBlends && sectionHeader("Your Mindsets", "YOUR MINDSETS"),
                 TIERS[tier].showBlends && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
                     [[0, 1], [0, 2], [1, 2]].map(([a, b]) => {
@@ -1666,9 +1735,20 @@ function TwelveWithin() {
                                 nm ? React.createElement("span", { className: "text-amber-200" }, nm) : React.createElement("span", { className: "text-violet-300/60 italic" }, "unnamed — an entry awaiting the 66-Mindset lexicon")),
                             tx && React.createElement("p", { className: "text-[13px] text-violet-300/65 italic mt-0.5", style: serif }, tx),
                             sameAxis && React.createElement("p", { className: "text-[13px] text-amber-100/80 mt-1 leading-relaxed", style: sans }, "Two of your loudest voices sit at opposite ends of the same question — meaning this question lives inside you as an active tension, not a settled answer."));
-                    })),
+                    }))),
 
-                // \u2550\u2550 SECTION \u2014 How You're Wired: temperament radar, prose, summary \u2550\u2550
+                                // \u2500\u2500 BANDWIDTH tab: the altitude ladders, moved out of Archetypes \u2500\u2500
+                React.createElement("section", { key: "bandwidth", id: "rt-bandwidth", className: "results-section" },
+                    sectionHeader("Bandwidth", "YOUR ALTITUDE RIGHT NOW"),
+                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-3 max-w-xl mx-auto text-center", style: sans }, "Every archetype exists on one spectrum \u2014 how much of it you have available right now, from all your capacity spent just holding yourself together to enough overflowing that you can freely extend outward to others. When you feel threatened you contract; when you feel safe enough you expand. Contraction doesn't delete the freer, more generous side of a voice \u2014 it only narrows your access to it; expansion widens that access again."),
+                    React.createElement("p", { className: "text-violet-200/80 text-sm leading-relaxed mb-6 max-w-xl mx-auto text-center", style: sans }, "So every one of your voices runs a full range, from fear-gripped to freely chosen. The ladders below show where each of your loudest three is standing this week \u2014 not a fixed trait, just your current altitude."),
+                    ranked.slice(0, Math.min(3, TIERS[tier].topCount)).map((r, n) => React.createElement("div", { key: r.key, className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                        React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, ["LOUDEST VOICE", "SECOND VOICE", "THIRD VOICE"][n] || `VOICE ${n + 1}`),
+                        React.createElement("h3", { className: "text-2xl mb-1", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
+                        React.createElement(Ladder, { arche: r })))),
+
+                // \u2500\u2500 TEMPERAMENT tab \u2500\u2500
+                TIERS[tier].showTemperament && React.createElement("section", { key: "temperament", id: "rt-temperament", className: "results-section" },
                 TIERS[tier].showTemperament && sectionHeader("How You're Wired", "YOUR TEMPERAMENT"),
                 TIERS[tier].showTemperament && (() => {
                     const prof = temperamentProfile(radarScores);
@@ -1694,51 +1774,13 @@ function TwelveWithin() {
                             React.createElement("h4", { className: "text-xl mb-2", style: { ...serif, color: `hsl(${HUE(a.i)},70%,72%)` } }, archLink(a)),
                             readout.items.map((s, i) => React.createElement("p", { key: i, className: "text-sm mb-2 leading-relaxed", style: { ...sans, color: s.kind === "loud" ? "rgba(233,228,255,0.88)" : "rgba(200,193,226,0.78)" } },
                                 React.createElement("span", { className: "text-amber-200/75 font-semibold" }, (s.kind === "loud" ? "How this shows up · " : "An Intentional Practice · ") + s.temperament + " — "), s.text)))));
-                })(),
+                })()),
 
-                // \u2550\u2550 SECTION \u2014 Your Edges: quietest voice + growth edge \u2550\u2550
-                sectionHeader("Your Edges", "QUIETEST VOICE · AN INTENTIONAL PRACTICE"),
-                TIERS[tier].showQuietest && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "QUIETEST VOICE"),
-                    React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
-                        " speaks softest in you \u2014 often the blind spot, sometimes the invitation."),
-                    React.createElement("p", { className: "text-[14px] text-violet-200/80 mt-2 leading-relaxed", style: sans },
-                        "Pay attention to your strongest reactions to people who lead with ",
-                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
-                        ". That reaction is a mirror.")),
-                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "AN INTENTIONAL PRACTICE"),
-                    growthIsTopVoice
-                        ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
-                            ` is both your ${GROWTH_ORD[growthIdx]} voice and your growth edge \u2014 you already carry real ${growthName} energy, so growth here means drawing on it more consciously and deliberately, not building it from scratch.`)
-                        : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
-                            "Across the wheel sits ",
-                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
-                            " \u2014 your growth edge. Deliberately developing it is how your loudest voice stops casting so long a shadow.")),
 
-                // \u2550\u2550 SECTION \u2014 The Full Picture: the remaining nine + full ranking \u2550\u2550
-                TIERS[tier].showFullRanking && sectionHeader("The Full Picture", "THE REMAINING NINE"),
-                TIERS[tier].showFullRanking && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-3", style: sans }, "THE REMAINING NINE"),
-                    ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-2 pb-2", style: { borderBottom: "1px solid rgba(196,181,253,0.10)" } },
-                        React.createElement("span", { className: "text-[15px] font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
-                        React.createElement("span", { className: "text-violet-300/60 text-xs italic ml-2", style: serif }, longsPhrase(r)),
-                        React.createElement("span", { className: "text-violet-300/45 text-[11px] ml-2", style: sans }, r.stages.join(" \u2192 "))))),
-                TIERS[tier].showFullRanking && React.createElement(React.Fragment, null,
-                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "THE FULL RANKING"),
-                    React.createElement("div", { className: "space-y-2 mb-8" }, ranked.map((r) => (React.createElement("div", { key: r.key, className: "flex items-center gap-3" },
-                        React.createElement("span", { className: "w-20 text-right text-[13px] text-violet-200/85 shrink-0", style: sans }, archLink(r)),
-                        React.createElement("div", { className: "flex-1 h-2.5 rounded-full bg-violet-300/10 overflow-hidden" },
-                            React.createElement("div", { className: "h-full rounded-full", style: { width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},62%,56%)` } }))))))),
-                !TIERS[tier].showFullRanking && React.createElement("p", { className: "text-center text-violet-300/60 text-sm italic mb-8", style: serif }, `Unlock the complete 1\u201312 ranking with ${TIERS.full.label}.`),
 
                 // \u2550\u2550 Light \u2194 Shadow bridge \u2014 clean prose, not a card \u2550\u2550
-                showShadow && React.createElement("div", { className: "text-center mt-16 mb-2 max-w-2xl mx-auto" },
-                    React.createElement("div", { className: "mx-auto mb-5 h-px w-12", style: { background: "rgba(129,140,248,0.5)" } }),
-                    React.createElement("p", { className: "text-[15px] leading-relaxed text-violet-200/85", style: sans },
-                        "You are already all twelve. These are the voices that speak loudest in you right now. Below is what's waiting to be claimed.")),
+                showShadow && React.createElement("section", { key: "shadow", id: "rt-shadow", className: "results-section" },
+                // (Light–Shadow bridge prose removed: a scroll-era transition that read oddly as the Shadow tab lead.)
 
                 // \u2550\u2550 SECTION \u2014 Your Shadow Mandala (unlocked only) \u2550\u2550
                 showShadow && React.createElement("div", { id: "shadow-mandala", style: { scrollMarginTop: "5rem" } },
@@ -1784,7 +1826,48 @@ function TwelveWithin() {
                                     React.createElement("span", { className: "text-indigo-300/90 font-semibold" }, "In shadow: "), sh.shadow),
                                 sh && sh.integrated && React.createElement("p", { className: "text-[13.5px] text-violet-100/85 mt-1 leading-relaxed", style: sans },
                                     React.createElement("span", { className: "text-amber-200/85 font-semibold" }, "Integrated: "), sh.integrated));
-                        }))),
+                        })))),
+
+                // (SHADOW tab) Your Edges — supporting depth beneath the Shadow Mandala
+                showShadow && React.createElement(React.Fragment, { key: "edges" },
+                sectionHeader("Your Edges", "QUIETEST VOICE · AN INTENTIONAL PRACTICE"),
+                TIERS[tier].showQuietest && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "QUIETEST VOICE"),
+                    React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
+                        " speaks softest in you \u2014 often the blind spot, sometimes the invitation."),
+                    React.createElement("p", { className: "text-[14px] text-violet-200/80 mt-2 leading-relaxed", style: sans },
+                        "Pay attention to your strongest reactions to people who lead with ",
+                        React.createElement("span", { style: { color: `hsl(${HUE(ranked[11].i)},70%,72%)` }, className: "font-semibold" }, archLink(ranked[11])),
+                        ". That reaction is a mirror.")),
+                React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-1", style: sans }, "AN INTENTIONAL PRACTICE"),
+                    growthIsTopVoice
+                        ? React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
+                            ` is both your ${GROWTH_ORD[growthIdx]} voice and your growth edge \u2014 you already carry real ${growthName} energy, so growth here means drawing on it more consciously and deliberately, not building it from scratch.`)
+                        : React.createElement("p", { className: "text-[15px] text-violet-100", style: sans },
+                            "Across the wheel sits ",
+                            React.createElement("span", { style: { color: `hsl(${HUE(ranked[growthIdx].i)},70%,72%)` }, className: "font-semibold" }, archLinkByName(growthName)),
+                            " \u2014 your growth edge. Deliberately developing it is how your loudest voice stops casting so long a shadow."))),
+
+                // ── FULL PICTURE (last section) ──
+                                // \u2550\u2550 SECTION \u2014 The Full Picture: the remaining nine + full ranking \u2550\u2550
+                TIERS[tier].showFullRanking && React.createElement("section", { key: "full", id: "rt-full", className: "results-section" },
+                TIERS[tier].showFullRanking && sectionHeader("The Full Picture", "THE REMAINING NINE"),
+                TIERS[tier].showFullRanking && React.createElement("div", { className: "rounded-2xl border border-violet-300/18 px-5 py-5 mb-4", style: { background: "rgba(255,250,240,0.03)" } },
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-3", style: sans }, "THE REMAINING NINE"),
+                    ranked.slice(3, 12).map((r) => React.createElement("div", { key: r.key, className: "mb-2 pb-2", style: { borderBottom: "1px solid rgba(196,181,253,0.10)" } },
+                        React.createElement("span", { className: "text-[15px] font-semibold", style: { ...serif, color: `hsl(${HUE(r.i)},70%,72%)` } }, archLink(r)),
+                        React.createElement("span", { className: "text-violet-300/60 text-xs italic ml-2", style: serif }, longsPhrase(r)),
+                        React.createElement("span", { className: "text-violet-300/45 text-[11px] ml-2", style: sans }, r.stages.join(" \u2192 "))))),
+                TIERS[tier].showFullRanking && React.createElement(React.Fragment, null,
+                    React.createElement("p", { className: "text-[11px] tracking-[0.28em] text-amber-200/75 mb-2", style: sans }, "THE FULL RANKING"),
+                    React.createElement("div", { className: "space-y-2 mb-8" }, ranked.map((r) => (React.createElement("div", { key: r.key, className: "flex items-center gap-3" },
+                        React.createElement("span", { className: "w-20 text-right text-[13px] text-violet-200/85 shrink-0", style: sans }, archLink(r)),
+                        React.createElement("div", { className: "flex-1 h-2.5 rounded-full bg-violet-300/10 overflow-hidden" },
+                            React.createElement("div", { className: "h-full rounded-full", style: { width: `${Math.max((r.score / maxScore) * 100, 4)}%`, background: `hsl(${HUE(r.i)},62%,56%)` } }))))))),
+                !TIERS[tier].showFullRanking && React.createElement("p", { className: "text-center text-violet-300/60 text-sm italic mb-8", style: serif }, `Unlock the complete 1\u201312 ranking with ${TIERS.full.label}.`)),
 
                 // (The $15 shadow add-on and its promo field are retired: Full ($29)
                 // now includes the Shadow Mandala, and the promo code is entered at the
