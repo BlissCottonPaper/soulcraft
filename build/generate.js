@@ -968,7 +968,7 @@ function aboutMain() {
     <section class="py-8 max-w-2xl mx-auto">
       <blockquote class="serif text-2xl md:text-[1.75rem] italic text-violet-100 leading-snug text-center px-2">“Until you make the unconscious conscious, it will direct your life and you will call it fate.”</blockquote>
       <p class="text-center text-[11px] tracking-[0.2em] text-violet-300/50 mt-3">— CARL JUNG</p>
-      <p class="${body} mt-8">Soulcraft is the practice of making the unconscious conscious — understanding the patterns driving you so you can choose, rather than just react.</p>
+      <p class="${body} mt-8">Soulcraft: the practice of making the unconscious conscious — one deliberate choice at a time.</p>
       <p class="${body} mt-4">You already know yourself better than any system can tell you. What you may not know is <em>why</em> — why certain things light you up and others leave you hollow, why some people exhaust you and others feel like home, why you keep returning to the same patterns even when you can see them clearly.</p>
       <p class="${body} mt-4">Soulcraft doesn't answer that question for you. It gives you a map — and a guide for what to do with what you find.</p>
     </section>

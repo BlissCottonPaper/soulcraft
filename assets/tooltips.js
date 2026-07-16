@@ -26,7 +26,7 @@
   return {
     soulcraft: {
       title: "Soulcraft",
-      def: "The practice of making the unconscious conscious — understanding the patterns driving you so you can choose, rather than just react."
+      def: "The practice of making the unconscious conscious — one deliberate choice at a time."
     },
     mandala: {
       title: "Mandala",
