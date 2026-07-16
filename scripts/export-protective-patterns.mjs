@@ -32,8 +32,19 @@ import { fileURLToPath } from "node:url";
 const CANONICAL_DB = "638b9b2e-3341-4cbd-b650-84a10a5016c2";
 const CROSSWALK_DB = "d4e19169-595f-45d8-8f52-5626ac009f72";
 
-// Crosswalk rows we import as extra recognition terms: only Aliases and Merges.
+// Crosswalk rows we import as extra recognition terms. Two ways in:
+//   1. Disposition is an outright Alias or Merge — always imported (any review state,
+//      matching how these were reconciled originally).
+//   2. It's a VERIFIED recognition-bearing surface form — a manifestation of a pattern
+//      or a colloquial/search-language term (e.g. "Workaholism", "Workaholic"). These
+//      carry a noncanonical/search disposition, but they are exactly what a person
+//      types about themselves, so a verified one with a canonical destination is
+//      promoted to a live alias. Gated to "Verified" to keep unreviewed rows out.
 const ALIAS_DISPOSITIONS = new Set(["Alias", "Merged into Canonical Pattern"]);
+const RECOGNITION_TAXONOMY = new Set([
+  "Manifestation of a pattern",
+  "Compound / colloquial / search-language term",
+]);
 // ...but never these taxonomy types — they must not be trigger-matched like an
 // ordinary pattern (safety/clinical terms, traits, healthy behaviors, wounds).
 const EXCLUDED_TAXONOMY = new Set([
@@ -44,6 +55,14 @@ const EXCLUDED_TAXONOMY = new Set([
   "Healthy behavior or contextual adaptation",
   "Core wound or learned expectation",
 ]);
+
+// Does this crosswalk row become a live recognition alias? (See sets above.)
+function isRecognitionAlias(p) {
+  if (EXCLUDED_TAXONOMY.has(p["Taxonomy Detail"])) return false;
+  if (ALIAS_DISPOSITIONS.has(p["Disposition"])) return true;
+  if (p["Review Status"] === "Verified" && RECOGNITION_TAXONOMY.has(p["Taxonomy Detail"])) return true;
+  return false;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.join(__dirname, "..", "functions", "mira");
@@ -156,8 +175,7 @@ async function main() {
   const crossRows = await queryAll(notion, CROSSWALK_DB);
   for (const row of crossRows) {
     const p = pageProps(row);
-    if (!ALIAS_DISPOSITIONS.has(p["Disposition"])) continue;
-    if (EXCLUDED_TAXONOMY.has(p["Taxonomy Detail"])) continue;
+    if (!isRecognitionAlias(p)) continue;
     const term = p["Term"];
     if (!term) continue;
     for (const destPageId of (p["Canonical Destination"] || [])) {
