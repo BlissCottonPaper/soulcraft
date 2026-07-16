@@ -17,8 +17,14 @@
 // Notion changes to regenerate both files.
 //
 // Usage:
-//   NOTION_TOKEN=secret_xxx node scripts/export-protective-patterns.mjs
-//   (needs:  npm i @notionhq/client)
+//   cd scripts && npm install         # installs the pinned @notionhq/client (v2 API — see scripts/package.json)
+//   NOTION_TOKEN=secret_xxx node export-protective-patterns.mjs
+//   (or, from the repo root once scripts/ is installed:
+//     NOTION_TOKEN=secret_xxx node scripts/export-protective-patterns.mjs)
+//
+// NOTE: do NOT `npm install @notionhq/client` unpinned — v5+ dropped databases.query
+// for the new data-source API and the script will fail. The scripts/package.json pin
+// keeps a plain install on the compatible v2 SDK.
 //
 // The two Notion databases (IDs are stable):
 //   Canonical Patterns   — 638b9b2e-3341-4cbd-b650-84a10a5016c2
@@ -90,20 +96,38 @@ function pageProps(page) {
 
 // ---- Page body -> markdown -------------------------------------------------
 const HEAD = { heading_1: "# ", heading_2: "## ", heading_3: "### " };
-async function blockMarkdown(notion, blockId) {
+// One block's OWN text line, or "" when it carries none — e.g. a layout wrapper
+// (column_list, column, synced_block, divider). Children are not read here; the
+// recursive walk in blockMarkdown descends into them.
+function blockLine(b) {
+  const t = b.type;
+  if (HEAD[t]) return HEAD[t] + rich(b[t].rich_text);
+  if (t === "paragraph") return rich(b.paragraph.rich_text);
+  if (t === "bulleted_list_item") return "- " + rich(b.bulleted_list_item.rich_text);
+  if (t === "numbered_list_item") return "1. " + rich(b.numbered_list_item.rich_text);
+  if (t === "quote") return "> " + rich(b.quote.rich_text);
+  if (t === "toggle") return rich(b.toggle.rich_text);
+  if (t === "callout") return rich(b.callout.rich_text);
+  return "";
+}
+// Walk a block subtree to markdown. Recurses into EVERY block that reports
+// children, so content nested under toggle-headings, columns, or synced blocks
+// is captured — not only flat top-level blocks. The pattern pages nest their
+// body this way, which is why the old non-recursive walk returned "" for all of
+// them (every top-level block was a wrapper it emitted nothing for and never
+// descended into).
+export async function blockMarkdown(notion, blockId) {
   const lines = [];
   let cursor;
   do {
     const res = await notion.blocks.children.list({ block_id: blockId, start_cursor: cursor, page_size: 100 });
     for (const b of res.results) {
-      const t = b.type;
-      if (HEAD[t]) lines.push(HEAD[t] + rich(b[t].rich_text));
-      else if (t === "paragraph") lines.push(rich(b.paragraph.rich_text));
-      else if (t === "bulleted_list_item") lines.push("- " + rich(b.bulleted_list_item.rich_text));
-      else if (t === "numbered_list_item") lines.push("1. " + rich(b.numbered_list_item.rich_text));
-      else if (t === "quote") lines.push("> " + rich(b.quote.rich_text));
-      else if (t === "toggle") lines.push(rich(b.toggle.rich_text));
-      else if (t === "callout") lines.push(rich(b.callout.rich_text));
+      const line = blockLine(b);
+      if (line !== "") lines.push(line);
+      if (b.has_children) {
+        const inner = await blockMarkdown(notion, b.id);
+        if (inner) lines.push(inner);
+      }
     }
     cursor = res.has_more ? res.next_cursor : undefined;
   } while (cursor);
@@ -190,4 +214,7 @@ async function main() {
   const aliasCount = index.reduce((n, e) => n + e.aliases.length, 0);
   console.log(`Wrote ${index.length} patterns · ${index.reduce((n, e) => n + e.triggers.length, 0)} triggers · ${aliasCount} aliases`);
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+// Run only when invoked directly (not when imported, e.g. by a test).
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main().catch((e) => { console.error(e); process.exit(1); });
+}
