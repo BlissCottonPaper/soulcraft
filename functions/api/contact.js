@@ -1,7 +1,7 @@
 // ============================================================
 // /functions/api/contact.js
 // ============================================================
-// Contact / "Work with us" form → stored in D1 AND emailed to Marc via Resend.
+// Contact / "Work with us" form → stored in D1 AND emailed to the studio inbox via Resend.
 //
 // The submission is CAPTURED FIRST in the D1 `contacts` table (self-healing
 // schema), so it's never lost and is visible in the admin dashboard's Contact
@@ -62,7 +62,7 @@ export async function onRequestPost({ request, env }) {
           body: JSON.stringify({
             from: FROM,
             to: [RECIPIENT],
-            // Marc's reply goes straight back to the person who wrote in.
+            // The reply goes straight back to the person who wrote in.
             reply_to: email,
             subject: "New message from Soulcraft — " + name,
             text: "Name: " + name + "\nEmail: " + email + "\n\n" + message,
