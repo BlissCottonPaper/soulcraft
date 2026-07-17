@@ -11,7 +11,7 @@
 // fails if BOTH the store and the email fail.
 // ============================================================
 
-const RECIPIENT = "marcgsimmons@gmail.com";            // temporary; can move to a branded inbox later
+const RECIPIENT = "hello@artofsoulcraft.com";          // branded shared inbox (also the verified FROM)
 const FROM = "The Art of Soulcraft <hello@artofsoulcraft.com>"; // must be a Resend-verified sender
 
 function esc(s) {
