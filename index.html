@@ -665,6 +665,28 @@ function TwelveWithin() {
     const growthIdx = growthName ? ranked.findIndex((r) => r.name === growthName) : -1;
     const GROWTH_ORD = ["", "second", "third"];
     const growthIsTopVoice = growthIdx >= 1 && growthIdx <= 2 && growthIdx < TIERS[tier].topCount;
+    // A concrete "An Intentional Practice" for developing the Growth Edge archetype's
+    // energy — one representative activity per archetype, taken verbatim-in-spirit from
+    // the canonical Crossing Practices (Channel Instrument doc, Notion). This fills the
+    // gap the print report left: the Growth Edge target had no actual practice attached,
+    // unlike each low-scoring Temperament dimension, which already carries one. (Sage
+    // deliberately uses "go deep, not wide" rather than "interview an elder" — the latter
+    // is already the Temperament Heart practice, so no activity collides in one document.)
+    const GROWTH_EDGE_PRACTICE = {
+        lover: "Love out loud \u2014 tell someone today, in words that cost you something.",
+        caregiver: "Ask someone \u201Chow are you, really?\u201D \u2014 and stay for the whole answer.",
+        everyman: "Learn and use people\u2019s names, and always ask the follow-up question.",
+        ruler: "Systematize one mess completely \u2014 a single drawer, budget, or process.",
+        warrior: "Defend someone in the room they\u2019re not in.",
+        creator: "Make one thing with no audience \u2014 an offering, not a product.",
+        sage: "Go deep, not wide \u2014 one subject, one year.",
+        explorer: "Go by foot \u2014 take the trail, the long walk, the climb.",
+        rebel: "Fight for a person, not a principle \u2014 one name, one case.",
+        trickster: "Joke at your own altar \u2014 puncture your own pretensions first.",
+        innocent: "Tell someone you believe in them \u2014 specifically, and mean it.",
+        mystic: "Keep a daily silence \u2014 same time, same chair, no agenda.",
+    };
+    const growthPractice = (growthIdx >= 0 && ranked[growthIdx]) ? (GROWTH_EDGE_PRACTICE[ranked[growthIdx].key] || "") : "";
 
     // --- Save to the backend the moment a REAL result is reached ---
     // A ref (not state) tracks whether we've already saved THIS particular
@@ -1637,11 +1659,13 @@ function TwelveWithin() {
                             React.createElement("p", { className: "text-sm mb-2", style: { ...sans, color: "#4a4560", lineHeight: "1.4" } }, "Your edges are the archetypes at the boundary of your range — the voice that speaks softest in you, and the one directly across the wheel from your loudest. Neither is missing; both are quiet. Turning toward them is how your range widens."),
                             TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-1", style: sans },
                                 React.createElement("strong", null, "Quietest voice: "), ranked[11].name, " — your lowest-scoring voice"),
-                            React.createElement("p", { className: "text-sm", style: sans },
-                                React.createElement("strong", null, "An Intentional Practice: "), growthName,
+                            React.createElement("p", { className: "text-sm mb-1", style: sans },
+                                React.createElement("strong", null, "Growth Edge: "), growthName,
                                 growthIsTopVoice
                                     ? ` — also your ${GROWTH_ORD[growthIdx]} voice; you already carry this energy, so growth means drawing on it more consciously and deliberately, not building it from scratch`
-                                    : " — the fixed complement to your loudest voice"))),
+                                    : " — the fixed complement to your loudest voice"),
+                            growthPractice && React.createElement("p", { className: "text-sm", style: sans },
+                                React.createElement("strong", null, "An Intentional Practice — "), growthPractice))),
 
                     // ===== PRINT PAGE 4 - Your Three Quietest Voices, In Depth + Shadow Pairings =====
                     // Mirrors the primary "Top Three, In Depth" page: same card, same altitude
