@@ -1497,6 +1497,19 @@ function TwelveWithin() {
                         RTABS.map((t) => React.createElement("button", { key: t.k, id: "tab-" + t.k, type: "button", "aria-current": resultsTab === t.k ? "true" : undefined, onClick: () => { setResultsTab(t.k); const el = document.getElementById("rt-" + t.k); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); },
                             className: "shrink-0 px-3.5 py-1.5 rounded-full text-[13px] border transition-colors " + (resultsTab === t.k ? "bg-amber-200/90 text-[#1b1430] border-amber-200/90 font-semibold" : "text-violet-200/75 border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100"), style: sans }, t.label)));
                 })(),
+                // R-53 follow-up — prominent PDF/print action at the top of the reading
+                // (not buried at the bottom). In the continuous-scroll layout this sits
+                // just under the sticky section nav, above the first section. It drives
+                // the single print handler on the button lower down (id sc-print-btn), so
+                // there is exactly one print code path. Hidden from the print output itself.
+                React.createElement("div", { className: "text-center mb-8 print:hidden" },
+                    React.createElement("button", { onClick: () => { const b = document.getElementById("sc-print-btn"); if (b) b.click(); }, className: "inline-flex items-center gap-2 rounded-xl px-6 py-3 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors", style: sans },
+                        React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
+                            React.createElement("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
+                            React.createElement("polyline", { points: "7 10 12 15 17 10" }),
+                            React.createElement("line", { x1: 12, y1: 15, x2: 12, y2: 3 })),
+                        "Download PDF"),
+                    React.createElement("p", { className: "text-violet-300/45 text-xs mt-2", style: sans }, "Opens your print dialog — choose “Save as PDF” to download, or send it to a printer.")),
                 // ── IDENTITY tab: the wheel + the named whole ──
                 React.createElement("section", { key: "identity", id: "rt-identity", className: "results-section" },
                 React.createElement("div", { id: "your-mandala", className: "text-center mb-2", style: { scrollMarginTop: "5rem" } },
