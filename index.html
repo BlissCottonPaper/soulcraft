@@ -1495,21 +1495,17 @@ function TwelveWithin() {
                     ].filter((t) => t.on);
                     return React.createElement("nav", { id: "results-nav", "aria-label": "Results sections", className: "results-nav no-scrollbar sticky top-0 z-30 flex gap-1.5 overflow-x-auto py-2.5 mb-8 justify-start sm:justify-center print:hidden", style: { position: "sticky", top: "4rem", zIndex: 20, overflowX: "auto", background: "rgba(16,12,34,0.92)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", borderBottom: "1px solid rgba(196,181,253,0.12)" } },
                         RTABS.map((t) => React.createElement("button", { key: t.k, id: "tab-" + t.k, type: "button", "aria-current": resultsTab === t.k ? "true" : undefined, onClick: () => { setResultsTab(t.k); const el = document.getElementById("rt-" + t.k); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); },
-                            className: "shrink-0 px-3.5 py-1.5 rounded-full text-[13px] border transition-colors " + (resultsTab === t.k ? "bg-amber-200/90 text-[#1b1430] border-amber-200/90 font-semibold" : "text-violet-200/75 border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100"), style: sans }, t.label)));
+                            className: "shrink-0 px-3.5 py-1.5 rounded-full text-[13px] border transition-colors " + (resultsTab === t.k ? "bg-amber-200/90 text-[#1b1430] border-amber-200/90 font-semibold" : "text-violet-200/75 border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100"), style: sans }, t.label)),
+                        // PDF/print action, anchored inside the sticky nav right after the last
+                        // pill — always visible with the nav, no separate floating element. Drives
+                        // the single print handler on the button lower down (id sc-print-btn).
+                        React.createElement("button", { key: "rt-pdf", id: "rt-pdf-icon", type: "button", title: "Download or print (PDF)", "aria-label": "Download or print your report as a PDF", onClick: () => { const b = document.getElementById("sc-print-btn"); if (b) b.click(); },
+                            className: "shrink-0 ml-1 inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors text-violet-200/75 border-violet-300/25 hover:border-amber-200/60 hover:text-amber-100", style: sans },
+                            React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
+                                React.createElement("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
+                                React.createElement("polyline", { points: "7 10 12 15 17 10" }),
+                                React.createElement("line", { x1: 12, y1: 15, x2: 12, y2: 3 }))));
                 })(),
-                // R-53 follow-up — prominent PDF/print action at the top of the reading
-                // (not buried at the bottom). In the continuous-scroll layout this sits
-                // just under the sticky section nav, above the first section. It drives
-                // the single print handler on the button lower down (id sc-print-btn), so
-                // there is exactly one print code path. Hidden from the print output itself.
-                React.createElement("div", { className: "text-center mb-8 print:hidden" },
-                    React.createElement("button", { onClick: () => { const b = document.getElementById("sc-print-btn"); if (b) b.click(); }, className: "inline-flex items-center gap-2 rounded-xl px-6 py-3 bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors", style: sans },
-                        React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
-                            React.createElement("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
-                            React.createElement("polyline", { points: "7 10 12 15 17 10" }),
-                            React.createElement("line", { x1: 12, y1: 15, x2: 12, y2: 3 })),
-                        "Download PDF"),
-                    React.createElement("p", { className: "text-violet-300/45 text-xs mt-2", style: sans }, "Opens your print dialog — choose “Save as PDF” to download, or send it to a printer.")),
                 // ── IDENTITY tab: the wheel + the named whole ──
                 React.createElement("section", { key: "identity", id: "rt-identity", className: "results-section" },
                 React.createElement("div", { id: "your-mandala", className: "text-center mb-2", style: { scrollMarginTop: "5rem" } },
@@ -1618,16 +1614,7 @@ function TwelveWithin() {
                                     ranked[a].name + " × " + ranked[b].name + " → ",
                                     React.createElement("span", { style: { color: nm ? "#9a7a1e" : "#8a86a0", fontStyle: nm ? "normal" : "italic" } }, nm || "unnamed")),
                                 tx && React.createElement("p", { className: "text-sm italic", style: { ...serif, color: "#6b6580" } }, tx));
-                        }),
-                        React.createElement("div", { className: "mt-4", style: { pageBreakInside: "avoid" } },
-                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR EDGES"),
-                            TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-1", style: sans },
-                                React.createElement("strong", null, "Quietest voice: "), ranked[11].name, " — your lowest-scoring voice"),
-                            React.createElement("p", { className: "text-sm", style: sans },
-                                React.createElement("strong", null, "An Intentional Practice: "), growthName,
-                                growthIsTopVoice
-                                    ? ` — also your ${GROWTH_ORD[growthIdx]} voice; you already carry this energy, so growth means drawing on it more consciously and deliberately, not building it from scratch`
-                                    : " — the fixed complement to your loudest voice"))),
+                        })),
 
                     // ===== PRINT PAGE 3 - Shadow Mandala (only once unlocked) =====
                     // Title page mirrors the primary mandala page 1 exactly: same header
@@ -1641,7 +1628,20 @@ function TwelveWithin() {
                         React.createElement("p", { className: "text-center text-xs mb-2", style: { ...sans, color: "#6b6580", maxWidth: "5.5in", margin: "0 auto 10px" } }, "Your shadow isn't what's wrong with you — it's what you haven't claimed yet. You didn't choose your shadow; integrating it doesn't diminish you, it completes you."),
                         React.createElement("div", { className: "flex justify-center mb-3", style: { width: "100%" } },
                             React.createElement("div", { id: "png-mandala-shadow", style: { width: "5.6in", maxWidth: "100%" } },
-                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true, shadow: true })))),
+                                React.createElement(Mandala, { ranked: ranked, topCount: TIERS[tier].topCount, forPrint: true, shadow: true }))),
+                        // Your Edges — moved here to render with the Shadow Mandala (previously it
+                        // orphaned onto a near-empty early page). General concept first, then the
+                        // personal quietest-voice / practice specifics.
+                        React.createElement("div", { style: { pageBreakInside: "avoid", maxWidth: "5.5in", margin: "18px auto 0", borderTop: "1px solid #ddd", paddingTop: "12px" } },
+                            React.createElement("p", { className: "text-[10px] tracking-[0.25em] mb-2", style: sans }, "YOUR EDGES"),
+                            React.createElement("p", { className: "text-sm mb-2", style: { ...sans, color: "#4a4560", lineHeight: "1.4" } }, "Your edges are the archetypes at the boundary of your range — the voice that speaks softest in you, and the one directly across the wheel from your loudest. Neither is missing; both are quiet. Turning toward them is how your range widens."),
+                            TIERS[tier].showQuietest && React.createElement("p", { className: "text-sm mb-1", style: sans },
+                                React.createElement("strong", null, "Quietest voice: "), ranked[11].name, " — your lowest-scoring voice"),
+                            React.createElement("p", { className: "text-sm", style: sans },
+                                React.createElement("strong", null, "An Intentional Practice: "), growthName,
+                                growthIsTopVoice
+                                    ? ` — also your ${GROWTH_ORD[growthIdx]} voice; you already carry this energy, so growth means drawing on it more consciously and deliberately, not building it from scratch`
+                                    : " — the fixed complement to your loudest voice"))),
 
                     // ===== PRINT PAGE 4 - Your Three Quietest Voices, In Depth + Shadow Pairings =====
                     // Mirrors the primary "Top Three, In Depth" page: same card, same altitude
