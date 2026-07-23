@@ -748,6 +748,57 @@ function TwelveWithin() {
         start("full");
     }, [authed]);
 
+    // Resume the assessment after arriving from the /begin card (?resume=begin).
+    // The card already granted the complete reading for free (begin-unlock stamped
+    // the pre-generated result row: full_purchased / shadow_unlocked / promo_redeemed),
+    // and the visitor has just signed in — so there is nothing to pay and no gate to
+    // pass. We adopt that pre-unlocked row and drop STRAIGHT into the questions,
+    // skipping the checkout screen that start("full") would show. Scores fill onto
+    // this same row at the end (save-results UPSERT), and because they're logged in
+    // that save also links the row to their account.
+    useEffect(() => {
+        if (resumedRef.current || authed !== true) return;
+        let wantsBegin = false;
+        try { wantsBegin = new URLSearchParams(window.location.search).get("resume") === "begin"; } catch (e) {}
+        if (!wantsBegin) return;
+        resumedRef.current = true;
+        try { window.history.replaceState(null, "", window.location.pathname); } catch (e) {}
+
+        // The /begin page stashed the pre-unlocked result id (and campaign tag) here
+        // before sending the visitor to sign in. Adopt it so the finished scores land
+        // on the row that already carries the paid flags.
+        let rid = null, camp = null;
+        try {
+            const raw = window.localStorage.getItem("soulcraft_begin");
+            if (raw) { const o = JSON.parse(raw); rid = o && o.rid; camp = o && o.c; }
+        } catch (e) {}
+
+        const enterAsFull = (id) => {
+            setSavedResultId(id);
+            setTier("full"); setMode(TIERS.full.pairMode);
+            setShadowUnlocked(true); setPurchaseIntent("full");
+            beginAssessment();
+        };
+
+        if (rid && typeof rid === "string") {
+            enterAsFull(rid);
+        } else {
+            // Self-heal: the stash was lost (cleared storage, or /?resume=begin typed
+            // directly). Mint a fresh id, re-apply the grant server-side, and carry on —
+            // never dead-end the visitor. The stamp lands long before the assessment ends.
+            let fresh;
+            try { fresh = crypto.randomUUID(); } catch (e) { fresh = "r-" + Date.now() + "-" + Math.random().toString(16).slice(2); }
+            try {
+                fetch("/api/begin-unlock", {
+                    method: "POST", credentials: "same-origin",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(camp ? { result_id: fresh, source: camp } : { result_id: fresh }),
+                }).catch(() => {});
+            } catch (e) {}
+            enterAsFull(fresh);
+        }
+    }, [authed]);
+
     useEffect(() => {
         // Save the moment results are shown. The payment gate already ran before the
         // assessment for paid tiers, so there's no longer a "checkout" save. Never the

@@ -76,6 +76,9 @@ CREATE TABLE results (
   companion_active INTEGER NOT NULL DEFAULT 0, -- Mira decision made at the post-purchase interstitial,
   companion_tier TEXT,                 -- before an account may exist. Propagated onto the user row
   subscription_id TEXT,                -- the moment the result is linked (email save / login).
+  campaign TEXT,                       -- attribution tag from the /begin card QR (?c=, e.g.
+                                        -- 'bliss-q3-2026'), stamped by begin-unlock.js. NULL for
+                                        -- every other flow. Rotates by changing the QR, never the URL.
   created_at INTEGER NOT NULL
 );
 
