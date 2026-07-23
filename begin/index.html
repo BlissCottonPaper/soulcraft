@@ -44,34 +44,36 @@
 </style>
 <style>
   /* /begin — the Bliss insert-card landing page. One primary action; the top
-     nav is suppressed to a non-interactive wordmark so nothing competes with it. */
-  .begin-mark{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.15rem;color:rgba(224,218,246,0.72);text-align:center;padding:1.4rem 1.25rem 0;letter-spacing:.01em;}
+     nav is suppressed to a non-interactive wordmark so nothing competes with it.
+     Type, color, buttons, and the emblem all come from STYLEGUIDE.md via the
+     shared classes/tokens — this block is layout + a11y only, no parallel styling. */
+  .begin-mark{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.15rem;color:rgba(224,218,246,0.72);text-align:center;letter-spacing:.01em;margin:0;}
   .begin-wrap{max-width:34rem;margin:0 auto;padding:0 1.25rem;}
-  .begin-cta{display:inline-block;border:0;border-radius:.85rem;padding:1rem 2rem;background:rgba(253,230,138,0.92);color:#1b1430;font-family:'Source Sans 3',system-ui,sans-serif;font-weight:600;font-size:1.05rem;line-height:1.2;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent;}
-  .begin-cta:hover{background:#fde8b0;}
-  .begin-cta:disabled{opacity:.7;cursor:default;}
-  /* A real, visible focus ring for keyboard users on the dark field. */
-  .begin-cta:focus-visible{outline:3px solid #fde8b0;outline-offset:3px;}
+  /* Visible keyboard focus on the dark field (quality floor). Buttons get a
+     Tailwind focus-visible ring inline; links get this. */
   a:focus-visible{outline:2px solid rgba(253,230,138,0.8);outline-offset:2px;border-radius:2px;}
   .begin-recv li{display:flex;gap:.75rem;align-items:flex-start;}
   .begin-recv li::before{content:"";flex:0 0 auto;width:.5rem;height:.5rem;margin-top:.6rem;border-radius:50%;background:rgba(253,230,138,0.7);}
   @media (prefers-reduced-motion: reduce){
-    .begin-cta{transition:none;}
-    *{scroll-behavior:auto !important;}
+    *{scroll-behavior:auto !important;transition:none !important;}
   }
 </style>
 </head>
 <body class="page-bg">
 <!-- Nav is deliberately suppressed here: a card arrival has one job, and a full nav
-     would offer a dozen ways to leave before starting. The wordmark is plain text,
-     not a link — it establishes the site without competing with the button. -->
-<p class="begin-mark">The Art of Soulcraft</p>
+     would offer a dozen ways to leave before starting. The mandala emblem + wordmark
+     are the brand lockup (STYLEGUIDE §4) — the wordmark is plain text, not a link,
+     so nothing competes with the button. -->
 <main class="begin-wrap">
-    <section class="pt-8 pb-10 md:pt-14 text-center">
+    <section class="pt-6 pb-10 md:pt-10 text-center">
+      <!-- The site emblem: same twelve-dot mandala geometry the homepage generates
+           (nodeXY(i,46,60), hsl(i*30,62%,56%)), baked to a static SVG. STYLEGUIDE §4. -->
+      <svg viewBox="0 0 120 120" class="w-24 h-24 mx-auto mb-6 block" aria-hidden="true"><circle cx="60" cy="14" r="4" fill="hsl(0,62%,56%)"/><circle cx="83" cy="20.16" r="4" fill="hsl(30,62%,56%)"/><circle cx="99.84" cy="37" r="4" fill="hsl(60,62%,56%)"/><circle cx="106" cy="60" r="4" fill="hsl(90,62%,56%)"/><circle cx="99.84" cy="83" r="4" fill="hsl(120,62%,56%)"/><circle cx="83" cy="99.84" r="4" fill="hsl(150,62%,56%)"/><circle cx="60" cy="106" r="4" fill="hsl(180,62%,56%)"/><circle cx="37" cy="99.84" r="4" fill="hsl(210,62%,56%)"/><circle cx="20.16" cy="83" r="4" fill="hsl(240,62%,56%)"/><circle cx="14" cy="60" r="4" fill="hsl(270,62%,56%)"/><circle cx="20.16" cy="37" r="4" fill="hsl(300,62%,56%)"/><circle cx="37" cy="20.16" r="4" fill="hsl(330,62%,56%)"/><circle cx="60" cy="60" r="4" fill="rgb(255,252,240)"/></svg>
+      <p class="begin-mark mb-5">The Art of Soulcraft</p>
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-5">YOU FOUND THE CARD</p>
-      <h1 class="serif text-3xl md:text-5xl mb-5 leading-tight">You are not one of twelve archetypes. You are all twelve — some louder than others.</h1>
-      <p class="text-violet-200/85 text-lg leading-relaxed mb-8">A series of choices between two things that both feel true. What emerges is your Mandala: a map of the voices that drive you, as individual as a fingerprint.</p>
-      <button type="button" class="begin-cta" data-begin>Begin — free</button>
+      <h1 class="serif text-4xl md:text-5xl mb-5 leading-tight">You are not one of twelve archetypes. You are all twelve — some louder than others.</h1>
+      <p class="serif italic text-violet-200/80 text-[16px] leading-relaxed mb-8">A series of choices between two things that both feel true. What emerges is your Mandala: a map of the voices that drive you, as individual as a fingerprint.</p>
+      <button type="button" class="rounded-xl px-6 py-3.5 text-[15px] bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#100c22]" data-begin>Begin — free</button>
       <p class="text-violet-200/70 text-sm leading-relaxed mt-4 max-w-sm mx-auto">The complete reading, yours at no cost. Nothing to enter, nothing to pay.</p>
     </section>
 
@@ -97,7 +99,7 @@
     </section>
 
     <section class="py-12 border-t border-violet-300/10 text-center">
-      <button type="button" class="begin-cta" data-begin>Begin — free</button>
+      <button type="button" class="rounded-xl px-6 py-3.5 text-[15px] bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#100c22]" data-begin>Begin — free</button>
     </section>
 </main>
 <footer id="site-footer"><div class="sc-foot"><div class="sc-foot-top"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><div class="sc-foot-row"><a href="/contact/">Work With Us</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/support/">Support</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/terms/">Terms</a></div><div class="sc-foot-row"><a href="/faq/">FAQ</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/contact/">Contact</a></div></div></div><p class="sc-foot-tagline">You are not one of twelve types. You are all twelve.</p><a class="sc-foot-admin" href="/admin/">Admin</a></div></footer>
