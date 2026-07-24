@@ -43,7 +43,7 @@
   .card-hover:hover { border-color:rgba(253,230,138,0.5); background:rgba(255,250,240,0.05); }
 </style>
 <style>
-  /* /begin — the Bliss insert-card landing page. One primary action; the top
+  /* /begin — the printed insert-card landing page. One primary action; the top
      nav is suppressed to a non-interactive wordmark so nothing competes with it.
      Type, color, buttons, and the emblem all come from STYLEGUIDE.md via the
      shared classes/tokens — this block is layout + a11y only, no parallel styling. */
@@ -83,7 +83,7 @@
         <li><span class="text-violet-200/90 text-lg leading-relaxed"><strong class="text-violet-50 font-semibold">Your Mandala</strong> — your twelve voices ranked, loudest to quietest</span></li>
         <li><span class="text-violet-200/90 text-lg leading-relaxed"><strong class="text-violet-50 font-semibold">Your Shadow Mandala</strong> — the quiet voices, and what they cost you</span></li>
         <li><span class="text-violet-200/90 text-lg leading-relaxed"><strong class="text-violet-50 font-semibold">Your Mindsets</strong> — what emerges when your loudest voices combine</span></li>
-        <li><span class="text-violet-200/90 text-lg leading-relaxed"><strong class="text-violet-50 font-semibold">A written reading</strong> — delivered as a PDF you keep</span></li>
+        <li><span class="text-violet-200/90 text-lg leading-relaxed"><strong class="text-violet-50 font-semibold">Your full reflection</strong> — delivered as a PDF you keep</span></li>
       </ul>
     </section>
 
@@ -102,12 +102,12 @@
       <button type="button" class="rounded-xl px-6 py-3.5 text-[15px] bg-amber-200/90 text-[#1b1430] font-semibold hover:bg-amber-100 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#100c22]" data-begin>Begin — free</button>
     </section>
 </main>
-<footer id="site-footer"><div class="sc-foot"><div class="sc-foot-top"><p class="sc-foot-brand">The Art of Soulcraft <span style="opacity:.6">· a BridgeTender Studio project</span></p><div class="sc-foot-links"><div class="sc-foot-row"><a href="/contact/">Work With Us</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/support/">Support</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/terms/">Terms</a></div><div class="sc-foot-row"><a href="/faq/">FAQ</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/contact/">Contact</a></div></div></div><p class="sc-foot-tagline">You are not one of twelve types. You are all twelve.</p><a class="sc-foot-admin" href="/admin/">Admin</a></div></footer>
+<footer id="site-footer"><div class="sc-foot"><div class="sc-foot-top"><p class="sc-foot-brand">The Art of Soulcraft</p><div class="sc-foot-links"><div class="sc-foot-row"><a href="/contact/">Work With Us</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/support/">Support</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/privacy/">Privacy</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/terms/">Terms</a></div><div class="sc-foot-row"><a href="/faq/">FAQ</a><span class="sc-foot-sep" aria-hidden="true">·</span><a href="/contact/">Contact</a></div></div></div><p class="sc-foot-tagline">You are not one of twelve archetypes. You are all twelve.</p><a class="sc-foot-admin" href="/admin/">Admin</a></div></footer>
 <!-- No site-chrome / tooltips here on purpose: this page has no nav, no tooltip
      terms, and no return banner — one action, nothing to wire up or distract. -->
 <script>
 (function(){
-  // ?c= is the campaign tag carried by the QR (e.g. bliss-q3-2026). Read it on
+  // ?c= is the campaign tag carried by the QR (e.g. a "q3-2026" campaign). Read it on
   // load and persist it to the session so it survives the visitor lingering or
   // the param being stripped. The PRINTED url has no ?c= — the grant never
   // depends on it, so a bare /begin still works.
