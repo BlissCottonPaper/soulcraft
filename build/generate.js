@@ -406,26 +406,55 @@ function privacyMain() {
       <p class="text-[11px] tracking-[0.35em] text-amber-200/80 mb-4">PRIVACY</p>
       <h1 class="serif text-4xl md:text-6xl mb-4">Your privacy, plainly</h1>
       <p class="text-violet-200/80 text-lg max-w-xl mx-auto">This is a tool for looking honestly at yourself. That only works if you trust it. So here is exactly what we collect, what we do with it, and what we never do — in plain language.</p>
-      <p class="text-violet-300/45 text-xs mt-4">Last updated July 2026</p>
+      <p class="text-violet-300/45 text-xs mt-4">Last updated July 24, 2026</p>
     </section>
     <section class="max-w-2xl mx-auto pb-20 leading-relaxed text-violet-100/85 space-y-10">
       <div>
         <h2 class="serif text-2xl md:text-3xl mb-3">What we collect</h2>
-        <p class="mb-3">Almost nothing, and only what the tool needs to do its job:</p>
+        <p class="mb-3">Only what the tool needs to do its job:</p>
         <ul class="list-disc pl-6 space-y-2 text-violet-200/80">
-          <li><span class="text-violet-50">Your email — but only if you choose to save your results.</span> Take the assessment without saving and we never ask for it. There's no account to create.</li>
-          <li><span class="text-violet-50">Your assessment responses</span>, stored on their own so we can show you your reading and let you return to it. On their own they're just a set of scores — not tied to your name or anything about you unless you've saved with an email.</li>
-          <li><span class="text-violet-50">Basic, aggregate analytics</span> — roughly how many people visit and which pages they read. This is counting, not tracking; it isn't tied to who you are.</li>
+          <li><span class="text-violet-50">Your email and name.</span> You create an account so your results are saved and waiting when you come back. If you sign in with Google, we receive your email address and name — nothing else. We never see your Google password, and we can't access your contacts, calendar, files, or anything else in your account.</li>
+          <li><span class="text-violet-50">Your assessment responses,</span> so we can build your Mandala and let you return to it.</li>
+          <li><span class="text-violet-50">Your conversations with Mira,</span> if you use her. More on that below, because it deserves its own section.</li>
+          <li><span class="text-violet-50">Website analytics.</span> We use Google Analytics to understand how people find and move through the site — which pages get read, and which link, post, or card brought someone here. It sets cookies and collects things like your general location, browser, and device. We use it to see patterns across visitors, not to build a profile of you, and we don't sell or share it for advertising.</li>
         </ul>
       </div>
       <div>
         <h2 class="serif text-2xl md:text-3xl mb-3">What we do with it</h2>
-        <p class="mb-3">If you give us your email, we use it for two things and two things only:</p>
+        <p class="mb-3">Your email is used for exactly three things:</p>
         <ul class="list-disc pl-6 space-y-2 text-violet-200/80">
-          <li>To send you a link back to your saved results.</li>
-          <li>To send you occasional updates about the project — <span class="text-violet-50">only if you've opted in</span>, and you can stop those anytime.</li>
+          <li>Signing you in.</li>
+          <li>Sending you a link back to your results.</li>
+          <li>Occasional updates about the project — only if you opt in, and you can stop anytime.</li>
         </ul>
-        <p class="mt-4">That's the whole list. <span class="text-violet-50">We never sell your data. We never share it with third parties</span> for advertising, profiling, or any other purpose. Your reflections are yours.</p>
+        <p class="mt-4">That's the whole list. <span class="text-violet-50">We never sell your data. We never share it with third parties for advertising or profiling.</span> Your reflections are yours.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Mira</h2>
+        <p class="mb-3">Mira is built to remember, because a companion who forgets you every time isn't much of a mirror. That means she holds more about you than the rest of the site does, and you should know exactly what.</p>
+        <p class="mb-2"><span class="text-violet-50">What she keeps:</span></p>
+        <ul class="list-disc pl-6 space-y-2 text-violet-200/80">
+          <li>Your conversations with her, and running summaries of them, so she can pick up where you left off.</li>
+          <li>Anything you save to your insights journal.</li>
+          <li>Your People Map — the notes you choose to write about people in your life.</li>
+        </ul>
+        <p class="mt-4"><span class="text-violet-50">How she works.</span> Mira is built on Claude, made by Anthropic. To answer you, she sends your message and the relevant parts of your history to Anthropic's API. Under Anthropic's terms, that content is not used to train their models. We don't use it to train anything either, and no one at Soulcraft reads your conversations unless you specifically ask us to look at something.</p>
+        <p class="mt-4"><span class="text-violet-50">About your People Map.</span> Those notes are your own words about other people, and they can be personal. They're stored with your account, visible only to you, and deleted when you delete them or close your account. We'd ask you to write about others the way you'd want someone writing about you.</p>
+        <p class="mt-4"><span class="text-violet-50">Mira is not a therapist.</span> She's an instrument for reflection. She isn't clinical care, she isn't a crisis service, and she'll tell you so herself. If you're in crisis, please reach out to a real person — Mira can point you toward support, but she can't be it.</p>
+        <p class="mt-4"><span class="text-violet-50">Deleting it.</span> You can clear your Mira history at any time from your account. Deleting your account removes all of it.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Payments</h2>
+        <p>If you buy a reading or subscribe, payment is handled entirely by Stripe. Your card number never touches our servers and we never see it. We keep only what we need to know what you bought and when.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">Signing in with Google</h2>
+        <p class="mb-3">You can sign in with Google or with an email link — your choice, and the email link isn't going anywhere. Some people would rather not connect a Google account to something reflective, and that's a reasonable thing to want.</p>
+        <p>If you use Google, we ask for your email address and name and nothing more. If you already have an account with that email, signing in with Google takes you to the same account and the same results — it doesn't create a second one.</p>
+      </div>
+      <div>
+        <h2 class="serif text-2xl md:text-3xl mb-3">How long we keep things</h2>
+        <p>Your results and Mira history stay as long as your account does — the point is being able to return to them. Delete your account and everything goes with it. If an account sits untouched for two years, we'll email before removing anything.</p>
       </div>
       <div>
         <h2 class="serif text-2xl md:text-3xl mb-3">Where it's stored</h2>
@@ -433,11 +462,11 @@ function privacyMain() {
       </div>
       <div>
         <h2 class="serif text-2xl md:text-3xl mb-3">Deleting your data</h2>
-        <p>Changed your mind? Email us at <a href="mailto:hello@artofsoulcraft.com" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">hello@artofsoulcraft.com</a> and ask us to delete what we have. We'll remove your email and saved results within 30 days — no questions, no friction.</p>
+        <p>Changed your mind? Email us at <a href="mailto:hello@artofsoulcraft.com" class="text-amber-200 hover:text-amber-100 underline underline-offset-4">hello@artofsoulcraft.com</a> and ask us to delete what we have. We'll remove your email, saved results, and Mira history within 30 days — no questions, no friction.</p>
       </div>
       <div>
         <h2 class="serif text-2xl md:text-3xl mb-3">Cookies</h2>
-        <p>Minimal, and only what's needed to make the assessment work while you're using it — session-level, not the kind that follow you around the web. We don't run advertising cookies or sell a profile of your browsing.</p>
+        <p>Two kinds. The first keeps you signed in and holds your place while you take the assessment. The second is Google Analytics, which counts visits and shows us how people move through the site. We don't run advertising cookies, we don't retarget you, and we don't sell a profile of your browsing.</p>
       </div>
       <div>
         <h2 class="serif text-2xl md:text-3xl mb-3">Questions</h2>
