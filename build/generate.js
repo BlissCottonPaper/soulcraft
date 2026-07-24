@@ -1289,9 +1289,18 @@ function googleAuthBlock() {
   <div class="auth-or"><span>or</span></div>`;
 }
 
+// The site emblem (STYLEGUIDE §4): the twelve-dot mandala ring the homepage
+// generates from nodeXY(i,46,60) with hsl(i*30,62%,56%), baked to a static SVG.
+// It crowns focused entry/identity moments — sign-in and create-account are two —
+// centered, directly above the serif title.
+function authEmblem() {
+  return `  <svg viewBox="0 0 120 120" class="w-24 h-24 mx-auto mb-6 block" aria-hidden="true"><circle cx="60" cy="14" r="4" fill="hsl(0,62%,56%)"/><circle cx="83" cy="20.16" r="4" fill="hsl(30,62%,56%)"/><circle cx="99.84" cy="37" r="4" fill="hsl(60,62%,56%)"/><circle cx="106" cy="60" r="4" fill="hsl(90,62%,56%)"/><circle cx="99.84" cy="83" r="4" fill="hsl(120,62%,56%)"/><circle cx="83" cy="99.84" r="4" fill="hsl(150,62%,56%)"/><circle cx="60" cy="106" r="4" fill="hsl(180,62%,56%)"/><circle cx="37" cy="99.84" r="4" fill="hsl(210,62%,56%)"/><circle cx="20.16" cy="83" r="4" fill="hsl(240,62%,56%)"/><circle cx="14" cy="60" r="4" fill="hsl(270,62%,56%)"/><circle cx="20.16" cy="37" r="4" fill="hsl(300,62%,56%)"/><circle cx="37" cy="20.16" r="4" fill="hsl(330,62%,56%)"/><circle cx="60" cy="60" r="4" fill="rgb(255,252,240)"/></svg>`;
+}
+
 function loginMain() {
   return `${authFieldCss()}
 <div class="auth-wrap">
+${authEmblem()}
   <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Welcome back</h1>
   <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Log in to your Soulcraft account.</p>
   <div class="auth-card">
@@ -1361,6 +1370,7 @@ ${googleAuthBlock()}
 function forgotPasswordMain() {
   return `${authFieldCss()}
 <div class="auth-wrap">
+${authEmblem()}
   <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Reset your password</h1>
   <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Enter your account email and we'll send you a link to choose a new password.</p>
   <div class="auth-card">
@@ -1399,6 +1409,7 @@ function forgotPasswordMain() {
 function resetPasswordMain() {
   return `${authFieldCss()}
 <div class="auth-wrap">
+${authEmblem()}
   <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Choose a new password</h1>
   <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Set a new password for your Soulcraft account.</p>
   <div class="auth-card">
@@ -1448,6 +1459,7 @@ function resetPasswordMain() {
 function registerMain() {
   return `${authFieldCss()}
 <div class="auth-wrap">
+${authEmblem()}
   <h1 class="serif" style="font-size:2.4rem;text-align:center;margin:0 0 .4rem;color:#f5f3ff;">Create your account</h1>
   <p style="text-align:center;color:rgba(224,218,246,0.75);font-size:15px;margin:0 0 1.75rem;">Keep your Mandala, and — soon — meet Mira.</p>
   <div class="auth-card">
