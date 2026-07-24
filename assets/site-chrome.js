@@ -293,7 +293,7 @@
             socialHtml() +
           '</div>' +
         '</div>' +
-        '<p class="sc-foot-tagline">You are not one of twelve types. You are all twelve.</p>' +
+        '<p class="sc-foot-tagline">You are not one of twelve archetypes. You are all twelve.</p>' +
         // Deliberately low-key: plain, dim text, not in the main nav. The /admin
         // page is itself password-gated (X-Admin-Key), so this link only leads to
         // a prompt — nothing behind it opens without the existing admin key.
