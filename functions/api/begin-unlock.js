@@ -16,10 +16,10 @@
 //   -> { ok: false, error: "…" }                                     grant unavailable
 //
 // The code name is held HERE, server-side — never sent to or from the client,
-// never surfaced in the UI. It defaults to BLISSCARD and can be overridden with
+// never surfaced in the UI. It defaults to BLISSINSERT and can be overridden with
 // env.BEGIN_PROMO_CODE. Like WHITEDOT, it must be present in the comma-separated
 // env.PROMO_CODES allow-list for the grant to apply — that single env var is the
-// on/off lever (see the PR notes: BLISSCARD must be added to PROMO_CODES).
+// on/off lever (BLISSINSERT is present in the live PROMO_CODES allow-list).
 //
 // `source` is the QR's ?c= campaign tag (e.g. "bliss-q3-2026"). It's logged
 // best-effort onto results.campaign for attribution and NEVER gates the unlock:
@@ -49,14 +49,14 @@ export async function onRequestPost({ request, env }) {
 
     // The grant runs through the existing promo allow-list: the begin code must be
     // configured in PROMO_CODES, exactly like WHITEDOT. Held server-side only.
-    const beginCode = (env.BEGIN_PROMO_CODE || "BLISSCARD").trim().toLowerCase();
+    const beginCode = (env.BEGIN_PROMO_CODE || "BLISSINSERT").trim().toLowerCase();
     const valid = (env.PROMO_CODES || "")
       .split(",")
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean);
 
     if (!beginCode || !valid.includes(beginCode)) {
-      // Not configured yet (BLISSCARD absent from PROMO_CODES). Answer ok:false so
+      // Not configured yet (BLISSINSERT absent from PROMO_CODES). Answer ok:false so
       // the page can proceed gracefully rather than dead-end — the assessment still
       // opens; only the persisted paid flags are missing until the env is set.
       return json({ ok: false, error: UNAVAILABLE_MSG }, 200);
